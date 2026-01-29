@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 
 class EvaluationResultsPage extends StatelessWidget {
   final String evaluationType;
@@ -17,115 +18,133 @@ class EvaluationResultsPage extends StatelessWidget {
   }
 
   String get _status {
-    if (_score >= 80) return 'Excellent';
-    if (_score >= 60) return 'Good';
-    if (_score >= 40) return 'Moderate';
-    return 'Needs Attention';
+    if (_score >= 75) return 'Excellent';
+    if (_score >= 50) return 'Good';
+    if (_score >= 25) return 'Moderate';
+    return 'Needs attention';
   }
 
   Color get _statusColor {
-    if (_score >= 80) return Colors.green;
-    if (_score >= 60) return Colors.lightGreen;
-    if (_score >= 40) return Colors.amber;
+    if (_score >= 75) return Colors.green;
+    if (_score >= 50) return Colors.lightGreen;
+    if (_score >= 25) return Colors.amber;
     return Colors.orange;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Results'),
-        automaticallyImplyLeading: false,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            // Score Circle
-            Container(
-              width: 180,
-              height: 180,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _statusColor.withOpacity(0.2),
-                border: Border.all(color: _statusColor, width: 8),
-              ),
-              child: Center(
+      body: SafeArea(
+        child: ResponsiveCenter(
+          maxWidth: 500,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Spacer(),
+
+              // Score display
+              Container(
+                width: 160,
+                height: 160,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _statusColor.withOpacity(0.1),
+                  border: Border.all(color: _statusColor, width: 6),
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       '$_score',
-                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
                         color: _statusColor,
                       ),
                     ),
                     Text(
                       _status,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleMedium?.copyWith(color: _statusColor),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: _statusColor,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
 
-            Text(
-              evaluationType == 'emotion'
-                  ? 'Emotional Well-being Score'
-                  : 'Stress Management Score',
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 32),
 
-            Text(
-              _getDescription(),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              Text(
+                evaluationType == 'emotion'
+                    ? 'Emotional well-being'
+                    : 'Stress management',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 8),
+              Text(
+                _getDescription(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
 
-            // Recommendations
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
+              const SizedBox(height: 32),
+
+              // Recommendations
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardTheme.color,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withOpacity(0.1),
+                  ),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         Icon(
-                          Icons.lightbulb,
+                          Icons.lightbulb_outline_rounded,
+                          size: 20,
                           color: Theme.of(context).colorScheme.primary,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Recommendations',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                          'Suggestions',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     ..._getRecommendations().map(
                       (rec) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: 10),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Icon(
-                              Icons.check_circle,
-                              size: 20,
+                              Icons.check_rounded,
+                              size: 18,
                               color: Theme.of(context).colorScheme.primary,
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(child: Text(rec)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                rec,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.copyWith(height: 1.4),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -133,64 +152,52 @@ class EvaluationResultsPage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
 
-            // Action Buttons
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                },
-                icon: const Icon(Icons.home),
-                label: const Text('Back to Home'),
+              const Spacer(flex: 2),
+
+              FilledButton(
+                onPressed: () =>
+                    Navigator.popUntil(context, (route) => route.isFirst),
+                child: const Text('Done'),
               ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  // Navigate to help/therapist page
-                },
-                icon: const Icon(Icons.support_agent),
-                label: const Text('Talk to a Professional'),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {},
+                child: const Text('Talk to a professional'),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
   }
 
   String _getDescription() {
-    if (_score >= 80) {
-      return 'Great job! Your ${evaluationType == 'emotion' ? 'emotional health' : 'stress levels'} appear to be well-managed. Keep up the good practices!';
+    if (_score >= 75) {
+      return 'Great job! Your ${evaluationType == 'emotion' ? 'emotional health' : 'stress levels'} appear well-managed.';
     }
-    if (_score >= 60) {
-      return 'You\'re doing well overall. There\'s room for improvement in some areas, but you\'re on the right track.';
+    if (_score >= 50) {
+      return 'You\'re doing well. There\'s room for improvement in some areas.';
     }
-    if (_score >= 40) {
-      return 'Your results suggest some ${evaluationType == 'emotion' ? 'emotional challenges' : 'stress factors'} that could benefit from attention and support.';
+    if (_score >= 25) {
+      return 'Consider giving some attention to your ${evaluationType == 'emotion' ? 'emotional well-being' : 'stress management'}.';
     }
-    return 'Your results indicate significant ${evaluationType == 'emotion' ? 'emotional distress' : 'stress levels'}. Consider reaching out to a professional for support.';
+    return 'Reaching out to a professional could be beneficial for support.';
   }
 
   List<String> _getRecommendations() {
     if (evaluationType == 'emotion') {
       return [
-        'Practice daily gratitude journaling',
-        'Maintain regular sleep schedule',
+        'Practice gratitude journaling daily',
+        'Maintain a regular sleep schedule',
         'Connect with friends and family',
-        'Consider mindfulness meditation',
       ];
     }
     return [
       'Take regular breaks during work',
       'Practice deep breathing exercises',
       'Set boundaries with work and personal time',
-      'Engage in physical activity',
     ];
   }
 }

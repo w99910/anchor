@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import '../main_scaffold.dart';
 
 class DownloadModelPage extends StatefulWidget {
@@ -8,23 +9,35 @@ class DownloadModelPage extends StatefulWidget {
   State<DownloadModelPage> createState() => _DownloadModelPageState();
 }
 
-class _DownloadModelPageState extends State<DownloadModelPage> {
+class _DownloadModelPageState extends State<DownloadModelPage>
+    with SingleTickerProviderStateMixin {
   double _progress = 0.0;
   bool _isDownloading = false;
   bool _isComplete = false;
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
 
   void _startDownload() {
-    setState(() {
-      _isDownloading = true;
-    });
+    setState(() => _isDownloading = true);
 
-    // Simulate download progress
     Future.doWhile(() async {
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 50));
       if (!mounted) return false;
-      setState(() {
-        _progress += 0.02;
-      });
+      setState(() => _progress += 0.02);
       if (_progress >= 1.0) {
         setState(() {
           _isComplete = true;
@@ -39,7 +52,13 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
   void _continue() {
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const MainScaffold()),
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const MainScaffold(),
+        transitionDuration: const Duration(milliseconds: 500),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
       (route) => false,
     );
   }
@@ -47,74 +66,116 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Setup')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Icon(
-              _isComplete ? Icons.check_circle : Icons.cloud_download,
-              size: 80,
-              color: _isComplete
-                  ? Colors.green
-                  : Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 32),
-            Text(
-              _isComplete
-                  ? 'Setup Complete!'
-                  : _isDownloading
-                  ? 'Downloading AI Model...'
-                  : 'Download AI Model',
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _isComplete
-                  ? 'You\'re all set to start your journey'
-                  : 'The AI model enables offline chat and personalized responses',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+      body: SafeArea(
+        child: ResponsiveCenter(
+          maxWidth: 500,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Spacer(flex: 2),
+
+              AnimatedBuilder(
+                animation: _pulseController,
+                builder: (context, child) {
+                  final scale = _isDownloading
+                      ? 1.0 + (_pulseController.value * 0.05)
+                      : 1.0;
+                  return Transform.scale(
+                    scale: scale,
+                    child: Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: _isComplete
+                            ? Colors.green.withOpacity(0.1)
+                            : Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      child: Icon(
+                        _isComplete
+                            ? Icons.check_rounded
+                            : Icons.auto_awesome_rounded,
+                        size: 64,
+                        color: _isComplete
+                            ? Colors.green
+                            : Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  );
+                },
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 48),
-            if (_isDownloading || _isComplete) ...[
-              LinearProgressIndicator(
-                value: _progress,
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest,
-              ),
-              const SizedBox(height: 16),
+
+              const SizedBox(height: 40),
+
               Text(
-                '${(_progress * 100).toInt()}%',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
+                _isComplete
+                    ? 'All set!'
+                    : _isDownloading
+                    ? 'Setting up...'
+                    : 'One last step',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ],
-            const SizedBox(height: 32),
-            if (!_isDownloading && !_isComplete)
-              FilledButton(
-                onPressed: _startDownload,
-                child: const Text('Download Now'),
-              ),
-            if (_isComplete)
-              FilledButton(
-                onPressed: _continue,
-                child: const Text('Start Using Anchor'),
-              ),
-            if (!_isDownloading && !_isComplete) ...[
               const SizedBox(height: 12),
-              TextButton(
-                onPressed: _continue,
-                child: const Text('Skip for now'),
+              Text(
+                _isComplete
+                    ? 'You\'re ready to start your journey'
+                    : 'Download the AI model for offline chat and personalized responses',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
               ),
+
+              const SizedBox(height: 48),
+
+              if (_isDownloading || _isComplete) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: _progress,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
+                    minHeight: 8,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '${(_progress * 100).toInt()}%',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+
+              const Spacer(flex: 3),
+
+              if (!_isDownloading && !_isComplete) ...[
+                FilledButton(
+                  onPressed: _startDownload,
+                  child: const Text('Download'),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: _continue,
+                  child: const Text('Skip for now'),
+                ),
+              ],
+
+              if (_isComplete)
+                FilledButton(
+                  onPressed: _continue,
+                  child: const Text('Get Started'),
+                ),
+
+              const SizedBox(height: 32),
             ],
-          ],
+          ),
         ),
       ),
     );

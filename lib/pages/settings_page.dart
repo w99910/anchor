@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/responsive.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -11,333 +12,111 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _darkMode = false;
   bool _notifications = true;
   bool _appLock = false;
-  String _language = 'English';
-  String _aiMode = 'balanced';
 
   @override
   Widget build(BuildContext context) {
+    final padding = Responsive.pagePadding(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings'), centerTitle: true),
-      body: ListView(
-        children: [
-          // Security Section
-          _SectionHeader(title: 'Security'),
-          SwitchListTile(
-            title: const Text('App Lock'),
-            subtitle: const Text('Require password to open app'),
-            secondary: const Icon(Icons.lock),
-            value: _appLock,
-            onChanged: (value) {
-              setState(() {
-                _appLock = value;
-              });
-              if (value) {
-                _showSetPasswordDialog();
-              }
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.password),
-            title: const Text('Change Password'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => _showChangePasswordDialog(),
-          ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: padding,
+          child: ResponsiveCenter(
+            maxWidth: 600,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Text(
+                  'Settings',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 32),
 
-          // Appearance Section
-          _SectionHeader(title: 'Appearance'),
-          SwitchListTile(
-            title: const Text('Dark Mode'),
-            subtitle: const Text('Use dark theme'),
-            secondary: const Icon(Icons.dark_mode),
-            value: _darkMode,
-            onChanged: (value) {
-              setState(() {
-                _darkMode = value;
-              });
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Language'),
-            subtitle: Text(_language),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => _showLanguageDialog(),
-          ),
+                _SectionTitle('Appearance'),
+                _ToggleTile(
+                  icon: Icons.dark_mode_outlined,
+                  title: 'Dark mode',
+                  value: _darkMode,
+                  onChanged: (v) => setState(() => _darkMode = v),
+                ),
 
-          // AI Settings Section
-          _SectionHeader(title: 'AI Settings'),
-          ListTile(
-            leading: const Icon(Icons.psychology),
-            title: const Text('AI Mode'),
-            subtitle: Text(_aiMode[0].toUpperCase() + _aiMode.substring(1)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => _showAiModeDialog(),
-          ),
+                const SizedBox(height: 24),
+                _SectionTitle('Security'),
+                _ToggleTile(
+                  icon: Icons.lock_outline_rounded,
+                  title: 'App lock',
+                  value: _appLock,
+                  onChanged: (v) => setState(() => _appLock = v),
+                ),
 
-          // Notifications Section
-          _SectionHeader(title: 'Notifications'),
-          SwitchListTile(
-            title: const Text('Push Notifications'),
-            subtitle: const Text('Receive reminders and updates'),
-            secondary: const Icon(Icons.notifications),
-            value: _notifications,
-            onChanged: (value) {
-              setState(() {
-                _notifications = value;
-              });
-            },
-          ),
+                const SizedBox(height: 24),
+                _SectionTitle('Notifications'),
+                _ToggleTile(
+                  icon: Icons.notifications_outlined,
+                  title: 'Push notifications',
+                  value: _notifications,
+                  onChanged: (v) => setState(() => _notifications = v),
+                ),
 
-          // Data Section
-          _SectionHeader(title: 'Data & Privacy'),
-          ListTile(
-            leading: const Icon(Icons.delete_outline),
-            title: const Text('Clear History'),
-            subtitle: const Text('Delete all chat and journal data'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => _showClearHistoryDialog(),
-          ),
-          ListTile(
-            leading: const Icon(Icons.download),
-            title: const Text('Export Data'),
-            subtitle: const Text('Download your data'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip),
-            title: const Text('Privacy Policy'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {},
-          ),
+                const SizedBox(height: 24),
+                _SectionTitle('Data'),
+                _ActionTile(
+                  icon: Icons.delete_outline_rounded,
+                  title: 'Clear history',
+                  onTap: () => _showClearDialog(context),
+                ),
+                _ActionTile(
+                  icon: Icons.download_outlined,
+                  title: 'Export data',
+                  onTap: () {},
+                ),
 
-          // About Section
-          _SectionHeader(title: 'About'),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('About Anchor'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => _showAboutDialog(),
-          ),
-          ListTile(
-            leading: const Icon(Icons.help),
-            title: const Text('Help & Support'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.star),
-            title: const Text('Rate the App'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {},
-          ),
+                const SizedBox(height: 24),
+                _SectionTitle('About'),
+                _ActionTile(
+                  icon: Icons.info_outline_rounded,
+                  title: 'About Anchor',
+                  onTap: () => _showAbout(context),
+                ),
+                _ActionTile(
+                  icon: Icons.privacy_tip_outlined,
+                  title: 'Privacy policy',
+                  onTap: () {},
+                ),
+                _ActionTile(
+                  icon: Icons.help_outline_rounded,
+                  title: 'Help & support',
+                  onTap: () {},
+                ),
 
-          const SizedBox(height: 24),
-
-          // Logout
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: OutlinedButton(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error,
-              ),
-              child: const Text('Log Out'),
+                const SizedBox(height: 32),
+                Center(
+                  child: Text(
+                    'Version 1.0.0',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          // Version
-          Center(
-            child: Text(
-              'Version 1.0.0',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
-  }
-
-  void _showSetPasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Set App Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Confirm Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _appLock = false;
-              });
-            },
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Set Password'),
-          ),
-        ],
       ),
     );
   }
 
-  void _showChangePasswordDialog() {
+  void _showClearDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Change Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Current Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'New Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Confirm New Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Change'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showLanguageDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Select Language'),
-        children:
-            [
-              'English',
-              'Spanish',
-              'French',
-              'German',
-              'Chinese',
-              'Japanese',
-            ].map((lang) {
-              return RadioListTile<String>(
-                title: Text(lang),
-                value: lang,
-                groupValue: _language,
-                onChanged: (value) {
-                  setState(() {
-                    _language = value!;
-                  });
-                  Navigator.pop(context);
-                },
-              );
-            }).toList(),
-      ),
-    );
-  }
-
-  void _showAiModeDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('AI Mode'),
-        children: [
-          RadioListTile<String>(
-            title: const Text('Concise'),
-            subtitle: const Text('Short, direct responses'),
-            value: 'concise',
-            groupValue: _aiMode,
-            onChanged: (value) {
-              setState(() {
-                _aiMode = value!;
-              });
-              Navigator.pop(context);
-            },
-          ),
-          RadioListTile<String>(
-            title: const Text('Balanced'),
-            subtitle: const Text('Moderate detail in responses'),
-            value: 'balanced',
-            groupValue: _aiMode,
-            onChanged: (value) {
-              setState(() {
-                _aiMode = value!;
-              });
-              Navigator.pop(context);
-            },
-          ),
-          RadioListTile<String>(
-            title: const Text('Detailed'),
-            subtitle: const Text('Comprehensive, thorough responses'),
-            value: 'detailed',
-            groupValue: _aiMode,
-            onChanged: (value) {
-              setState(() {
-                _aiMode = value!;
-              });
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showClearHistoryDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear History'),
+        title: const Text('Clear history?'),
         content: const Text(
-          'This will permanently delete all your chat history and journal entries. This action cannot be undone.',
+          'This will delete all your data. This cannot be undone.',
         ),
         actions: [
           TextButton(
@@ -354,46 +133,120 @@ class _SettingsPageState extends State<SettingsPage> {
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Clear All'),
+            child: const Text('Clear'),
           ),
         ],
       ),
     );
   }
 
-  void _showAboutDialog() {
+  void _showAbout(BuildContext context) {
     showAboutDialog(
       context: context,
       applicationName: 'Anchor',
       applicationVersion: '1.0.0',
-      applicationIcon: Icon(
-        Icons.anchor,
-        size: 48,
-        color: Theme.of(context).colorScheme.primary,
-      ),
-      children: [
-        const Text(
-          'Anchor is your mental wellness companion, providing journaling, AI chat, mental state evaluation, and professional support all in one app.',
+      applicationIcon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(12),
         ),
-      ],
+        child: Icon(
+          Icons.anchor_rounded,
+          size: 32,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+      children: const [Text('Your mental wellness companion.')],
     );
   }
 }
 
-class _SectionHeader extends StatelessWidget {
+class _SectionTitle extends StatelessWidget {
   final String title;
 
-  const _SectionHeader({required this.title});
+  const _SectionTitle(this.title);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+class _ToggleTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _ToggleTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Icon(
+          icon,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        title: Text(title),
+        trailing: Switch(value: value, onChanged: onChanged),
+      ),
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Icon(
+          icon,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        title: Text(title),
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 16,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
     );

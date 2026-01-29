@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'payment_page.dart';
 
 class CheckoutPage extends StatelessWidget {
@@ -17,79 +18,78 @@ class CheckoutPage extends StatelessWidget {
     required this.urgency,
   });
 
-  int get _urgencyFee {
-    switch (urgency) {
-      case 'urgent':
-        return 20;
-      case 'emergency':
-        return 50;
-      default:
-        return 0;
-    }
-  }
-
-  int get _totalPrice => price + _urgencyFee;
+  int get _urgencyFee => urgency == 'urgent' ? 20 : 0;
+  int get _total => price + _urgencyFee;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_rounded),
+        ),
+        title: const Text('Checkout'),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Booking Summary',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
+        padding: Responsive.pagePadding(context),
+        child: ResponsiveCenter(
+          maxWidth: 500,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Summary',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
 
-            // Summary Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardTheme.color,
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 child: Column(
                   children: [
                     _SummaryRow(label: 'Therapist', value: therapistName),
-                    const Divider(),
                     _SummaryRow(
                       label: 'Date',
                       value: '${date.day}/${date.month}/${date.year}',
                     ),
-                    const Divider(),
                     _SummaryRow(label: 'Time', value: time),
-                    const Divider(),
                     _SummaryRow(
-                      label: 'Urgency',
-                      value: urgency[0].toUpperCase() + urgency.substring(1),
+                      label: 'Type',
+                      value: urgency == 'urgent' ? 'Urgent' : 'Normal',
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
 
-            // Price Breakdown
-            Text(
-              'Price Breakdown',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+              const SizedBox(height: 24),
+              Text(
+                'Price',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardTheme.color,
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 child: Column(
                   children: [
-                    _PriceRow(label: 'Session Fee', amount: price),
-                    if (_urgencyFee > 0) ...[
-                      const SizedBox(height: 8),
-                      _PriceRow(label: 'Urgency Fee', amount: _urgencyFee),
-                    ],
+                    _PriceRow(label: 'Session', amount: price),
+                    if (_urgencyFee > 0)
+                      _PriceRow(label: 'Urgency fee', amount: _urgencyFee),
                     const Divider(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -97,13 +97,13 @@ class CheckoutPage extends StatelessWidget {
                         Text(
                           'Total',
                           style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         Text(
-                          '\$$_totalPrice',
+                          '\$$_total',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 color: Theme.of(context).colorScheme.primary,
                               ),
                         ),
@@ -112,24 +112,25 @@ class CheckoutPage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
 
-            // Cancellation Policy
-            Card(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 child: Row(
                   children: [
                     Icon(
-                      Icons.info_outline,
+                      Icons.info_outline_rounded,
+                      size: 18,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Free cancellation up to 24 hours before your session.',
+                        'Free cancellation up to 24 hours before',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -138,27 +139,24 @@ class CheckoutPage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
 
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
+              const SizedBox(height: 40),
+              FilledButton(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => PaymentPage(
-                        amount: _totalPrice,
+                        amount: _total,
                         therapistName: therapistName,
                       ),
                     ),
                   );
                 },
-                child: Text('Pay \$$_totalPrice'),
+                child: Text('Pay \$$_total'),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -174,7 +172,7 @@ class _SummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -204,9 +202,12 @@ class _PriceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [Text(label), Text('\$$amount')],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [Text(label), Text('\$$amount')],
+      ),
     );
   }
 }

@@ -1,212 +1,231 @@
 import 'package:flutter/material.dart';
+import '../utils/responsive.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final padding = Responsive.pagePadding(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Home'), centerTitle: true),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: padding,
+          child: ResponsiveCenter(
+            maxWidth: 600,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                _buildGreeting(context),
+                const SizedBox(height: 32),
+                _buildQuickMood(context),
+                const SizedBox(height: 32),
+                _buildSectionTitle(context, 'This Week'),
+                const SizedBox(height: 16),
+                _buildStats(context),
+                const SizedBox(height: 32),
+                _buildStreakCard(context),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGreeting(BuildContext context) {
+    final hour = DateTime.now().hour;
+    String greeting;
+    if (hour < 12) {
+      greeting = 'Good morning';
+    } else if (hour < 17) {
+      greeting = 'Good afternoon';
+    } else {
+      greeting = 'Good evening';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          greeting,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'How are you today?',
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickMood(BuildContext context) {
+    final moods = [
+      ('😊', 'Great'),
+      ('🙂', 'Good'),
+      ('😐', 'Okay'),
+      ('😔', 'Low'),
+      ('😢', 'Sad'),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: moods.map((mood) {
+            return _MoodButton(emoji: mood.$1, label: mood.$2);
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
+  Widget _buildStats(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
           children: [
-            // Greeting Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer,
-                      child: Icon(
-                        Icons.person,
-                        size: 30,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Welcome back!',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          Text(
-                            'How are you feeling today?',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+            SizedBox(
+              width: (constraints.maxWidth - 12) / 2,
+              child: _StatTile(
+                value: '7.2',
+                label: 'Avg. Mood',
+                trend: '+0.5',
+                isPositive: true,
               ),
             ),
-            const SizedBox(height: 24),
-
-            // Mental State Overview
-            Text(
-              'Mental State Overview',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            SizedBox(
+              width: (constraints.maxWidth - 12) / 2,
+              child: _StatTile(
+                value: '4',
+                label: 'Journal Entries',
+                trend: '+2',
+                isPositive: true,
+              ),
             ),
-            const SizedBox(height: 12),
-
-            // Time Period Selector
-            const _TimePeriodSelector(),
-            const SizedBox(height: 16),
-
-            // Stats Cards
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    title: 'Mood Score',
-                    value: '7.2',
-                    subtitle: 'Average',
-                    icon: Icons.sentiment_satisfied_alt,
-                    color: Colors.amber,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    title: 'Stress Level',
-                    value: 'Low',
-                    subtitle: 'Great!',
-                    icon: Icons.spa,
-                    color: Colors.green,
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: (constraints.maxWidth - 12) / 2,
+              child: _StatTile(
+                value: '3',
+                label: 'Chat Sessions',
+                trend: '0',
+                isPositive: true,
+              ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    title: 'Journal Entries',
-                    value: '12',
-                    subtitle: 'This period',
-                    icon: Icons.book,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    title: 'Chat Sessions',
-                    value: '5',
-                    subtitle: 'This period',
-                    icon: Icons.chat,
-                    color: Colors.purple,
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: (constraints.maxWidth - 12) / 2,
+              child: _StatTile(
+                value: 'Low',
+                label: 'Stress Level',
+                trend: 'Improved',
+                isPositive: true,
+              ),
             ),
-            const SizedBox(height: 24),
-
-            // Streak Section
-            Text(
-              'Journaling Streak',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            const _StreakCard(),
           ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStreakCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.primary.withOpacity(0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text('🔥', style: TextStyle(fontSize: 28)),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '7 day streak!',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Keep the momentum going',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _TimePeriodSelector extends StatefulWidget {
-  const _TimePeriodSelector();
+class _MoodButton extends StatelessWidget {
+  final String emoji;
+  final String label;
 
-  @override
-  State<_TimePeriodSelector> createState() => _TimePeriodSelectorState();
-}
-
-class _TimePeriodSelectorState extends State<_TimePeriodSelector> {
-  int _selectedIndex = 0;
-  final List<String> _periods = ['Week', 'Month', 'Quarter'];
+  const _MoodButton({required this.emoji, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return SegmentedButton<int>(
-      segments: _periods.asMap().entries.map((entry) {
-        return ButtonSegment(value: entry.key, label: Text(entry.value));
-      }).toList(),
-      selected: {_selectedIndex},
-      onSelectionChanged: (selection) {
-        setState(() {
-          _selectedIndex = selection.first;
-        });
-      },
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-
-  const _StatCard({
-    required this.title,
-    required this.value,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    return InkWell(
+      onTap: () {},
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(icon, color: color, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(emoji, style: const TextStyle(fontSize: 28)),
             ),
             const SizedBox(height: 8),
             Text(
-              value,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            Text(
-              subtitle,
+              label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -218,53 +237,64 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _StreakCard extends StatelessWidget {
-  const _StreakCard();
+class _StatTile extends StatelessWidget {
+  final String value;
+  final String label;
+  final String trend;
+  final bool isPositive;
+
+  const _StatTile({
+    required this.value,
+    required this.label,
+    required this.trend,
+    required this.isPositive,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Theme.of(context).colorScheme.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.local_fire_department,
-                color: Theme.of(context).colorScheme.onPrimary,
-                size: 32,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '7 Day Streak!',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  Text(
-                    'Keep it up! You\'re doing great.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.emoji_events, color: Colors.amber[700], size: 40),
-          ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isPositive
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              trend,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: isPositive ? Colors.green[700] : Colors.red[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

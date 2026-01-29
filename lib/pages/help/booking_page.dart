@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'checkout_page.dart';
 
 class BookingPage extends StatefulWidget {
@@ -20,35 +21,20 @@ class _BookingPageState extends State<BookingPage> {
   String? _selectedTime;
   String _urgency = 'normal';
 
-  final List<String> _availableTimes = [
+  final List<String> _times = [
     '9:00 AM',
     '10:00 AM',
     '11:00 AM',
     '2:00 PM',
     '3:00 PM',
     '4:00 PM',
-    '5:00 PM',
   ];
-
-  void _selectDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 30)),
-    );
-    if (date != null) {
-      setState(() {
-        _selectedDate = date;
-      });
-    }
-  }
 
   void _continue() {
     if (_selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a time slot')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a time')));
       return;
     }
 
@@ -69,175 +55,239 @@ class _BookingPageState extends State<BookingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Book Session')),
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_rounded),
+        ),
+        title: const Text('Book session'),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Therapist Info Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer,
-                      child: Text(
-                        widget.therapistName
-                            .split(' ')
-                            .map((e) => e[0])
-                            .take(2)
-                            .join(),
-                        style: TextStyle(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
+        padding: Responsive.pagePadding(context),
+        child: ResponsiveCenter(
+          maxWidth: 500,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Therapist
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
+                    child: Text(
+                      widget.therapistName
+                          .split(' ')
+                          .map((e) => e[0])
+                          .take(2)
+                          .join(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.therapistName,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.therapistName,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            '\$${widget.price}/session',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                          ),
-                        ],
+                      Text(
+                        '\$${widget.price}/session',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Date Selection
-            Text(
-              'Select Date',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            InkWell(
-              onTap: _selectDate,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.outline,
+                    ],
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      color: Theme.of(context).colorScheme.primary,
+                ],
+              ),
+
+              const SizedBox(height: 32),
+              _buildLabel(context, 'Date'),
+              const SizedBox(height: 10),
+              _DateSelector(
+                selectedDate: _selectedDate,
+                onChanged: (date) => setState(() => _selectedDate = date),
+              ),
+
+              const SizedBox(height: 24),
+              _buildLabel(context, 'Time'),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _times.map((time) {
+                  final isSelected = _selectedTime == time;
+                  return ChoiceChip(
+                    label: Text(time),
+                    selected: isSelected,
+                    onSelected: (_) => setState(() => _selectedTime = time),
+                    showCheckmark: false,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: 24),
+              _buildLabel(context, 'Urgency'),
+              const SizedBox(height: 10),
+              _UrgencyOption(
+                title: 'Normal',
+                subtitle: 'Regular scheduling',
+                value: 'normal',
+                groupValue: _urgency,
+                onChanged: (v) => setState(() => _urgency = v),
+              ),
+              _UrgencyOption(
+                title: 'Urgent',
+                subtitle: 'Priority (+\$20)',
+                value: 'urgent',
+                groupValue: _urgency,
+                onChanged: (v) => setState(() => _urgency = v),
+              ),
+
+              const SizedBox(height: 40),
+              FilledButton(onPressed: _continue, child: const Text('Continue')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(BuildContext context, String text) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+}
+
+class _DateSelector extends StatelessWidget {
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onChanged;
+
+  const _DateSelector({required this.selectedDate, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        final date = await showDatePicker(
+          context: context,
+          initialDate: selectedDate,
+          firstDate: DateTime.now(),
+          lastDate: DateTime.now().add(const Duration(days: 30)),
+        );
+        if (date != null) onChanged(date);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Theme.of(context).inputDecorationTheme.fillColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.calendar_today_rounded,
+              size: 20,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const Spacer(),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UrgencyOption extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String value;
+  final String groupValue;
+  final ValueChanged<String> onChanged;
+
+  const _UrgencyOption({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = value == groupValue;
+
+    return GestureDetector(
+      onTap: () => onChanged(value),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
+              : Theme.of(context).cardTheme.color,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
                     ),
-                    const Spacer(),
-                    const Icon(Icons.arrow_drop_down),
-                  ],
-                ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-
-            // Time Selection
-            Text(
-              'Select Time',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _availableTimes.map((time) {
-                final isSelected = _selectedTime == time;
-                return ChoiceChip(
-                  label: Text(time),
-                  selected: isSelected,
-                  onSelected: (_) {
-                    setState(() {
-                      _selectedTime = time;
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
-
-            // Urgency Selection
-            Text(
-              'Urgency Level',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            RadioListTile<String>(
-              title: const Text('Normal'),
-              subtitle: const Text('Regular scheduling'),
-              value: 'normal',
-              groupValue: _urgency,
-              onChanged: (value) {
-                setState(() {
-                  _urgency = value!;
-                });
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('Urgent'),
-              subtitle: const Text('Priority scheduling (+\$20)'),
-              value: 'urgent',
-              groupValue: _urgency,
-              onChanged: (value) {
-                setState(() {
-                  _urgency = value!;
-                });
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('Emergency'),
-              subtitle: const Text('Immediate attention (+\$50)'),
-              value: 'emergency',
-              groupValue: _urgency,
-              onChanged: (value) {
-                setState(() {
-                  _urgency = value!;
-                });
-              },
-            ),
-            const SizedBox(height: 32),
-
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _continue,
-                child: const Text('Continue to Checkout'),
-              ),
+            Radio<String>(
+              value: value,
+              groupValue: groupValue,
+              onChanged: (v) => onChanged(v!),
             ),
           ],
         ),

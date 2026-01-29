@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'evaluation_questions_page.dart';
 
 class MentalStatePage extends StatelessWidget {
@@ -6,152 +7,158 @@ class MentalStatePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final padding = Responsive.pagePadding(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mental State Evaluation'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Choose an Evaluation',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Select the type of assessment you\'d like to take',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Emotion Test
-            _EvaluationCard(
-              title: 'Emotion Assessment',
-              description:
-                  'Understand your current emotional state and identify patterns',
-              icon: Icons.favorite,
-              color: Colors.pink,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const EvaluationQuestionsPage(
-                      evaluationType: 'emotion',
-                    ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: padding,
+          child: ResponsiveCenter(
+            maxWidth: 600,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Text(
+                  'Insights',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Stress Test
-            _EvaluationCard(
-              title: 'Stress Assessment',
-              description:
-                  'Measure your stress levels and get personalized insights',
-              icon: Icons.bolt,
-              color: Colors.orange,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const EvaluationQuestionsPage(evaluationType: 'stress'),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Track and understand your mental wellness',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 32),
+                ),
+                const SizedBox(height: 32),
 
-            // Past Results Section
-            Text(
-              'Past Evaluations',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
+                Text(
+                  'Take an assessment',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 12),
 
-            _PastResultCard(
-              type: 'Emotion',
-              date: 'Jan 25, 2026',
-              score: 72,
-              status: 'Good',
-              color: Colors.green,
+                _AssessmentCard(
+                  emoji: '❤️',
+                  title: 'Emotional check-in',
+                  subtitle: 'Understand your current emotional state',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EvaluationQuestionsPage(
+                          evaluationType: 'emotion',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                _AssessmentCard(
+                  emoji: '⚡',
+                  title: 'Stress assessment',
+                  subtitle: 'Measure your stress levels',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EvaluationQuestionsPage(
+                          evaluationType: 'stress',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 32),
+                Text(
+                  'Recent results',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                _ResultCard(
+                  type: 'Emotional',
+                  score: 72,
+                  date: 'Jan 25',
+                  status: 'Good',
+                ),
+                _ResultCard(
+                  type: 'Stress',
+                  score: 45,
+                  date: 'Jan 20',
+                  status: 'Moderate',
+                ),
+                _ResultCard(
+                  type: 'Emotional',
+                  score: 85,
+                  date: 'Jan 15',
+                  status: 'Excellent',
+                ),
+              ],
             ),
-            _PastResultCard(
-              type: 'Stress',
-              date: 'Jan 20, 2026',
-              score: 45,
-              status: 'Moderate',
-              color: Colors.amber,
-            ),
-            _PastResultCard(
-              type: 'Emotion',
-              date: 'Jan 15, 2026',
-              score: 85,
-              status: 'Excellent',
-              color: Colors.green,
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _EvaluationCard extends StatelessWidget {
+class _AssessmentCard extends StatelessWidget {
+  final String emoji;
   final String title;
-  final String description;
-  final IconData icon;
-  final Color color;
+  final String subtitle;
   final VoidCallback onTap;
 
-  const _EvaluationCard({
+  const _AssessmentCard({
+    required this.emoji,
     required this.title,
-    required this.description,
-    required this.icon,
-    required this.color,
+    required this.subtitle,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Material(
+      color: Theme.of(context).cardTheme.color,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: color, size: 32),
+                child: Text(emoji, style: const TextStyle(fontSize: 24)),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
-                      description,
+                      subtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -160,7 +167,7 @@ class _EvaluationCard extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.arrow_forward_ios,
+                Icons.arrow_forward_ios_rounded,
                 size: 16,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -172,46 +179,88 @@ class _EvaluationCard extends StatelessWidget {
   }
 }
 
-class _PastResultCard extends StatelessWidget {
+class _ResultCard extends StatelessWidget {
   final String type;
-  final String date;
   final int score;
+  final String date;
   final String status;
-  final Color color;
 
-  const _PastResultCard({
+  const _ResultCard({
     required this.type,
-    required this.date,
     required this.score,
+    required this.date,
     required this.status,
-    required this.color,
   });
+
+  Color get _statusColor {
+    if (score >= 70) return Colors.green;
+    if (score >= 50) return Colors.amber;
+    return Colors.orange;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.2),
-          child: Text(
-            '$score',
-            style: TextStyle(color: color, fontWeight: FontWeight.bold),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: _statusColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                '$score',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: _statusColor,
+                ),
+              ),
+            ),
           ),
-        ),
-        title: Text('$type Assessment'),
-        subtitle: Text(date),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(16),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$type check-in',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  date,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Text(
-            status,
-            style: TextStyle(color: color, fontWeight: FontWeight.w500),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: _statusColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              status,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: _statusColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

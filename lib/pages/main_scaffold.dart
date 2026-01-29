@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/responsive.dart';
 import 'home_page.dart';
 import 'journaling/journaling_page.dart';
 import 'ai_chat_page.dart';
@@ -25,50 +26,82 @@ class _MainScaffoldState extends State<MainScaffold> {
     SettingsPage(),
   ];
 
+  final List<_NavItem> _navItems = const [
+    _NavItem(Icons.home_outlined, Icons.home_rounded, 'Home'),
+    _NavItem(Icons.edit_note_outlined, Icons.edit_note_rounded, 'Journal'),
+    _NavItem(
+      Icons.chat_bubble_outline_rounded,
+      Icons.chat_bubble_rounded,
+      'Chat',
+    ),
+    _NavItem(Icons.insights_outlined, Icons.insights_rounded, 'Insights'),
+    _NavItem(Icons.support_outlined, Icons.support_rounded, 'Help'),
+    _NavItem(Icons.settings_outlined, Icons.settings_rounded, 'Settings'),
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final isWide =
+        Responsive.isTablet(context) || Responsive.isDesktop(context);
+
+    if (isWide) {
+      return Scaffold(
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (index) =>
+                  setState(() => _currentIndex = index),
+              labelType: NavigationRailLabelType.all,
+              destinations: _navItems.map((item) {
+                return NavigationRailDestination(
+                  icon: Icon(item.icon),
+                  selectedIcon: Icon(item.selectedIcon),
+                  label: Text(item.label),
+                );
+              }).toList(),
+            ),
+            const VerticalDivider(width: 1, thickness: 1),
+            Expanded(child: _pages[_currentIndex]),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: _pages[_currentIndex],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.book_outlined),
-            selectedIcon: Icon(Icons.book),
-            label: 'Journal',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.chat_outlined),
-            selectedIcon: Icon(Icons.chat),
-            label: 'AI Chat',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.psychology_outlined),
-            selectedIcon: Icon(Icons.psychology),
-            label: 'Evaluate',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.support_agent_outlined),
-            selectedIcon: Icon(Icons.support_agent),
-            label: 'Help',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) =>
+              setState(() => _currentIndex = index),
+          destinations: _navItems.map((item) {
+            return NavigationDestination(
+              icon: Icon(item.icon),
+              selectedIcon: Icon(item.selectedIcon),
+              label: item.label,
+            );
+          }).toList(),
+        ),
       ),
     );
   }
+}
+
+class _NavItem {
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+
+  const _NavItem(this.icon, this.selectedIcon, this.label);
 }

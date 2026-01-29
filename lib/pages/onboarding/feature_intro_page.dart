@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'user_info_page.dart';
 
 class FeatureIntroPage extends StatefulWidget {
@@ -12,18 +13,23 @@ class _FeatureIntroPageState extends State<FeatureIntroPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<_FeatureItem> _features = [
-    _FeatureItem(
-      icon: Icons.book,
-      title: 'Journaling',
+  final List<_Feature> _features = [
+    _Feature(
+      emoji: '📝',
+      title: 'Journal your thoughts',
       description:
-          'Express your thoughts and feelings through daily journaling. Track your emotional journey over time.',
+          'Express yourself freely and track your emotional journey over time.',
     ),
-    _FeatureItem(
-      icon: Icons.chat_bubble,
-      title: 'AI Chat',
+    _Feature(
+      emoji: '💬',
+      title: 'Talk to AI companion',
+      description: 'Chat anytime with a supportive AI friend or therapist.',
+    ),
+    _Feature(
+      emoji: '📊',
+      title: 'Track your progress',
       description:
-          'Talk to our AI companion anytime. Choose between a friendly chat or therapeutic conversation mode.',
+          'Understand your mental patterns with insights and evaluations.',
     ),
   ];
 
@@ -33,11 +39,11 @@ class _FeatureIntroPageState extends State<FeatureIntroPage> {
     super.dispose();
   }
 
-  void _nextPage() {
+  void _next() {
     if (_currentPage < _features.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
       );
     } else {
       Navigator.pushReplacement(
@@ -47,100 +53,150 @@ class _FeatureIntroPageState extends State<FeatureIntroPage> {
     }
   }
 
+  void _skip() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const UserInfoPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                itemCount: _features.length,
-                itemBuilder: (context, index) {
-                  final feature = _features[index];
-                  return Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          feature.icon,
-                          size: 120,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(height: 48),
-                        Text(
-                          feature.title,
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          feature.description,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: List.generate(
-                      _features.length,
-                      (index) => Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _currentPage == index
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.3),
-                        ),
-                      ),
+        child: ResponsiveCenter(
+          maxWidth: 500,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _skip,
+                  child: Text(
+                    'Skip',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  FilledButton(
-                    onPressed: _nextPage,
-                    child: Text(
-                      _currentPage < _features.length - 1
-                          ? 'Next'
-                          : 'Get Started',
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
+                  itemCount: _features.length,
+                  itemBuilder: (context, index) {
+                    return _FeaturePage(feature: _features[index]);
+                  },
+                ),
+              ),
+              const SizedBox(height: 32),
+              _PageIndicator(count: _features.length, current: _currentPage),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _next,
+                  child: Text(
+                    _currentPage < _features.length - 1
+                        ? 'Next'
+                        : 'Get Started',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _FeatureItem {
-  final IconData icon;
+class _Feature {
+  final String emoji;
   final String title;
   final String description;
 
-  _FeatureItem({
-    required this.icon,
+  _Feature({
+    required this.emoji,
     required this.title,
     required this.description,
   });
+}
+
+class _FeaturePage extends StatelessWidget {
+  final _Feature feature;
+
+  const _FeaturePage({required this.feature});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(32),
+            ),
+            child: Text(feature.emoji, style: const TextStyle(fontSize: 72)),
+          ),
+          const SizedBox(height: 48),
+          Text(
+            feature.title,
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            feature.description,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PageIndicator extends StatelessWidget {
+  final int count;
+  final int current;
+
+  const _PageIndicator({required this.count, required this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (index) {
+        final isActive = index == current;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: isActive ? 24 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: isActive
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(4),
+          ),
+        );
+      }),
+    );
+  }
 }
