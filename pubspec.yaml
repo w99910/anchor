@@ -36,6 +36,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.2.2
 
+  # Web3 / Wallet integration (Reown AppKit - formerly WalletConnect)
+  reown_appkit: ^1.6.0
+  url_launcher: ^6.3.1
+  http: ^1.2.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

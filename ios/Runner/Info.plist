@@ -45,5 +45,43 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- URL Schemes for deep linking back to the app -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>anchor</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.anchor.app</string>
+		</dict>
+	</array>
+	<!-- Wallet detection schemes -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<!-- MetaMask -->
+		<string>metamask</string>
+		<!-- Trust Wallet -->
+		<string>trust</string>
+		<!-- Coinbase Wallet -->
+		<string>cbwallet</string>
+		<!-- Rainbow -->
+		<string>rainbow</string>
+		<!-- Safe -->
+		<string>safe</string>
+		<!-- Zerion -->
+		<string>zerion</string>
+		<!-- imToken -->
+		<string>imtokenv2</string>
+		<!-- Spot -->
+		<string>spot</string>
+		<!-- Omni -->
+		<string>omni</string>
+		<!-- Argent -->
+		<string>argent</string>
+		<!-- 1inch -->
+		<string>oneinch</string>
+	</array>
 </dict>
 </plist>
