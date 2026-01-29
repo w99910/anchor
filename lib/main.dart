@@ -1,15 +1,23 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/onboarding/feature_intro_page.dart';
 import 'pages/main_scaffold.dart';
+import 'pages/help/payment_page.dart';
+import 'services/appointment_service.dart';
 
 // Keys for shared preferences
 const String _keyOnboardingComplete = 'onboarding_complete';
 const String _keyThemeMode = 'theme_mode';
+const String _keyPendingPayment = 'pending_payment_data';
 
 // Global theme notifier
 final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.system);
+
+// Global appointment service
+final appointmentService = AppointmentService();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,8 +25,14 @@ void main() async {
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
 
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
   // Load saved theme
   await _loadTheme();
+
+  // Initialize appointment service
+  await appointmentService.initialize();
 
   runApp(const AnchorApp());
 }
@@ -43,6 +57,71 @@ Future<bool> isOnboardingComplete() async {
 Future<void> setOnboardingComplete() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool(_keyOnboardingComplete, true);
+}
+
+/// Pending payment data class
+class PendingPaymentData {
+  final int amount;
+  final String therapistName;
+  final DateTime date;
+  final String time;
+
+  PendingPaymentData({
+    required this.amount,
+    required this.therapistName,
+    required this.date,
+    required this.time,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'amount': amount,
+        'therapistName': therapistName,
+        'date': date.toIso8601String(),
+        'time': time,
+      };
+
+  factory PendingPaymentData.fromJson(Map<String, dynamic> json) =>
+      PendingPaymentData(
+        amount: json['amount'] as int,
+        therapistName: json['therapistName'] as String,
+        date: DateTime.parse(json['date'] as String),
+        time: json['time'] as String,
+      );
+}
+
+// Pending payment state management (for wallet redirect recovery)
+Future<void> savePendingPayment({
+  required int amount,
+  required String therapistName,
+  required DateTime date,
+  required String time,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final data = PendingPaymentData(
+    amount: amount,
+    therapistName: therapistName,
+    date: date,
+    time: time,
+  );
+  await prefs.setString(_keyPendingPayment, jsonEncode(data.toJson()));
+}
+
+Future<PendingPaymentData?> getPendingPayment() async {
+  final prefs = await SharedPreferences.getInstance();
+  final jsonString = prefs.getString(_keyPendingPayment);
+  if (jsonString != null) {
+    try {
+      return PendingPaymentData.fromJson(jsonDecode(jsonString));
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+Future<void> clearPendingPayment() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove(_keyPendingPayment);
 }
 
 class AnchorApp extends StatelessWidget {
@@ -204,23 +283,89 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _navigate() async {
     final onboardingComplete = await isOnboardingComplete();
+    final pendingPayment = await getPendingPayment();
+    final hasCompletedPayment = appointmentService.hasCompletedPaymentToShow;
 
     // Wait for animation
     await Future.delayed(const Duration(milliseconds: 2000));
 
     if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => onboardingComplete
-              ? const MainScaffold()
-              : const FeatureIntroPage(),
-          transitionDuration: const Duration(milliseconds: 500),
-          transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-      );
+      // Priority 1: Check if there's a completed payment to show success screen
+      if (hasCompletedPayment && onboardingComplete) {
+        final appointment = appointmentService.lastCompletedPayment!;
+        // Clear pending payment since payment is complete
+        await clearPendingPayment();
+        
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const MainScaffold(),
+            transitionDuration: const Duration(milliseconds: 500),
+            transitionsBuilder: (_, animation, __, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+        );
+        // Push success page on top after a short delay
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PaymentSuccessPage(
+                therapistName: appointment.therapistName,
+                paymentMethod: appointment.paymentMethod,
+                transactionHash: appointment.transactionHash,
+                date: appointment.date,
+                time: appointment.time,
+              ),
+            ),
+          );
+        }
+      }
+      // Priority 2: Check if there's a pending payment (wallet connection in progress)
+      else if (pendingPayment != null && onboardingComplete) {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const MainScaffold(),
+            transitionDuration: const Duration(milliseconds: 500),
+            transitionsBuilder: (_, animation, __, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+        );
+        // Push payment page on top after a short delay
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PaymentPage(
+                amount: pendingPayment.amount,
+                therapistName: pendingPayment.therapistName,
+                date: pendingPayment.date,
+                time: pendingPayment.time,
+              ),
+            ),
+          );
+        }
+      } 
+      // Priority 3: Normal navigation
+      else {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => onboardingComplete
+                ? const MainScaffold()
+                : const FeatureIntroPage(),
+            transitionDuration: const Duration(milliseconds: 500),
+            transitionsBuilder: (_, animation, __, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+        );
+      }
     }
   }
 

@@ -1,3 +1,5 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Web3 Configuration for Reown AppKit
 ///
 /// IMPORTANT: Before using the Web3 features, you need to:
@@ -9,15 +11,13 @@
 /// 2. (Optional) Get an RPC URL from Alchemy (https://www.alchemy.com/)
 ///    for better performance and reliability
 ///
-/// Replace the values below with your actual credentials
+/// Configure these values in your .env file
 
 class Web3Config {
   // Reown Project ID (required)
   // Get from: https://cloud.reown.com/
-  static const String projectId = String.fromEnvironment(
-    'REOWN_PROJECT_ID',
-    defaultValue: 'YOUR_PROJECT_ID_HERE',
-  );
+  static String get projectId =>
+      dotenv.env['REOWN_PROJECT_ID'] ?? 'YOUR_PROJECT_ID_HERE';
 
   // App metadata
   static const String appName = 'Anchor';
@@ -31,15 +31,14 @@ class Web3Config {
 
   // Recipient wallet address for payments (therapist/platform wallet)
   // This is where crypto payments will be sent
-  static const String recipientWalletAddress =
-      '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb';
+  // Configure in .env file: RECIPIENT_WALLET=0x...
+  static String get recipientWalletAddress =>
+      dotenv.env['RECIPIENT_WALLET'] ??
+      '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'; // Default test address
 
   // Alchemy RPC URLs (optional - for better performance)
   // Get from: https://www.alchemy.com/
-  static const String alchemyApiKey = String.fromEnvironment(
-    'ALCHEMY_API_KEY',
-    defaultValue: '',
-  );
+  static String get alchemyApiKey => dotenv.env['ALCHEMY_API_KEY'] ?? '';
 
   // Chain configurations
   static String get ethereumMainnetRpc => alchemyApiKey.isNotEmpty
@@ -54,7 +53,6 @@ class Web3Config {
   // Change to mainnet (chainId: 1) for production
   static const bool useTestnet = true;
   static const int defaultChainId = useTestnet ? 11155111 : 1;
-  static const String defaultChainName = useTestnet
-      ? 'Sepolia Testnet'
-      : 'Ethereum Mainnet';
+  static const String defaultChainName =
+      useTestnet ? 'Sepolia Testnet' : 'Ethereum Mainnet';
 }

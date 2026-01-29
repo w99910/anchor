@@ -53,15 +53,18 @@ class Web3Service extends ChangeNotifier {
             linkMode: true,
           ),
         ),
-        // Configure supported chains
+        // Configure supported chains - only Sepolia in testnet mode for safety
         optionalNamespaces: {
           'eip155': RequiredNamespace(
-            chains: [
-              'eip155:1', // Ethereum Mainnet
-              'eip155:11155111', // Sepolia Testnet
-              'eip155:137', // Polygon
-              'eip155:42161', // Arbitrum
-            ],
+            chains: Web3Config.useTestnet
+                ? [
+                    'eip155:11155111', // Sepolia Testnet only
+                  ]
+                : [
+                    'eip155:1', // Ethereum Mainnet
+                    'eip155:137', // Polygon
+                    'eip155:42161', // Arbitrum
+                  ],
             methods: [
               'eth_sendTransaction',
               'personal_sign',
@@ -206,6 +209,18 @@ class Web3Service extends ChangeNotifier {
   }) async {
     if (_appKitModal == null || !isConnected || _walletAddress == null) {
       throw Exception('Wallet not connected');
+    }
+
+    // SAFETY CHECK: Prevent accidental mainnet transactions in test mode
+    if (Web3Config.useTestnet) {
+      final currentChainId = _appKitModal!.selectedChain?.chainId;
+      if (currentChainId != 'eip155:${Web3Config.defaultChainId}') {
+        throw Exception(
+          'Please switch to Sepolia testnet in your wallet. '
+          'Currently connected to: ${_appKitModal!.selectedChain?.name ?? "Unknown"}. '
+          'Go to MetaMask Settings → Networks → Add Sepolia, then reconnect.',
+        );
+      }
     }
 
     try {

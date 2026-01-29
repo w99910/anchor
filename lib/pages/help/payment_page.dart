@@ -2,15 +2,20 @@ import 'package:flutter/material.dart';
 import '../../utils/responsive.dart';
 import '../../services/web3_service.dart';
 import '../../config/web3_config.dart';
+import '../../main.dart' show savePendingPayment, clearPendingPayment, appointmentService;
 
 class PaymentPage extends StatefulWidget {
   final int amount;
   final String therapistName;
+  final DateTime? date;
+  final String? time;
 
   const PaymentPage({
     super.key,
     required this.amount,
     required this.therapistName,
+    this.date,
+    this.time,
   });
 
   @override
@@ -21,6 +26,7 @@ class _PaymentPageState extends State<PaymentPage> {
   String _method = 'card';
   bool _processing = false;
   bool _complete = false;
+  String? _transactionHash;
 
   // Web3 service
   final Web3Service _web3Service = Web3Service();
@@ -72,20 +78,35 @@ class _PaymentPageState extends State<PaymentPage> {
     });
 
     try {
+      String? txHash;
+      
       if (_method == 'crypto') {
         // Real crypto payment
-        final txHash = await _web3Service.sendPayment(
+        txHash = await _web3Service.sendPayment(
           recipientAddress: Web3Config.recipientWalletAddress,
           amountInUsd: widget.amount.toDouble(),
         );
-
         debugPrint('Transaction hash: $txHash');
       } else {
         // Mock payment for card/PayPal
         await Future.delayed(const Duration(seconds: 2));
       }
 
+      // Save appointment on successful payment
+      await appointmentService.addAppointment(
+        therapistName: widget.therapistName,
+        date: widget.date ?? DateTime.now().add(const Duration(days: 1)),
+        time: widget.time ?? '10:00 AM',
+        amount: widget.amount,
+        paymentMethod: _method,
+        transactionHash: txHash,
+      );
+
+      // Clear pending payment on success
+      await clearPendingPayment();
+
       setState(() {
+        _transactionHash = txHash;
         _processing = false;
         _complete = true;
       });
@@ -107,6 +128,14 @@ class _PaymentPageState extends State<PaymentPage> {
 
   void _connectWallet() async {
     try {
+      // Save payment state before opening wallet (in case app gets killed)
+      await savePendingPayment(
+        amount: widget.amount,
+        therapistName: widget.therapistName,
+        date: widget.date ?? DateTime.now().add(const Duration(days: 1)),
+        time: widget.time ?? '10:00 AM',
+      );
+      
       // Open the AppKit modal - this shows a beautiful wallet selection UI
       await _web3Service.openModal();
     } catch (e) {
@@ -124,6 +153,7 @@ class _PaymentPageState extends State<PaymentPage> {
   void _disconnectWallet() async {
     try {
       await _web3Service.disconnect();
+      await clearPendingPayment();
     } catch (e) {
       debugPrint('Error disconnecting wallet: $e');
     }
@@ -132,6 +162,7 @@ class _PaymentPageState extends State<PaymentPage> {
   @override
   void dispose() {
     _web3Service.removeListener(_onWeb3StateChange);
+    // Don't clear pending payment here - it might be needed if app restarts
     super.dispose();
   }
 
@@ -141,13 +172,19 @@ class _PaymentPageState extends State<PaymentPage> {
       return _SuccessScreen(
         therapistName: widget.therapistName,
         paymentMethod: _method,
+        transactionHash: _transactionHash,
+        date: widget.date,
+        time: widget.time,
       );
     }
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            await clearPendingPayment();
+            if (context.mounted) Navigator.pop(context);
+          },
           icon: const Icon(Icons.arrow_back_rounded),
         ),
         title: const Text('Payment'),
@@ -266,7 +303,7 @@ class _PaymentPageState extends State<PaymentPage> {
               ],
 
               // Crypto info
-              if (_method == 'crypto' && _walletConnected) ...[
+              if (_method == 'crypto' && _walletConnected && _walletAddress != null) ...[
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -532,7 +569,7 @@ class _CryptoPaymentOption extends StatelessWidget {
             // Wallet connection button when selected
             if (isSelected) ...[
               const SizedBox(height: 12),
-              if (!walletConnected)
+              if (!walletConnected || walletAddress == null)
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -599,11 +636,24 @@ class _CryptoPaymentOption extends StatelessWidget {
 class _SuccessScreen extends StatelessWidget {
   final String therapistName;
   final String paymentMethod;
+  final String? transactionHash;
+  final DateTime? date;
+  final String? time;
 
   const _SuccessScreen({
     required this.therapistName,
     required this.paymentMethod,
+    this.transactionHash,
+    this.date,
+    this.time,
   });
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'TBD';
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -641,6 +691,37 @@ class _SuccessScreen extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
+              ),
+
+              // Appointment details
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardTheme.color,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    _DetailRow(
+                      icon: Icons.calendar_today_rounded,
+                      label: 'Date',
+                      value: _formatDate(date),
+                    ),
+                    const SizedBox(height: 12),
+                    _DetailRow(
+                      icon: Icons.access_time_rounded,
+                      label: 'Time',
+                      value: time ?? 'TBD',
+                    ),
+                    const SizedBox(height: 12),
+                    _DetailRow(
+                      icon: Icons.person_rounded,
+                      label: 'Therapist',
+                      value: therapistName,
+                    ),
+                  ],
+                ),
               ),
 
               if (paymentMethod == 'crypto') ...[
@@ -681,23 +762,106 @@ class _SuccessScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (transactionHash != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tx: ${transactionHash!.substring(0, 10)}...${transactionHash!.substring(transactionHash!.length - 8)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontFamily: 'monospace',
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ],
 
               const SizedBox(height: 48),
               FilledButton(
-                onPressed: () =>
-                    Navigator.popUntil(context, (route) => route.isFirst),
+                onPressed: () async {
+                  await appointmentService.clearLastCompletedPayment();
+                  if (context.mounted) {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                  }
+                },
                 child: const Text('Done'),
               ),
               const SizedBox(height: 12),
               TextButton(
-                onPressed: () {},
-                child: const Text('View booking details'),
+                onPressed: () async {
+                  await appointmentService.clearLastCompletedPayment();
+                  if (context.mounted) {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                  }
+                },
+                child: const Text('View my appointments'),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Standalone success page for showing after app restart
+class PaymentSuccessPage extends StatelessWidget {
+  final String therapistName;
+  final String paymentMethod;
+  final String? transactionHash;
+  final DateTime? date;
+  final String? time;
+
+  const PaymentSuccessPage({
+    super.key,
+    required this.therapistName,
+    required this.paymentMethod,
+    this.transactionHash,
+    this.date,
+    this.time,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _SuccessScreen(
+      therapistName: therapistName,
+      paymentMethod: paymentMethod,
+      transactionHash: transactionHash,
+      date: date,
+      time: time,
     );
   }
 }

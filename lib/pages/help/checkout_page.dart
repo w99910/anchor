@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/web3_config.dart';
 import '../../utils/responsive.dart';
 import 'payment_page.dart';
 
@@ -19,7 +20,8 @@ class CheckoutPage extends StatelessWidget {
   });
 
   int get _urgencyFee => urgency == 'urgent' ? 20 : 0;
-  int get _total => price + _urgencyFee;
+  // Use $1 for testnet to save test ETH, real amount for mainnet
+  int get _total => Web3Config.useTestnet ? 1 : (price + _urgencyFee);
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +116,38 @@ class CheckoutPage extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
+              
+              // Test mode indicator
+              if (Web3Config.useTestnet)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.science_rounded,
+                        size: 18,
+                        color: Colors.orange,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Test mode: Using \$1 amount on Sepolia testnet',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -149,6 +183,8 @@ class CheckoutPage extends StatelessWidget {
                       builder: (_) => PaymentPage(
                         amount: _total,
                         therapistName: therapistName,
+                        date: date,
+                        time: time,
                       ),
                     ),
                   );
