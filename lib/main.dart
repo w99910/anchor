@@ -1,14 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/onboarding/feature_intro_page.dart';
 import 'pages/main_scaffold.dart';
 
-void main() {
+// Keys for shared preferences
+const String _keyOnboardingComplete = 'onboarding_complete';
+const String _keyThemeMode = 'theme_mode';
+
+// Global theme notifier
+final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.system);
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
+
+  // Load saved theme
+  await _loadTheme();
+
   runApp(const AnchorApp());
+}
+
+Future<void> _loadTheme() async {
+  final prefs = await SharedPreferences.getInstance();
+  final themeModeIndex = prefs.getInt(_keyThemeMode) ?? 0;
+  themeNotifier.value = ThemeMode.values[themeModeIndex];
+}
+
+Future<void> saveTheme(ThemeMode mode) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(_keyThemeMode, mode.index);
+  themeNotifier.value = mode;
+}
+
+Future<bool> isOnboardingComplete() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool(_keyOnboardingComplete) ?? false;
+}
+
+Future<void> setOnboardingComplete() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(_keyOnboardingComplete, true);
 }
 
 class AnchorApp extends StatelessWidget {
@@ -16,16 +50,22 @@ class AnchorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Anchor',
-      debugShowCheckedModeBanner: false,
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
-      home: const SplashScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (context, themeMode, child) {
+        return MaterialApp(
+          title: 'Anchor',
+          debugShowCheckedModeBanner: false,
+          theme: _buildTheme(Brightness.light),
+          darkTheme: _buildTheme(Brightness.dark),
+          themeMode: themeMode,
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 
-  ThemeData _buildTheme(Brightness brightness) {
+  static ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
     final colorScheme = ColorScheme.fromSeed(
       seedColor: const Color(0xFF6B9B8C),
@@ -132,7 +172,6 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  bool _isFirstTime = true;
 
   @override
   void initState() {
@@ -154,7 +193,7 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
     _controller.forward();
-    _checkFirstTime();
+    _navigate();
   }
 
   @override
@@ -163,14 +202,19 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
-  Future<void> _checkFirstTime() async {
+  Future<void> _navigate() async {
+    final onboardingComplete = await isOnboardingComplete();
+
+    // Wait for animation
     await Future.delayed(const Duration(milliseconds: 2000));
+
     if (mounted) {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) =>
-              _isFirstTime ? const FeatureIntroPage() : const MainScaffold(),
+          pageBuilder: (_, __, ___) => onboardingComplete
+              ? const MainScaffold()
+              : const FeatureIntroPage(),
           transitionDuration: const Duration(milliseconds: 500),
           transitionsBuilder: (_, animation, __, child) {
             return FadeTransition(opacity: animation, child: child);

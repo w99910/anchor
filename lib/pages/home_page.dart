@@ -76,16 +76,12 @@ class HomePage extends StatelessWidget {
       ('😢', 'Sad'),
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: moods.map((mood) {
-            return _MoodButton(emoji: mood.$1, label: mood.$2);
-          }).toList(),
-        ),
-      ],
+    return Row(
+      children: moods.map((mood) {
+        return Expanded(
+          child: _MoodButton(emoji: mood.$1, label: mood.$2),
+        );
+      }).toList(),
     );
   }
 
@@ -210,23 +206,24 @@ class _MoodButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {},
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(emoji, style: const TextStyle(fontSize: 28)),
+              child: Text(emoji, style: const TextStyle(fontSize: 24)),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),

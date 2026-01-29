@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main.dart' show themeNotifier, saveTheme;
 import '../utils/responsive.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -9,7 +10,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _darkMode = false;
   bool _notifications = true;
   bool _appLock = false;
 
@@ -36,12 +36,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 32),
 
                 _SectionTitle('Appearance'),
-                _ToggleTile(
-                  icon: Icons.dark_mode_outlined,
-                  title: 'Dark mode',
-                  value: _darkMode,
-                  onChanged: (v) => setState(() => _darkMode = v),
-                ),
+                _ThemeSelector(),
 
                 const SizedBox(height: 24),
                 _SectionTitle('Security'),
@@ -158,6 +153,108 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
       children: const [Text('Your mental wellness companion.')],
+    );
+  }
+}
+
+class _ThemeSelector extends StatelessWidget {
+  const _ThemeSelector();
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (context, themeMode, child) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardTheme.color,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              _ThemeOption(
+                icon: Icons.brightness_auto_rounded,
+                title: 'System',
+                isSelected: themeMode == ThemeMode.system,
+                onTap: () => saveTheme(ThemeMode.system),
+                showDivider: true,
+              ),
+              _ThemeOption(
+                icon: Icons.light_mode_rounded,
+                title: 'Light',
+                isSelected: themeMode == ThemeMode.light,
+                onTap: () => saveTheme(ThemeMode.light),
+                showDivider: true,
+              ),
+              _ThemeOption(
+                icon: Icons.dark_mode_rounded,
+                title: 'Dark',
+                isSelected: themeMode == ThemeMode.dark,
+                onTap: () => saveTheme(ThemeMode.dark),
+                showDivider: false,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final bool showDivider;
+
+  const _ThemeOption({
+    required this.icon,
+    required this.title,
+    required this.isSelected,
+    required this.onTap,
+    required this.showDivider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 2,
+          ),
+          leading: Icon(
+            icon,
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.w600 : null,
+              color: isSelected ? Theme.of(context).colorScheme.primary : null,
+            ),
+          ),
+          trailing: isSelected
+              ? Icon(
+                  Icons.check_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                )
+              : null,
+        ),
+        if (showDivider)
+          Divider(
+            height: 1,
+            indent: 56,
+            endIndent: 16,
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+          ),
+      ],
     );
   }
 }

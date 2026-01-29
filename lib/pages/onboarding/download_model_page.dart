@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../main.dart' show setOnboardingComplete;
 import '../../utils/responsive.dart';
 import '../main_scaffold.dart';
 
@@ -49,18 +50,23 @@ class _DownloadModelPageState extends State<DownloadModelPage>
     });
   }
 
-  void _continue() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const MainScaffold(),
-        transitionDuration: const Duration(milliseconds: 500),
-        transitionsBuilder: (_, animation, __, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-      ),
-      (route) => false,
-    );
+  void _continue() async {
+    // Mark onboarding as complete
+    await setOnboardingComplete();
+
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const MainScaffold(),
+          transitionDuration: const Duration(milliseconds: 500),
+          transitionsBuilder: (_, animation, __, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+        (route) => false,
+      );
+    }
   }
 
   @override
