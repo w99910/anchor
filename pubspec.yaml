@@ -40,9 +40,13 @@ dependencies:
   reown_appkit: ^1.6.0
   url_launcher: ^6.3.1
   http: ^1.2.2
-  
+
   # Environment variables
   flutter_dotenv: ^5.1.0
+
+  # On-device AI inference with ExecuTorch
+  executorch_flutter: ^0.2.2
+  path_provider: ^2.1.2
 
 dev_dependencies:
   flutter_test:
@@ -94,3 +98,15 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# ExecuTorch configuration for on-device AI
+hooks:
+  user_defines:
+    executorch_flutter:
+      # Enable debug logging for troubleshooting
+      debug: true
+      # Use prebuilt binaries for faster builds
+      build_mode: "prebuilt"
+      # Enable XNNPACK backend (CPU optimization)
+      backends:
+        - xnnpack

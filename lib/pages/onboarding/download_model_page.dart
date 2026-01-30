@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../main.dart' show setOnboardingComplete;
+import '../../services/llm_service.dart';
 import '../../utils/responsive.dart';
 import '../main_scaffold.dart';
 
@@ -12,10 +13,10 @@ class DownloadModelPage extends StatefulWidget {
 
 class _DownloadModelPageState extends State<DownloadModelPage>
     with SingleTickerProviderStateMixin {
-  double _progress = 0.0;
-  bool _isDownloading = false;
-  bool _isComplete = false;
+  final _llmService = LlmService();
   late AnimationController _pulseController;
+  String _statusMessage =
+      'Download the AI model for offline chat and personalized responses';
 
   @override
   void initState() {
@@ -24,30 +25,55 @@ class _DownloadModelPageState extends State<DownloadModelPage>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
+
+    // Listen to LLM service status changes
+    _llmService.addListener(_onServiceStatusChanged);
+
+    // Check if model is already available
+    _checkModelAvailability();
+  }
+
+  Future<void> _checkModelAvailability() async {
+    final isAvailable = await _llmService.isModelAvailable();
+    if (isAvailable && mounted) {
+      setState(() {
+        _statusMessage = 'AI model found! Ready to set up.';
+      });
+    }
+  }
+
+  void _onServiceStatusChanged() {
+    if (!mounted) return;
+
+    setState(() {
+      switch (_llmService.status) {
+        case LlmModelStatus.loading:
+          _statusMessage = 'Setting up AI model...';
+          break;
+        case LlmModelStatus.ready:
+          _statusMessage = 'AI model ready!';
+          break;
+        case LlmModelStatus.error:
+          _statusMessage = _llmService.errorMessage ?? 'Error loading model';
+          break;
+        case LlmModelStatus.notLoaded:
+          _statusMessage =
+              'Download the AI model for offline chat and personalized responses';
+          break;
+      }
+    });
   }
 
   @override
   void dispose() {
+    _llmService.removeListener(_onServiceStatusChanged);
     _pulseController.dispose();
     super.dispose();
   }
 
-  void _startDownload() {
-    setState(() => _isDownloading = true);
-
-    Future.doWhile(() async {
-      await Future.delayed(const Duration(milliseconds: 50));
-      if (!mounted) return false;
-      setState(() => _progress += 0.02);
-      if (_progress >= 1.0) {
-        setState(() {
-          _isComplete = true;
-          _isDownloading = false;
-        });
-        return false;
-      }
-      return true;
-    });
+  void _startDownload() async {
+    // Start loading the model
+    await _llmService.loadModel();
   }
 
   void _continue() async {
@@ -71,6 +97,11 @@ class _DownloadModelPageState extends State<DownloadModelPage>
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = _llmService.isLoading;
+    final isReady = _llmService.isReady;
+    final hasError = _llmService.status == LlmModelStatus.error;
+    final progress = _llmService.loadProgress;
+
     return Scaffold(
       body: SafeArea(
         child: ResponsiveCenter(
@@ -83,7 +114,7 @@ class _DownloadModelPageState extends State<DownloadModelPage>
               AnimatedBuilder(
                 animation: _pulseController,
                 builder: (context, child) {
-                  final scale = _isDownloading
+                  final scale = isLoading
                       ? 1.0 + (_pulseController.value * 0.05)
                       : 1.0;
                   return Transform.scale(
@@ -91,20 +122,26 @@ class _DownloadModelPageState extends State<DownloadModelPage>
                     child: Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
-                        color: _isComplete
+                        color: isReady
                             ? Colors.green.withOpacity(0.1)
+                            : hasError
+                            ? Colors.red.withOpacity(0.1)
                             : Theme.of(
                                 context,
                               ).colorScheme.primaryContainer.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(32),
                       ),
                       child: Icon(
-                        _isComplete
+                        isReady
                             ? Icons.check_rounded
+                            : hasError
+                            ? Icons.error_outline_rounded
                             : Icons.auto_awesome_rounded,
                         size: 64,
-                        color: _isComplete
+                        color: isReady
                             ? Colors.green
+                            : hasError
+                            ? Colors.red
                             : Theme.of(context).colorScheme.primary,
                       ),
                     ),
@@ -115,9 +152,11 @@ class _DownloadModelPageState extends State<DownloadModelPage>
               const SizedBox(height: 40),
 
               Text(
-                _isComplete
+                isReady
                     ? 'All set!'
-                    : _isDownloading
+                    : hasError
+                    ? 'Setup incomplete'
+                    : isLoading
                     ? 'Setting up...'
                     : 'One last step',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -126,11 +165,13 @@ class _DownloadModelPageState extends State<DownloadModelPage>
               ),
               const SizedBox(height: 12),
               Text(
-                _isComplete
+                isReady
                     ? 'You\'re ready to start your journey'
-                    : 'Download the AI model for offline chat and personalized responses',
+                    : _statusMessage,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: hasError
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -138,11 +179,11 @@ class _DownloadModelPageState extends State<DownloadModelPage>
 
               const SizedBox(height: 48),
 
-              if (_isDownloading || _isComplete) ...[
+              if (isLoading || isReady) ...[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
-                    value: _progress,
+                    value: progress,
                     backgroundColor: Theme.of(
                       context,
                     ).colorScheme.surfaceContainerHighest,
@@ -151,7 +192,7 @@ class _DownloadModelPageState extends State<DownloadModelPage>
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '${(_progress * 100).toInt()}%',
+                  '${(progress * 100).toInt()}%',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
@@ -161,7 +202,7 @@ class _DownloadModelPageState extends State<DownloadModelPage>
 
               const Spacer(flex: 3),
 
-              if (!_isDownloading && !_isComplete) ...[
+              if (!isLoading && !isReady) ...[
                 FilledButton(
                   onPressed: _startDownload,
                   child: const Text('Download'),
@@ -173,7 +214,19 @@ class _DownloadModelPageState extends State<DownloadModelPage>
                 ),
               ],
 
-              if (_isComplete)
+              if (hasError) ...[
+                FilledButton(
+                  onPressed: _startDownload,
+                  child: const Text('Retry'),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: _continue,
+                  child: const Text('Continue without AI'),
+                ),
+              ],
+
+              if (isReady)
                 FilledButton(
                   onPressed: _continue,
                   child: const Text('Get Started'),
