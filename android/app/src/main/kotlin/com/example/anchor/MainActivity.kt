@@ -182,67 +182,81 @@ class MainActivity : FlutterActivity() {
                 llamaProcess = processBuilder.start()
                 sendStreamEvent("status", "generating")
                 
-                val reader = BufferedReader(InputStreamReader(llamaProcess!!.inputStream))
-                var line: String?
                 val generatedText = StringBuilder()
-                var seenAssistantHeader = false
                 
+                // Start a heartbeat thread to keep UI responsive
+                val heartbeatThread = thread {
+                    try {
+                        while (llamaProcess?.isAlive == true) {
+                            Thread.sleep(100) // Send heartbeat every 100ms
+                            sendStreamEvent("heartbeat", "")
+                        }
+                    } catch (e: InterruptedException) {
+                        // Thread interrupted, exit gracefully
+                    }
+                }
+                
+                val reader = BufferedReader(InputStreamReader(llamaProcess!!.inputStream))
+                val fullOutput = StringBuilder()
+                var line: String?
+                
+                // Read all output
                 while (reader.readLine().also { line = it } != null) {
-                    val currentLine = line ?: continue
-                    Log.d(TAG, "Output: $currentLine")
+                    fullOutput.append(line).append("\n")
+                    Log.d(TAG, "Output: $line")
+                }
+                
+                // Parse the complete output to extract assistant response
+                val outputStr = fullOutput.toString()
+                
+                // Find the assistant's response between markers
+                val assistantStart = outputStr.lastIndexOf("<|start_header_id|>assistant<|end_header_id|>")
+                if (assistantStart != -1) {
+                    var response = outputStr.substring(assistantStart + "<|start_header_id|>assistant<|end_header_id|>".length)
                     
-                    // Track when we've seen the assistant header (response starts after)
-                    if (currentLine.contains("<|start_header_id|>assistant<|end_header_id|>")) {
-                        seenAssistantHeader = true
-                        continue
+                    // Find end of response
+                    val eotIndex = response.indexOf("<|eot_id|>")
+                    if (eotIndex != -1) {
+                        response = response.substring(0, eotIndex)
                     }
                     
-                    // Skip lines before assistant header
-                    if (!seenAssistantHeader) continue
+                    // Clean up: remove log lines and timestamps
+                    val cleanedLines = response.split("\n").mapNotNull { l ->
+                        var cleaned = l
+                        // Remove embedded log timestamps
+                        val logMatch = Regex("""[IEW]\s+\d{2}:\d{2}:\d{2}\.\d+.*""").find(cleaned)
+                        if (logMatch != null) {
+                            cleaned = cleaned.substring(0, logMatch.range.first)
+                        }
+                        // Skip pure log lines
+                        if (cleaned.matches(Regex("""^[IEW]\s+\d{2}:\d{2}.*""")) ||
+                            cleaned.contains("executorch:") ||
+                            cleaned.startsWith("PyTorchObserver") ||
+                            cleaned.contains("Reached to the end of generation")) {
+                            null
+                        } else {
+                            cleaned.trim()
+                        }
+                    }.filter { it.isNotEmpty() }
                     
-                    // Skip pure log/metadata lines
-                    if (currentLine.startsWith("I tokenizers:") ||
-                        currentLine.startsWith("E tokenizers:") ||
-                        currentLine.startsWith("PyTorchObserver") ||
-                        currentLine.trim().isEmpty()) {
-                        continue
-                    }
+                    val finalResponse = cleanedLines.joinToString(" ").trim()
+                    generatedText.append(finalResponse)
                     
-                    // Skip lines that are purely log messages (start with timestamp pattern)
-                    if (Regex("""^[IEW]\s+\d{2}:\d{2}:\d{2}\.\d+\s+executorch:""").containsMatchIn(currentLine)) {
-                        continue
-                    }
-                    
-                    // Extract text - handle lines that have text followed by log timestamp
-                    var textPart = currentLine
-                    
-                    // Remove any embedded log timestamps and everything after
-                    val logMatch = Regex("""[IEW]\s+\d{2}:\d{2}:\d{2}\.\d+""").find(currentLine)
-                    if (logMatch != null) {
-                        textPart = currentLine.substring(0, logMatch.range.first)
-                    }
-                    
-                    // Clean up special tokens and metadata
-                    textPart = textPart
-                        .replace("<|eot_id|>", "")
-                        .replace("<|end_of_text|>", "")
-                        .replace("<|begin_of_text|>", "")
-                        .replace("Reached to the end of generation", "")
-                        .trim()
-                    
-                    if (textPart.isNotEmpty()) {
-                        generatedText.append(textPart)
-                        sendStreamEvent("token", generatedText.toString())
+                    if (finalResponse.isNotEmpty()) {
+                        sendStreamEvent("token", finalResponse)
+                        Log.d(TAG, "Final response: $finalResponse")
                     }
                 }
                 
                 val exitCode = llamaProcess!!.waitFor()
                 llamaProcess = null
+                heartbeatThread.interrupt() // Stop heartbeat
                 
                 Log.d(TAG, "Llama exited with code: $exitCode")
                 
+                val finalText = generatedText.toString().trim()
                 if (exitCode == 0) {
-                    sendStreamEvent("done", generatedText.toString())
+                    sendStreamEvent("done", finalText)
                 } else {
                     sendStreamError("Llama exited with code $exitCode")
                 }

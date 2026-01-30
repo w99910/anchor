@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:executorch_flutter/executorch_flutter.dart';
@@ -8,6 +9,53 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'model_download_service.dart';
+
+/// Data class to pass to isolate
+class _InferenceRequest {
+  final String modelPath;
+  final String tokenizerPath;
+  final String prompt;
+  final int maxTokens;
+  final RootIsolateToken rootIsolateToken;
+  final SendPort sendPort;
+
+  _InferenceRequest({
+    required this.modelPath,
+    required this.tokenizerPath,
+    required this.prompt,
+    required this.maxTokens,
+    required this.rootIsolateToken,
+    required this.sendPort,
+  });
+}
+
+/// Run inference in a background isolate
+Future<void> _runInferenceInIsolate(_InferenceRequest request) async {
+  debugPrint(
+    '[BG_ISOLATE] Running in background isolate: ${Isolate.current.hashCode}',
+  );
+
+  // Register the background isolate with the root isolate's binary messenger
+  BackgroundIsolateBinaryMessenger.ensureInitialized(request.rootIsolateToken);
+  debugPrint('[BG_ISOLATE] Binary messenger initialized');
+
+  const channel = MethodChannel('com.example.anchor/llm');
+
+  try {
+    debugPrint('[BG_ISOLATE] Calling platform channel...');
+    final result = await channel.invokeMethod<String>('runLlama', {
+      'modelPath': request.modelPath,
+      'tokenizerPath': request.tokenizerPath,
+      'prompt': request.prompt,
+      'maxSeqLen': request.maxTokens,
+    });
+    debugPrint('[BG_ISOLATE] Got result, sending back to main isolate');
+    request.sendPort.send({'success': true, 'result': result});
+  } catch (e) {
+    debugPrint('[BG_ISOLATE] Error: $e');
+    request.sendPort.send({'success': false, 'error': e.toString()});
+  }
+}
 
 /// Status of the LLM model
 enum LlmModelStatus { notLoaded, loading, ready, error }
@@ -26,12 +74,9 @@ class LlmService extends ChangeNotifier {
   factory LlmService() => _instance;
   LlmService._internal();
 
-  // Platform channels for native runner
+  // Platform channel for native runner
   static const MethodChannel _nativeChannel = MethodChannel(
     'com.example.anchor/llm',
-  );
-  static const EventChannel _streamChannel = EventChannel(
-    'com.example.anchor/llm_stream',
   );
 
   ExecuTorchModel? _model;
@@ -193,13 +238,34 @@ class LlmService extends ChangeNotifier {
   }) async {
     // Build the chat prompt with system message
     final systemPrompt = mode == 'friend'
-        ? '''You are a warm, empathetic friend who listens and supports. 
-Be conversational, caring, and genuine. Use a friendly tone.
-Keep responses concise but meaningful.'''
-        : '''You are a compassionate mental health support companion.
-Use therapeutic communication techniques like active listening,
-validation, and open-ended questions. Be professional yet warm.
-Help users explore their feelings without diagnosing.''';
+        ? '''You are a warm, genuine, and supportive friend. You are NOT a clinical therapist.
+
+Guidelines:
+
+Active Reassurance: Do not just reflect the user's feelings back to them. You must actively validate them. If they share a negative thought (like 'I'm a failure'), explicitly tell them that one mistake does not define them.
+
+Normalize: Remind the user that their struggles (like burnout or missing deadlines) are a normal part of being human.
+
+Conversational Tone: Speak naturally. Use phrases like 'I get it,' 'That is so heavy,' or 'I'm here for you.'
+
+Less Asking, More Sharing: Do not end every message with a question. Sometimes, just sitting with the emotion is enough. If you do ask a question, make it casual.'''
+        : '''Role: You are a compassionate, professional, and non-judgmental AI therapist. You draw upon techniques from Cognitive Behavioral Therapy (CBT) and Person-Centered Therapy.
+
+Core Objective: Your goal is not to "fix" the user or give direct advice, but to help them explore their emotions, identify cognitive distortions (negative thought patterns), and find their own clarity.
+
+Guidelines:
+
+Reflective Listening: Start by validating the user's feelings to establish safety (e.g., "It sounds like you're carrying a heavy burden...").
+
+Socratic Questioning: Use open-ended, probing questions to help the user examine the evidence for their beliefs. (e.g., "What evidence do you have that supports this fear? Is there evidence that contradicts it?")
+
+Identify Distortions: If the user exhibits common cognitive distortions (like catastrophizing, all-or-nothing thinking, or mind reading), gently ask questions that help them see the gap between their thought and reality.
+
+Neutrality: Do not take sides or offer personal opinions. Remain an objective mirror.
+
+Safety & Boundaries: Do not diagnose medical conditions. If the user mentions self-harm or severe crisis, prioritize safety resources immediately.
+
+Tone: Professional, calm, curious, and empathetic. Avoid being overly casual or using slang.''';
 
     final fullPrompt =
         '''<|begin_of_text|><|start_header_id|>system<|end_header_id|>
@@ -332,7 +398,7 @@ $prompt<|eot_id|><|start_header_id|>assistant<|end_header_id|>
     return probs.length - 1;
   }
 
-  /// Generate response using native Llama runner with streaming
+  /// Generate response using native Llama runner in a background isolate
   Future<String> _generateWithNativeRunner(
     String prompt,
     int maxTokens, {
@@ -343,68 +409,53 @@ $prompt<|eot_id|><|start_header_id|>assistant<|end_header_id|>
     }
 
     try {
-      debugPrint('Running native Llama inference (streaming)...');
-
-      final completer = Completer<String>();
-      String lastResponse = '';
-
-      // Listen to stream
-      final subscription = _streamChannel.receiveBroadcastStream().listen(
-        (event) {
-          if (event is Map) {
-            final type = event['type'] as String?;
-            final data = event['data'] as String?;
-
-            debugPrint('Stream event: $type');
-
-            if (type == 'token' && data != null) {
-              lastResponse = data;
-              streamController?.add(data);
-            } else if (type == 'done' && data != null) {
-              lastResponse = data;
-              if (!completer.isCompleted) {
-                completer.complete(data);
-              }
-            } else if (type == 'status') {
-              debugPrint('Status: $data');
-            }
-          }
-        },
-        onError: (error) {
-          debugPrint('Stream error: $error');
-          if (!completer.isCompleted) {
-            completer.completeError(error);
-          }
-        },
-        onDone: () {
-          debugPrint('Stream done');
-          if (!completer.isCompleted) {
-            completer.complete(lastResponse);
-          }
-        },
+      debugPrint(
+        '[MAIN] Starting inference - main isolate: ${Isolate.current.hashCode}',
       );
 
-      // Start inference
-      await _nativeChannel.invokeMethod('runLlamaStream', {
-        'modelPath': _externalModelPath,
-        'tokenizerPath': _tokenizerPath,
-        'prompt': prompt,
-        'maxSeqLen': maxTokens,
-      });
+      // Get the root isolate token for background isolate communication
+      final rootIsolateToken = RootIsolateToken.instance;
+      if (rootIsolateToken == null) {
+        throw Exception('Could not get RootIsolateToken');
+      }
+      debugPrint('[MAIN] Got RootIsolateToken');
 
-      // Wait for completion with timeout
-      final result = await completer.future.timeout(
-        const Duration(minutes: 2),
-        onTimeout: () {
-          subscription.cancel();
-          return lastResponse.isNotEmpty ? lastResponse : 'Response timed out';
-        },
+      // Create a receive port to get the result
+      final receivePort = ReceivePort();
+
+      // Spawn the isolate - this returns immediately
+      debugPrint('[MAIN] Spawning background isolate...');
+      await Isolate.spawn(
+        _runInferenceInIsolate,
+        _InferenceRequest(
+          modelPath: _externalModelPath!,
+          tokenizerPath: _tokenizerPath!,
+          prompt: prompt,
+          maxTokens: maxTokens,
+          rootIsolateToken: rootIsolateToken,
+          sendPort: receivePort.sendPort,
+        ),
       );
+      debugPrint('[MAIN] Isolate spawned! UI should be responsive now...');
 
-      await subscription.cancel();
-      return result;
-    } on PlatformException catch (e) {
-      debugPrint('Native runner error: ${e.message}');
+      // Wait for the result - this is async, should not block UI
+      final response = await receivePort.first as Map<dynamic, dynamic>;
+      debugPrint('[MAIN] Got response from background isolate');
+      receivePort.close();
+
+      if (response['success'] == true) {
+        final result = response['result'] as String?;
+        final parsed = _parseNativeOutput(result ?? '');
+        debugPrint(
+          'Isolate inference complete: ${parsed.substring(0, min(50, parsed.length))}...',
+        );
+        return parsed;
+      } else {
+        debugPrint('Isolate inference error: ${response['error']}');
+        return _generateMockResponse(prompt, 'friend');
+      }
+    } catch (e) {
+      debugPrint('Native runner error: $e');
       return _generateMockResponse(prompt, 'friend');
     }
   }

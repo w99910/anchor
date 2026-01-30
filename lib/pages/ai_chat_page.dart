@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -599,10 +600,33 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-class _TypingIndicator extends StatelessWidget {
+class _TypingIndicator extends StatefulWidget {
   final String currentText;
 
   const _TypingIndicator({required this.currentText});
+
+  @override
+  State<_TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<_TypingIndicator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -620,19 +644,24 @@ class _TypingIndicator extends StatelessWidget {
             20,
           ).copyWith(bottomLeft: const Radius.circular(4)),
         ),
-        child: currentText.isEmpty
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildDot(context, 0),
-                  const SizedBox(width: 4),
-                  _buildDot(context, 1),
-                  const SizedBox(width: 4),
-                  _buildDot(context, 2),
-                ],
+        child: widget.currentText.isEmpty
+            ? AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildDot(context, 0),
+                      const SizedBox(width: 4),
+                      _buildDot(context, 1),
+                      const SizedBox(width: 4),
+                      _buildDot(context, 2),
+                    ],
+                  );
+                },
               )
             : Text(
-                currentText,
+                widget.currentText,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -642,21 +671,19 @@ class _TypingIndicator extends StatelessWidget {
   }
 
   Widget _buildDot(BuildContext context, int index) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 600 + (index * 200)),
-      builder: (context, value, child) {
-        return Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(
-              0.3 + (0.7 * ((value + index * 0.33) % 1)),
-            ),
-            shape: BoxShape.circle,
-          ),
-        );
-      },
+    // Stagger the animation for each dot
+    final offset = index * 0.2;
+    final value = (_controller.value + offset) % 1.0;
+    // Sine wave for smooth pulsing
+    final opacity = 0.3 + 0.7 * ((sin(value * 2 * pi) + 1) / 2);
+
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withOpacity(opacity),
+        shape: BoxShape.circle,
+      ),
     );
   }
 }
