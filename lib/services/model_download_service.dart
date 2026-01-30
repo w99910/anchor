@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -211,7 +211,7 @@ class ModelDownloadService extends ChangeNotifier {
     }
   }
 
-  /// Download a file with progress tracking
+  /// Download a file with progress tracking using dio
   Future<bool> _downloadFile(
     String url,
     String savePath, {
@@ -221,38 +221,158 @@ class ModelDownloadService extends ChangeNotifier {
       debugPrint('Downloading: $url');
       debugPrint('Saving to: $savePath');
 
-      final request = http.Request('GET', Uri.parse(url));
-      final response = await http.Client().send(request);
+      final dio = Dio();
 
-      if (response.statusCode != 200) {
-        debugPrint('Download failed with status: ${response.statusCode}');
-        return false;
-      }
+      // Configure for better download performance
+      dio.options.connectTimeout = const Duration(seconds: 30);
+      dio.options.receiveTimeout = const Duration(minutes: 30);
 
-      final contentLength = response.contentLength ?? 0;
+      // First get the file size
+      final headResponse = await dio.head(url);
+      final contentLength =
+          int.tryParse(headResponse.headers.value('content-length') ?? '0') ??
+          0;
       debugPrint('Content length: $contentLength bytes');
 
-      final file = File(savePath);
-      final sink = file.openWrite();
-
-      int received = 0;
-      await for (final chunk in response.stream) {
-        sink.add(chunk);
-        received += chunk.length;
-        onProgress?.call(
-          received,
-          contentLength > 0 ? contentLength : received,
+      // For large files (>50MB), use parallel chunk downloads
+      if (contentLength > 50 * 1024 * 1024) {
+        return await _downloadFileInChunks(
+          dio,
+          url,
+          savePath,
+          contentLength,
+          onProgress: onProgress,
         );
       }
 
-      await sink.close();
+      // For smaller files, use simple download
+      await dio.download(
+        url,
+        savePath,
+        onReceiveProgress: (received, total) {
+          onProgress?.call(received, total > 0 ? total : contentLength);
+        },
+      );
 
-      final fileSize = await file.length();
+      final fileSize = await File(savePath).length();
       debugPrint('Downloaded $fileSize bytes to $savePath');
 
       return true;
     } catch (e) {
       debugPrint('Download error: $e');
+      return false;
+    }
+  }
+
+  /// Download large file using parallel chunk downloads
+  Future<bool> _downloadFileInChunks(
+    Dio dio,
+    String url,
+    String savePath,
+    int totalSize, {
+    void Function(int received, int total)? onProgress,
+    int numChunks = 4, // Number of parallel downloads
+  }) async {
+    try {
+      debugPrint('Starting parallel download with $numChunks chunks');
+
+      final chunkSize = (totalSize / numChunks).ceil();
+      final tempDir = Directory('${savePath}_chunks');
+      if (!tempDir.existsSync()) {
+        await tempDir.create(recursive: true);
+      }
+
+      // Track progress for each chunk
+      final chunkProgress = List<int>.filled(numChunks, 0);
+
+      void updateTotalProgress() {
+        final totalReceived = chunkProgress.reduce((a, b) => a + b);
+        onProgress?.call(totalReceived, totalSize);
+      }
+
+      // Download chunks in parallel
+      final futures = <Future<bool>>[];
+
+      for (int i = 0; i < numChunks; i++) {
+        final start = i * chunkSize;
+        final end = (i == numChunks - 1)
+            ? totalSize - 1
+            : (start + chunkSize - 1);
+        final chunkPath = '${tempDir.path}/chunk_$i';
+
+        futures.add(
+          _downloadChunk(
+            dio,
+            url,
+            chunkPath,
+            start,
+            end,
+            onProgress: (received) {
+              chunkProgress[i] = received;
+              updateTotalProgress();
+            },
+          ),
+        );
+      }
+
+      // Wait for all chunks to complete
+      final results = await Future.wait(futures);
+
+      if (results.any((success) => !success)) {
+        debugPrint('Some chunks failed to download');
+        await tempDir.delete(recursive: true);
+        return false;
+      }
+
+      // Merge chunks into final file
+      debugPrint('Merging chunks...');
+      final outputFile = File(savePath);
+      final sink = outputFile.openWrite();
+
+      for (int i = 0; i < numChunks; i++) {
+        final chunkFile = File('${tempDir.path}/chunk_$i');
+        await sink.addStream(chunkFile.openRead());
+      }
+
+      await sink.close();
+
+      // Cleanup temp chunks
+      await tempDir.delete(recursive: true);
+
+      final fileSize = await outputFile.length();
+      debugPrint('Merged file size: $fileSize bytes');
+
+      return fileSize == totalSize;
+    } catch (e) {
+      debugPrint('Chunk download error: $e');
+      return false;
+    }
+  }
+
+  /// Download a single chunk with range request
+  Future<bool> _downloadChunk(
+    Dio dio,
+    String url,
+    String savePath,
+    int start,
+    int end, {
+    void Function(int received)? onProgress,
+  }) async {
+    try {
+      debugPrint('Downloading chunk: $start-$end');
+
+      await dio.download(
+        url,
+        savePath,
+        options: Options(headers: {'Range': 'bytes=$start-$end'}),
+        onReceiveProgress: (received, total) {
+          onProgress?.call(received);
+        },
+      );
+
+      return true;
+    } catch (e) {
+      debugPrint('Chunk $start-$end error: $e');
       return false;
     }
   }

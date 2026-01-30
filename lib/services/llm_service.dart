@@ -103,6 +103,12 @@ class LlmService extends ChangeNotifier {
   bool get isLoading => _status == LlmModelStatus.loading;
   LlmBackend get activeBackend => _activeBackend;
 
+  /// Returns true if a real AI model is loaded (not mock responses)
+  bool get hasRealAI =>
+      _status == LlmModelStatus.ready &&
+      (_activeBackend == LlmBackend.nativeRunner ||
+          _activeBackend == LlmBackend.executorchFlutter);
+
   /// Set an external model path (for models not bundled with the app)
   void setExternalModelPath(String path) {
     _externalModelPath = path;

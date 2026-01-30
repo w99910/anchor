@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive.dart';
 import '../services/appointment_service.dart';
+import '../services/database_service.dart';
 import '../main.dart' show appointmentService;
 
 class HomePage extends StatefulWidget {
@@ -13,11 +14,27 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<Appointment> _upcomingAppointments = [];
 
+  // Stats data
+  int _journalEntriesThisWeek = 0;
+  int _chatSessionsThisWeek = 0;
+  double _avgMood = 0.0;
+  int _streak = 0;
+  String _stressLevel = 'Unknown';
+
+  // Previous week data for trends
+  int _prevWeekJournalEntries = 0;
+  double _prevWeekAvgMood = 0.0;
+  int _prevWeekChatSessions = 0;
+  String _prevWeekStressLevel = 'Unknown';
+
+  final DatabaseService _databaseService = DatabaseService();
+
   @override
   void initState() {
     super.initState();
     _upcomingAppointments = appointmentService.upcomingAppointments;
     appointmentService.addListener(_onAppointmentsChange);
+    _loadStats();
   }
 
   @override
@@ -38,6 +55,196 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _loadStats() async {
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final startOfWeekDate = DateTime(
+      startOfWeek.year,
+      startOfWeek.month,
+      startOfWeek.day,
+    );
+    final startOfPrevWeek = startOfWeekDate.subtract(const Duration(days: 7));
+
+    // Load journal entries
+    final journalEntries = await _databaseService.getJournalEntries();
+
+    // Filter entries for this week and last week
+    final thisWeekEntries = journalEntries
+        .where(
+          (e) =>
+              e.createdAt.isAfter(startOfWeekDate) ||
+              (e.createdAt.year == startOfWeekDate.year &&
+                  e.createdAt.month == startOfWeekDate.month &&
+                  e.createdAt.day == startOfWeekDate.day),
+        )
+        .toList();
+
+    final prevWeekEntries = journalEntries
+        .where(
+          (e) =>
+              e.createdAt.isAfter(startOfPrevWeek) &&
+              e.createdAt.isBefore(startOfWeekDate),
+        )
+        .toList();
+
+    // Calculate average mood (convert emoji to number)
+    double calculateAvgMood(List<JournalEntry> entries) {
+      if (entries.isEmpty) return 0.0;
+      double total = 0;
+      for (final entry in entries) {
+        total += _moodToNumber(entry.mood);
+      }
+      return total / entries.length;
+    }
+
+    // Calculate stress level from entries
+    String calculateStressLevel(List<JournalEntry> entries) {
+      if (entries.isEmpty) return 'Unknown';
+      final avgMood = calculateAvgMood(entries);
+      if (avgMood >= 4) return 'Low';
+      if (avgMood >= 3) return 'Medium';
+      return 'High';
+    }
+
+    // Calculate streak (consecutive days with entries)
+    int calculateStreak() {
+      if (journalEntries.isEmpty) return 0;
+
+      int streak = 0;
+      DateTime checkDate = DateTime(now.year, now.month, now.day);
+
+      // Group entries by date
+      final entriesByDate = <String, bool>{};
+      for (final entry in journalEntries) {
+        final dateKey =
+            '${entry.createdAt.year}-${entry.createdAt.month}-${entry.createdAt.day}';
+        entriesByDate[dateKey] = true;
+      }
+
+      // Check today first, if no entry today, start from yesterday
+      final todayKey = '${checkDate.year}-${checkDate.month}-${checkDate.day}';
+      if (!entriesByDate.containsKey(todayKey)) {
+        checkDate = checkDate.subtract(const Duration(days: 1));
+      }
+
+      // Count consecutive days
+      while (true) {
+        final dateKey = '${checkDate.year}-${checkDate.month}-${checkDate.day}';
+        if (entriesByDate.containsKey(dateKey)) {
+          streak++;
+          checkDate = checkDate.subtract(const Duration(days: 1));
+        } else {
+          break;
+        }
+      }
+
+      return streak;
+    }
+
+    // Load chat messages and count unique sessions (by day)
+    final chatMessages = await _databaseService.getChatMessages();
+
+    int countChatSessions(DateTime start, DateTime end) {
+      final sessionDays = <String>{};
+      for (final msg in chatMessages) {
+        if (msg.isUser &&
+            msg.createdAt.isAfter(start) &&
+            msg.createdAt.isBefore(end)) {
+          final dateKey =
+              '${msg.createdAt.year}-${msg.createdAt.month}-${msg.createdAt.day}';
+          sessionDays.add(dateKey);
+        }
+      }
+      return sessionDays.length;
+    }
+
+    if (mounted) {
+      setState(() {
+        _journalEntriesThisWeek = thisWeekEntries.length;
+        _prevWeekJournalEntries = prevWeekEntries.length;
+        _avgMood = calculateAvgMood(thisWeekEntries);
+        _prevWeekAvgMood = calculateAvgMood(prevWeekEntries);
+        _stressLevel = calculateStressLevel(thisWeekEntries);
+        _prevWeekStressLevel = calculateStressLevel(prevWeekEntries);
+        _streak = calculateStreak();
+        _chatSessionsThisWeek = countChatSessions(
+          startOfWeekDate,
+          now.add(const Duration(days: 1)),
+        );
+        _prevWeekChatSessions = countChatSessions(
+          startOfPrevWeek,
+          startOfWeekDate,
+        );
+      });
+    }
+  }
+
+  double _moodToNumber(String mood) {
+    // Map mood emojis to numbers (1-5 scale)
+    switch (mood) {
+      case '😊':
+        return 5.0;
+      case '🙂':
+        return 4.0;
+      case '😐':
+        return 3.0;
+      case '😔':
+        return 2.0;
+      case '😢':
+        return 1.0;
+      default:
+        return 3.0; // Default to neutral
+    }
+  }
+
+  String _numberToMoodEmoji(double value) {
+    // Convert average mood number back to nearest emoji
+    if (value >= 4.5) return '😊';
+    if (value >= 3.5) return '🙂';
+    if (value >= 2.5) return '😐';
+    if (value >= 1.5) return '😔';
+    return '😢';
+  }
+
+  String _formatMoodTrend() {
+    if (_prevWeekAvgMood == 0) return 'New';
+    final diff = _avgMood - _prevWeekAvgMood;
+    if (diff > 0) return '+${diff.toStringAsFixed(1)}';
+    if (diff < 0) return diff.toStringAsFixed(1);
+    return '0';
+  }
+
+  String _formatJournalTrend() {
+    final diff = _journalEntriesThisWeek - _prevWeekJournalEntries;
+    if (diff > 0) return '+$diff';
+    if (diff < 0) return '$diff';
+    return '0';
+  }
+
+  String _formatChatTrend() {
+    final diff = _chatSessionsThisWeek - _prevWeekChatSessions;
+    if (diff > 0) return '+$diff';
+    if (diff < 0) return '$diff';
+    return '0';
+  }
+
+  String _formatStressTrend() {
+    if (_prevWeekStressLevel == 'Unknown') return 'New';
+    if (_stressLevel == _prevWeekStressLevel) return 'Stable';
+
+    final stressLevels = {'Low': 1, 'Medium': 2, 'High': 3, 'Unknown': 2};
+    final current = stressLevels[_stressLevel] ?? 2;
+    final previous = stressLevels[_prevWeekStressLevel] ?? 2;
+
+    if (current < previous) return 'Improved';
+    return 'Worsened';
+  }
+
+  bool _isStressTrendPositive() {
+    final trend = _formatStressTrend();
+    return trend == 'Improved' || trend == 'Stable' || trend == 'New';
+  }
+
   @override
   Widget build(BuildContext context) {
     final padding = Responsive.pagePadding(context);
@@ -55,10 +262,10 @@ class _HomePageState extends State<HomePage> {
                 _buildGreeting(context),
                 const SizedBox(height: 32),
                 _buildQuickMood(context),
-                
+
                 // Upcoming appointments section
                 _buildAppointmentsSection(context),
-                
+
                 const SizedBox(height: 32),
                 _buildSectionTitle(context, 'This Week'),
                 const SizedBox(height: 16),
@@ -78,7 +285,7 @@ class _HomePageState extends State<HomePage> {
     if (_upcomingAppointments.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -161,37 +368,38 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               width: (constraints.maxWidth - 12) / 2,
               child: _StatTile(
-                value: '7.2',
+                value: _avgMood > 0 ? _numberToMoodEmoji(_avgMood) : '--',
                 label: 'Avg. Mood',
-                trend: '+0.5',
-                isPositive: true,
+                trend: _formatMoodTrend(),
+                isPositive: _avgMood >= _prevWeekAvgMood,
+                isEmoji: _avgMood > 0,
               ),
             ),
             SizedBox(
               width: (constraints.maxWidth - 12) / 2,
               child: _StatTile(
-                value: '4',
+                value: '$_journalEntriesThisWeek',
                 label: 'Journal Entries',
-                trend: '+2',
-                isPositive: true,
+                trend: _formatJournalTrend(),
+                isPositive: _journalEntriesThisWeek >= _prevWeekJournalEntries,
               ),
             ),
             SizedBox(
               width: (constraints.maxWidth - 12) / 2,
               child: _StatTile(
-                value: '3',
+                value: '$_chatSessionsThisWeek',
                 label: 'Chat Sessions',
-                trend: '0',
-                isPositive: true,
+                trend: _formatChatTrend(),
+                isPositive: _chatSessionsThisWeek >= _prevWeekChatSessions,
               ),
             ),
             SizedBox(
               width: (constraints.maxWidth - 12) / 2,
               child: _StatTile(
-                value: 'Low',
+                value: _stressLevel,
                 label: 'Stress Level',
-                trend: 'Improved',
-                isPositive: true,
+                trend: _formatStressTrend(),
+                isPositive: _isStressTrendPositive(),
               ),
             ),
           ],
@@ -201,6 +409,49 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildStreakCard(BuildContext context) {
+    if (_streak == 0) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text('✨', style: TextStyle(fontSize: 28)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Start your streak!',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Write a journal entry to begin',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -230,7 +481,7 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '7 day streak!',
+                  '$_streak day${_streak == 1 ? '' : ''} streak!',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -238,7 +489,9 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Keep the momentum going',
+                  _streak >= 7
+                      ? 'Amazing consistency! Keep it up!'
+                      : 'Keep the momentum going',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.white.withOpacity(0.8),
                   ),
@@ -295,12 +548,14 @@ class _StatTile extends StatelessWidget {
   final String label;
   final String trend;
   final bool isPositive;
+  final bool isEmoji;
 
   const _StatTile({
     required this.value,
     required this.label,
     required this.trend,
     required this.isPositive,
+    this.isEmoji = false,
   });
 
   @override
@@ -319,9 +574,11 @@ class _StatTile extends StatelessWidget {
         children: [
           Text(
             value,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+            style: isEmoji
+                ? const TextStyle(fontSize: 28)
+                : Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -359,12 +616,24 @@ class _AppointmentCard extends StatelessWidget {
   const _AppointmentCard({required this.appointment});
 
   String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final now = DateTime.now();
     final tomorrow = DateTime(now.year, now.month, now.day + 1);
     final appointmentDate = DateTime(date.year, date.month, date.day);
-    
+
     if (appointmentDate == DateTime(now.year, now.month, now.day)) {
       return 'Today';
     } else if (appointmentDate == tomorrow) {
@@ -406,9 +675,9 @@ class _AppointmentCard extends StatelessWidget {
               children: [
                 Text(
                   appointment.therapistName,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
                 Row(

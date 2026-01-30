@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import '../services/database_service.dart';
 import '../services/llm_service.dart';
 import '../services/model_download_service.dart';
 import '../utils/responsive.dart';
@@ -21,19 +22,42 @@ class _AiChatPageState extends State<AiChatPage> {
   final _scrollController = ScrollController();
   final _llmService = LlmService();
   final _downloadService = ModelDownloadService();
+  final _databaseService = DatabaseService();
 
   String _mode = 'friend';
-  final List<_Message> _messages = [];
+  final List<ChatMessage> _messages = [];
   bool _isGenerating = false;
   String _currentResponse = '';
   bool _isCheckingModel = true;
+  bool _isLoadingMessages = true;
 
   @override
   void initState() {
     super.initState();
     _llmService.addListener(_onServiceStatusChanged);
     _downloadService.addListener(_onServiceStatusChanged);
+    _loadMessages();
     _checkAndLoadModel();
+  }
+
+  Future<void> _loadMessages() async {
+    setState(() => _isLoadingMessages = true);
+    try {
+      final messages = await _databaseService.getChatMessages(mode: _mode);
+      if (mounted) {
+        setState(() {
+          _messages.clear();
+          _messages.addAll(messages);
+          _isLoadingMessages = false;
+        });
+        _scrollToBottom();
+      }
+    } catch (e) {
+      debugPrint('Error loading messages: $e');
+      if (mounted) {
+        setState(() => _isLoadingMessages = false);
+      }
+    }
   }
 
   Future<void> _checkAndLoadModel() async {
@@ -89,13 +113,19 @@ class _AiChatPageState extends State<AiChatPage> {
     final text = _messageController.text.trim();
     if (text.isEmpty || _isGenerating) return;
 
+    // Create and save user message
+    final userMessage = ChatMessage(text: text, isUser: true, mode: _mode);
+
     setState(() {
-      _messages.add(_Message(text: text, isUser: true));
+      _messages.add(userMessage);
       _isGenerating = true;
       _currentResponse = '';
     });
     _messageController.clear();
     _scrollToBottom();
+
+    // Save user message to database
+    await _databaseService.insertChatMessage(userMessage);
 
     // Allow UI to update and show typing indicator before starting inference
     // Wait for frame to render
@@ -133,11 +163,18 @@ class _AiChatPageState extends State<AiChatPage> {
         await streamController.close();
 
         if (mounted) {
+          final aiMessage = ChatMessage(
+            text: response,
+            isUser: false,
+            mode: _mode,
+          );
           setState(() {
-            _messages.add(_Message(text: response, isUser: false));
+            _messages.add(aiMessage);
             _isGenerating = false;
             _currentResponse = '';
           });
+          // Save AI response to database
+          await _databaseService.insertChatMessage(aiMessage);
         }
       } else {
         // Fallback to mock response when model not loaded
@@ -148,25 +185,34 @@ class _AiChatPageState extends State<AiChatPage> {
               ? "Thanks for sharing that with me! I'm here to listen 😊"
               : "Thank you for opening up. Let's explore that together. What do you think might be contributing to these feelings?";
 
+          final aiMessage = ChatMessage(
+            text: mockResponse,
+            isUser: false,
+            mode: _mode,
+          );
           setState(() {
-            _messages.add(_Message(text: mockResponse, isUser: false));
+            _messages.add(aiMessage);
             _isGenerating = false;
           });
+          // Save AI response to database
+          await _databaseService.insertChatMessage(aiMessage);
         }
       }
     } catch (e) {
       if (mounted) {
+        final errorMessage = ChatMessage(
+          text: "I'm sorry, I encountered an issue. Please try again.",
+          isUser: false,
+          isError: true,
+          mode: _mode,
+        );
         setState(() {
-          _messages.add(
-            _Message(
-              text: "I'm sorry, I encountered an issue. Please try again.",
-              isUser: false,
-              isError: true,
-            ),
-          );
+          _messages.add(errorMessage);
           _isGenerating = false;
           _currentResponse = '';
         });
+        // Save error message to database
+        await _databaseService.insertChatMessage(errorMessage);
       }
       debugPrint('Error generating response: $e');
     }
@@ -220,7 +266,10 @@ class _AiChatPageState extends State<AiChatPage> {
                   ),
                   _ModeToggle(
                     mode: _mode,
-                    onChanged: (mode) => setState(() => _mode = mode),
+                    onChanged: (mode) {
+                      setState(() => _mode = mode);
+                      _loadMessages(); // Reload messages for new mode
+                    },
                   ),
                 ],
               ),
@@ -228,7 +277,9 @@ class _AiChatPageState extends State<AiChatPage> {
 
             // Messages
             Expanded(
-              child: _messages.isEmpty && !_isGenerating
+              child: _isLoadingMessages
+                  ? const Center(child: CircularProgressIndicator())
+                  : _messages.isEmpty && !_isGenerating
                   ? _EmptyState(
                       mode: _mode,
                       isModelReady: _llmService.isReady,
@@ -688,16 +739,8 @@ class _TypingIndicatorState extends State<_TypingIndicator>
   }
 }
 
-class _Message {
-  final String text;
-  final bool isUser;
-  final bool isError;
-
-  _Message({required this.text, required this.isUser, this.isError = false});
-}
-
 class _ChatBubble extends StatelessWidget {
-  final _Message message;
+  final ChatMessage message;
 
   const _ChatBubble({required this.message});
 
