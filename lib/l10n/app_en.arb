@@ -1921,5 +1921,15 @@
   "trendWorsened": "Worsened",
   "@trendWorsened": {
     "description": "Worsened trend indicator"
+  },
+  
+  "pleaseSelectSepoliaNetwork": "Please switch to Sepolia testnet in your wallet",
+  "@pleaseSelectSepoliaNetwork": {
+    "description": "Error message when wrong network is selected"
+  },
+  
+  "switchNetwork": "Switch Network",
+  "@switchNetwork": {
+    "description": "Button to switch blockchain network"
   }
 }

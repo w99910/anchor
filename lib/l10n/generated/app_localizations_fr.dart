@@ -1138,4 +1138,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trendWorsened => 'Dégradé';
+
+  @override
+  String get pleaseSelectSepoliaNetwork =>
+      'Please switch to Sepolia testnet in your wallet';
+
+  @override
+  String get switchNetwork => 'Switch Network';
 }

@@ -113,20 +113,48 @@ class _PaymentPageState extends State<PaymentPage> {
         _complete = true;
       });
     } catch (e) {
+      debugPrint('Payment error: $e');
       setState(() {
         _processing = false;
       });
 
       if (mounted) {
+        final errorMessage = e.toString();
+        final isNetworkError =
+            errorMessage.contains('Sepolia') ||
+            errorMessage.contains('switch') ||
+            errorMessage.contains('network') ||
+            errorMessage.contains('Chain');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context)!.paymentFailed(e.toString()),
+              isNetworkError
+                  ? AppLocalizations.of(context)!.pleaseSelectSepoliaNetwork
+                  : AppLocalizations.of(context)!.paymentFailed(errorMessage),
             ),
             backgroundColor: Colors.red,
+            action: isNetworkError
+                ? SnackBarAction(
+                    label: AppLocalizations.of(context)!.switchNetwork,
+                    textColor: Colors.white,
+                    onPressed: _switchNetwork,
+                  )
+                : null,
+            duration: isNetworkError
+                ? const Duration(seconds: 6)
+                : const Duration(seconds: 4),
           ),
         );
       }
+    }
+  }
+
+  void _switchNetwork() async {
+    try {
+      await _web3Service.switchChain();
+    } catch (e) {
+      debugPrint('Switch network error: $e');
     }
   }
 

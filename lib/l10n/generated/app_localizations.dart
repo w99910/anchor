@@ -2185,6 +2185,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Worsened'**
   String get trendWorsened;
+
+  /// Error message when wrong network is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Please switch to Sepolia testnet in your wallet'**
+  String get pleaseSelectSepoliaNetwork;
+
+  /// Button to switch blockchain network
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Network'**
+  String get switchNetwork;
 }
 
 class _AppLocalizationsDelegate
