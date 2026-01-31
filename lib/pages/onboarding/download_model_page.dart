@@ -4,6 +4,8 @@ import '../../services/llm_service.dart';
 import '../../utils/responsive.dart';
 import '../main_scaffold.dart';
 
+enum AiModelChoice { onDevice, cloud }
+
 class DownloadModelPage extends StatefulWidget {
   const DownloadModelPage({super.key});
 
@@ -11,55 +13,78 @@ class DownloadModelPage extends StatefulWidget {
   State<DownloadModelPage> createState() => _DownloadModelPageState();
 }
 
-class _DownloadModelPageState extends State<DownloadModelPage>
-    with SingleTickerProviderStateMixin {
+class _DownloadModelPageState extends State<DownloadModelPage> {
   final _llmService = LlmService();
-  late AnimationController _pulseController;
-  String _statusMessage =
-      'Download the AI model for offline chat and personalized responses';
+  AiModelChoice? _selectedChoice;
+  bool _isSettingUp = false;
+  double _setupProgress = 0.0;
+  String? _errorMessage;
 
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    // Listen to LLM service status changes
-    _llmService.addListener(_onServiceStatusChanged);
-
-    // Check if model is already available
-    _checkModelAvailability();
+  void _selectChoice(AiModelChoice choice) {
+    setState(() {
+      _selectedChoice = choice;
+      _errorMessage = null;
+    });
   }
 
-  Future<void> _checkModelAvailability() async {
-    final isAvailable = await _llmService.isModelAvailable();
-    if (isAvailable && mounted) {
-      setState(() {
-        _statusMessage = 'AI model found! Ready to set up.';
-      });
+  Future<void> _continue() async {
+    if (_selectedChoice == null) return;
+
+    setState(() {
+      _isSettingUp = true;
+      _errorMessage = null;
+    });
+
+    try {
+      if (_selectedChoice == AiModelChoice.onDevice) {
+        // Listen to progress updates
+        _llmService.addListener(_onServiceStatusChanged);
+        await _llmService.loadModel();
+      } else {
+        // Cloud setup - simulate brief setup
+        for (var i = 0; i <= 10; i++) {
+          await Future.delayed(const Duration(milliseconds: 50));
+          if (mounted) {
+            setState(() => _setupProgress = i / 10);
+          }
+        }
+      }
+
+      // Mark onboarding as complete
+      await setOnboardingComplete();
+
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const MainScaffold(),
+            transitionDuration: const Duration(milliseconds: 500),
+            transitionsBuilder: (_, animation, __, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSettingUp = false;
+          _errorMessage = 'Setup failed. Please try again.';
+        });
+      }
+    } finally {
+      _llmService.removeListener(_onServiceStatusChanged);
     }
   }
 
   void _onServiceStatusChanged() {
     if (!mounted) return;
-
     setState(() {
-      switch (_llmService.status) {
-        case LlmModelStatus.loading:
-          _statusMessage = 'Setting up AI model...';
-          break;
-        case LlmModelStatus.ready:
-          _statusMessage = 'AI model ready!';
-          break;
-        case LlmModelStatus.error:
-          _statusMessage = _llmService.errorMessage ?? 'Error loading model';
-          break;
-        case LlmModelStatus.notLoaded:
-          _statusMessage =
-              'Download the AI model for offline chat and personalized responses';
-          break;
+      _setupProgress = _llmService.loadProgress;
+      if (_llmService.status == LlmModelStatus.error) {
+        _errorMessage = _llmService.errorMessage ?? 'Error loading model';
+        _isSettingUp = false;
       }
     });
   }
@@ -67,40 +92,13 @@ class _DownloadModelPageState extends State<DownloadModelPage>
   @override
   void dispose() {
     _llmService.removeListener(_onServiceStatusChanged);
-    _pulseController.dispose();
     super.dispose();
-  }
-
-  void _startDownload() async {
-    // Start loading the model
-    await _llmService.loadModel();
-  }
-
-  void _continue() async {
-    // Mark onboarding as complete
-    await setOnboardingComplete();
-
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const MainScaffold(),
-          transitionDuration: const Duration(milliseconds: 500),
-          transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-        (route) => false,
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = _llmService.isLoading;
-    final isReady = _llmService.isReady;
-    final hasError = _llmService.status == LlmModelStatus.error;
-    final progress = _llmService.loadProgress;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       body: SafeArea(
@@ -108,134 +106,273 @@ class _DownloadModelPageState extends State<DownloadModelPage>
           maxWidth: 500,
           padding: const EdgeInsets.all(24),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(flex: 2),
-
-              AnimatedBuilder(
-                animation: _pulseController,
-                builder: (context, child) {
-                  final scale = isLoading
-                      ? 1.0 + (_pulseController.value * 0.05)
-                      : 1.0;
-                  return Transform.scale(
-                    scale: scale,
-                    child: Container(
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: isReady
-                            ? Colors.green.withOpacity(0.1)
-                            : hasError
-                            ? Colors.red.withOpacity(0.1)
-                            : Theme.of(
-                                context,
-                              ).colorScheme.primaryContainer.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(32),
-                      ),
-                      child: Icon(
-                        isReady
-                            ? Icons.check_rounded
-                            : hasError
-                            ? Icons.error_outline_rounded
-                            : Icons.auto_awesome_rounded,
-                        size: 64,
-                        color: isReady
-                            ? Colors.green
-                            : hasError
-                            ? Colors.red
-                            : Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 40),
+              const Spacer(flex: 1),
 
               Text(
-                isReady
-                    ? 'All set!'
-                    : hasError
-                    ? 'Setup incomplete'
-                    : isLoading
-                    ? 'Setting up...'
-                    : 'One last step',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                'Choose your AI',
+                style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
-                isReady
-                    ? 'You\'re ready to start your journey'
-                    : _statusMessage,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: hasError
-                      ? Theme.of(context).colorScheme.error
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                  height: 1.5,
+                'Select how you want to power your AI assistant',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
 
-              if (isLoading || isReady) ...[
+              // On-device option
+              _ModelOptionCard(
+                icon: Icons.smartphone_rounded,
+                title: 'On-Device AI',
+                subtitle: 'Maximum privacy',
+                description:
+                    'Runs entirely on your device. Your data never leaves your phone.',
+                benefits: const [
+                  'Complete privacy',
+                  'Works offline',
+                  'No subscription needed',
+                ],
+                drawbacks: const [
+                  'Requires ~2GB download',
+                  'Uses device resources',
+                ],
+                isSelected: _selectedChoice == AiModelChoice.onDevice,
+                onTap: _isSettingUp
+                    ? null
+                    : () => _selectChoice(AiModelChoice.onDevice),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Cloud option
+              _ModelOptionCard(
+                icon: Icons.cloud_rounded,
+                title: 'Cloud AI',
+                subtitle: 'More powerful',
+                description:
+                    'Powered by cloud providers for faster, smarter responses.',
+                benefits: const [
+                  'More capable models',
+                  'Faster responses',
+                  'No storage needed',
+                ],
+                drawbacks: const ['Requires internet', 'Data sent to cloud'],
+                isSelected: _selectedChoice == AiModelChoice.cloud,
+                onTap: _isSettingUp
+                    ? null
+                    : () => _selectChoice(AiModelChoice.cloud),
+              ),
+
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  _errorMessage!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.error,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+
+              const Spacer(flex: 2),
+
+              if (_isSettingUp) ...[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
+                    value: _setupProgress,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
                     minHeight: 8,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '${(progress * 100).toInt()}%',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
+                  _selectedChoice == AiModelChoice.onDevice
+                      ? 'Downloading model... ${(_setupProgress * 100).toInt()}%'
+                      : 'Setting up... ${(_setupProgress * 100).toInt()}%',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ] else ...[
+                FilledButton(
+                  onPressed: _selectedChoice != null ? _continue : null,
+                  child: Text(
+                    _selectedChoice == AiModelChoice.onDevice
+                        ? 'Download & Continue'
+                        : 'Continue',
                   ),
                 ),
               ],
-
-              const Spacer(flex: 3),
-
-              if (!isLoading && !isReady) ...[
-                FilledButton(
-                  onPressed: _startDownload,
-                  child: const Text('Download'),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: _continue,
-                  child: const Text('Skip for now'),
-                ),
-              ],
-
-              if (hasError) ...[
-                FilledButton(
-                  onPressed: _startDownload,
-                  child: const Text('Retry'),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: _continue,
-                  child: const Text('Continue without AI'),
-                ),
-              ],
-
-              if (isReady)
-                FilledButton(
-                  onPressed: _continue,
-                  child: const Text('Get Started'),
-                ),
 
               const SizedBox(height: 32),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ModelOptionCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String description;
+  final List<String> benefits;
+  final List<String> drawbacks;
+  final bool isSelected;
+  final VoidCallback? onTap;
+
+  const _ModelOptionCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.benefits,
+    required this.drawbacks,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+          width: isSelected ? 2 : 1,
+        ),
+        color: isSelected
+            ? colorScheme.primaryContainer.withOpacity(0.3)
+            : colorScheme.surface,
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? colorScheme.primary.withOpacity(0.15)
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 24,
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isSelected)
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: colorScheme.primary,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                description,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  ...benefits.map((b) => _Chip(text: b, isPositive: true)),
+                  ...drawbacks.map((d) => _Chip(text: d, isPositive: false)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final String text;
+  final bool isPositive;
+
+  const _Chip({required this.text, required this.isPositive});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isPositive
+            ? Colors.green.withOpacity(0.1)
+            : colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isPositive ? Icons.check_rounded : Icons.info_outline_rounded,
+            size: 12,
+            color: isPositive ? Colors.green : colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: isPositive ? Colors.green : colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }

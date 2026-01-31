@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import '../services/ai_settings_service.dart';
 import '../services/database_service.dart';
 import '../services/llm_service.dart';
 import '../services/model_download_service.dart';
@@ -23,6 +24,7 @@ class _AiChatPageState extends State<AiChatPage> {
   final _llmService = LlmService();
   final _downloadService = ModelDownloadService();
   final _databaseService = DatabaseService();
+  final _aiSettings = AiSettingsService();
 
   String _mode = 'friend';
   final List<ChatMessage> _messages = [];
@@ -36,8 +38,16 @@ class _AiChatPageState extends State<AiChatPage> {
     super.initState();
     _llmService.addListener(_onServiceStatusChanged);
     _downloadService.addListener(_onServiceStatusChanged);
-    _loadMessages();
+    _aiSettings.addListener(_onServiceStatusChanged);
+    _initializeSettings();
+    // Start with fresh chat - don't load old messages
+    // _loadMessages();
+    setState(() => _isLoadingMessages = false);
     _checkAndLoadModel();
+  }
+
+  Future<void> _initializeSettings() async {
+    await _aiSettings.initialize();
   }
 
   Future<void> _loadMessages() async {
@@ -85,9 +95,10 @@ class _AiChatPageState extends State<AiChatPage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ModelDownloadPage(
-          onDownloadComplete: () {
+          onDownloadComplete: () async {
             Navigator.of(context).pop();
-            _checkAndLoadModel();
+            // Wait for the model to load after download
+            await _checkAndLoadModel();
           },
         ),
       ),
@@ -96,7 +107,12 @@ class _AiChatPageState extends State<AiChatPage> {
 
   void _onServiceStatusChanged() {
     if (mounted) {
-      setState(() {});
+      // Defer setState to avoid calling it during build phase
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
     }
   }
 
@@ -104,6 +120,7 @@ class _AiChatPageState extends State<AiChatPage> {
   void dispose() {
     _llmService.removeListener(_onServiceStatusChanged);
     _downloadService.removeListener(_onServiceStatusChanged);
+    _aiSettings.removeListener(_onServiceStatusChanged);
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -111,7 +128,13 @@ class _AiChatPageState extends State<AiChatPage> {
 
   Future<void> _send() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty || _isGenerating) return;
+    if (text.isEmpty || _isGenerating || _isCheckingModel) return;
+
+    // Check if model is still loading
+    if (_llmService.isLoading) {
+      debugPrint('Model is still loading, waiting...');
+      return;
+    }
 
     // Create and save user message
     final userMessage = ChatMessage(text: text, isUser: true, mode: _mode);
@@ -155,7 +178,7 @@ class _AiChatPageState extends State<AiChatPage> {
         final response = await _llmService.generateResponse(
           prompt: text,
           mode: _mode,
-          maxTokens: 256,
+          maxTokens: 1024,
           temperature: 0.7,
           streamController: streamController,
         );
@@ -285,6 +308,10 @@ class _AiChatPageState extends State<AiChatPage> {
                       isModelReady: _llmService.isReady,
                       isModelDownloaded: _downloadService.isDownloaded,
                       isCheckingModel: _isCheckingModel,
+                      isModelLoading: _llmService.isLoading,
+                      isCloudProvider: _aiSettings.isCloudProvider,
+                      modelName: _downloadService.selectedModelName,
+                      modelSize: _downloadService.selectedModelSize,
                       onLoadModel: _checkAndLoadModel,
                       onDownloadModel: _openDownloadPage,
                     )
@@ -315,10 +342,15 @@ class _AiChatPageState extends State<AiChatPage> {
                       child: TextField(
                         controller: _messageController,
                         textCapitalization: TextCapitalization.sentences,
-                        enabled: !_isGenerating,
+                        enabled:
+                            !_isGenerating &&
+                            !_isCheckingModel &&
+                            !_llmService.isLoading,
                         decoration: InputDecoration(
                           hintText: _isGenerating
                               ? 'Thinking...'
+                              : (_isCheckingModel || _llmService.isLoading)
+                              ? 'Loading model...'
                               : 'Type a message...',
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
@@ -334,8 +366,13 @@ class _AiChatPageState extends State<AiChatPage> {
                     ),
                     const SizedBox(width: 8),
                     IconButton.filled(
-                      onPressed: _isGenerating ? null : _send,
-                      icon: _isGenerating
+                      onPressed:
+                          (_isGenerating ||
+                              _isCheckingModel ||
+                              _llmService.isLoading)
+                          ? null
+                          : _send,
+                      icon: (_isGenerating || _llmService.isLoading)
                           ? const SizedBox(
                               width: 20,
                               height: 20,
@@ -374,6 +411,7 @@ class _ModelStatusBadge extends StatelessWidget {
         'AI Ready',
         Colors.green,
       ),
+      LlmBackend.geminiCloud => (Icons.cloud_rounded, 'Cloud AI', Colors.blue),
       LlmBackend.mockResponses => (
         Icons.chat_bubble_outline,
         'Demo mode',
@@ -498,6 +536,10 @@ class _EmptyState extends StatelessWidget {
   final bool isModelReady;
   final bool isModelDownloaded;
   final bool isCheckingModel;
+  final bool isModelLoading;
+  final bool isCloudProvider;
+  final String modelName;
+  final String modelSize;
   final VoidCallback onLoadModel;
   final VoidCallback onDownloadModel;
 
@@ -506,12 +548,88 @@ class _EmptyState extends StatelessWidget {
     required this.isModelReady,
     required this.isModelDownloaded,
     required this.isCheckingModel,
+    required this.isModelLoading,
+    required this.isCloudProvider,
+    required this.modelName,
+    required this.modelSize,
     required this.onLoadModel,
     required this.onDownloadModel,
   });
 
   @override
   Widget build(BuildContext context) {
+    // If using cloud provider, show ready state
+    if (isCloudProvider) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Text(
+                  mode == 'friend' ? '👋' : '🧠',
+                  style: const TextStyle(fontSize: 48),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                mode == 'friend' ? 'Chat with a friend' : 'Guided conversation',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                mode == 'friend'
+                    ? 'I\'m here to listen. Share anything on your mind.'
+                    : 'Explore your thoughts with guided therapeutic dialogue.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.cloud_rounded,
+                      size: 16,
+                      color: Colors.blue,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Using Cloud AI',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: Colors.blue),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -558,6 +676,40 @@ class _EmptyState extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
+            ] else if (isModelLoading) ...[
+              // Model is loading
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: CircularProgressIndicator(strokeWidth: 3),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Loading AI Model...',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Preparing the model for chat',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
             ] else if (!isModelDownloaded) ...[
               // Model not downloaded - show download option
               const SizedBox(height: 24),
@@ -583,7 +735,7 @@ class _EmptyState extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Get the Llama 3.2 1B model for private, on-device AI chat',
+                      'Get the $modelName model for private, on-device AI chat',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -591,7 +743,7 @@ class _EmptyState extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '~1.1 GB download',
+                      '~$modelSize download',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.outline,
                       ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../main.dart' show themeNotifier, saveTheme;
+import '../services/ai_settings_service.dart';
+import '../services/gemini_service.dart';
 import '../utils/responsive.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -12,6 +14,30 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _notifications = true;
   bool _appLock = false;
+  final _aiSettings = AiSettingsService();
+  final _geminiService = GeminiService();
+
+  @override
+  void initState() {
+    super.initState();
+    _aiSettings.addListener(_onSettingsChanged);
+    _initializeSettings();
+  }
+
+  Future<void> _initializeSettings() async {
+    await _aiSettings.initialize();
+    if (mounted) setState(() {});
+  }
+
+  void _onSettingsChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _aiSettings.removeListener(_onSettingsChanged);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +63,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
                 _SectionTitle('Appearance'),
                 _ThemeSelector(),
+
+                const SizedBox(height: 24),
+                _SectionTitle('AI Provider'),
+                _AiProviderSelector(
+                  isCloudProvider: _aiSettings.isCloudProvider,
+                  isGeminiConfigured: _geminiService.isConfigured,
+                  onChanged: (useCloud) => _onAiProviderChanged(useCloud),
+                ),
 
                 const SizedBox(height: 24),
                 _SectionTitle('Security'),
@@ -103,6 +137,102 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
+  }
+
+  void _onAiProviderChanged(bool useCloud) async {
+    if (useCloud) {
+      // Show privacy warning dialog before switching to cloud
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          icon: Icon(
+            Icons.cloud_outlined,
+            size: 48,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          title: const Text('Use Cloud AI?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'You are about to switch to a cloud AI provider (Gemini).',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.errorContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.error.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Your conversations will be sent to Google servers. We cannot guarantee data privacy when using cloud AI.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'For maximum privacy, use the on-device AI option.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('I Understand'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        await _aiSettings.setAiProvider(AiProvider.cloud);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Switched to Cloud AI (Gemini)'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } else {
+      // Switch to on-device without warning
+      await _aiSettings.setAiProvider(AiProvider.onDevice);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Switched to On-Device AI'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   void _showClearDialog(BuildContext context) {
@@ -346,6 +476,127 @@ class _ActionTile extends StatelessWidget {
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
+    );
+  }
+}
+
+class _AiProviderSelector extends StatelessWidget {
+  final bool isCloudProvider;
+  final bool isGeminiConfigured;
+  final ValueChanged<bool> onChanged;
+
+  const _AiProviderSelector({
+    required this.isCloudProvider,
+    required this.isGeminiConfigured,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          _AiProviderOption(
+            icon: Icons.memory_rounded,
+            title: 'On-Device',
+            subtitle: 'Private, runs locally',
+            isSelected: !isCloudProvider,
+            onTap: () => onChanged(false),
+            showDivider: true,
+          ),
+          _AiProviderOption(
+            icon: Icons.cloud_rounded,
+            title: 'Cloud (Gemini)',
+            subtitle: isGeminiConfigured
+                ? 'Faster, requires internet'
+                : 'API key not configured',
+            isSelected: isCloudProvider,
+            onTap: isGeminiConfigured ? () => onChanged(true) : null,
+            showDivider: false,
+            isDisabled: !isGeminiConfigured,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AiProviderOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool isSelected;
+  final VoidCallback? onTap;
+  final bool showDivider;
+  final bool isDisabled;
+
+  const _AiProviderOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.isSelected,
+    required this.onTap,
+    required this.showDivider,
+    this.isDisabled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          onTap: isDisabled ? null : onTap,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 2,
+          ),
+          leading: Icon(
+            icon,
+            color: isDisabled
+                ? Theme.of(context).colorScheme.outline
+                : isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.w600 : null,
+              color: isDisabled
+                  ? Theme.of(context).colorScheme.outline
+                  : isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: isDisabled
+                  ? Theme.of(context).colorScheme.outline
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          trailing: isSelected
+              ? Icon(
+                  Icons.check_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                )
+              : null,
+        ),
+        if (showDivider)
+          Divider(
+            height: 1,
+            indent: 56,
+            endIndent: 16,
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+          ),
+      ],
     );
   }
 }

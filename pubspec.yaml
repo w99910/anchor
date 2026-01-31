@@ -52,6 +52,12 @@ dependencies:
   # Local database for persistence
   sqflite: ^2.4.2
 
+  # Device info for RAM detection
+  device_info_plus: ^11.0.0
+
+  # Keep device awake during downloads
+  wakelock_plus: ^1.2.5
+
   # Ethereum/Web3 for EthStorage integration
   web3dart: ^2.7.3
   convert: ^3.1.1

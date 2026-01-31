@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/onboarding/feature_intro_page.dart';
 import 'pages/main_scaffold.dart';
 import 'pages/help/payment_page.dart';
+import 'services/ai_settings_service.dart';
 import 'services/appointment_service.dart';
 
 // Keys for shared preferences
@@ -19,6 +20,9 @@ final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.system);
 // Global appointment service
 final appointmentService = AppointmentService();
 
+// Global AI settings service
+final aiSettingsService = AiSettingsService();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
@@ -30,6 +34,9 @@ void main() async {
 
   // Load saved theme
   await _loadTheme();
+
+  // Initialize AI settings
+  await aiSettingsService.initialize();
 
   // Initialize appointment service
   await appointmentService.initialize();
@@ -74,11 +81,11 @@ class PendingPaymentData {
   });
 
   Map<String, dynamic> toJson() => {
-        'amount': amount,
-        'therapistName': therapistName,
-        'date': date.toIso8601String(),
-        'time': time,
-      };
+    'amount': amount,
+    'therapistName': therapistName,
+    'date': date.toIso8601String(),
+    'time': time,
+  };
 
   factory PendingPaymentData.fromJson(Map<String, dynamic> json) =>
       PendingPaymentData(
@@ -295,7 +302,7 @@ class _SplashScreenState extends State<SplashScreen>
         final appointment = appointmentService.lastCompletedPayment!;
         // Clear pending payment since payment is complete
         await clearPendingPayment();
-        
+
         Navigator.pushReplacement(
           context,
           PageRouteBuilder(
@@ -350,7 +357,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           );
         }
-      } 
+      }
       // Priority 3: Normal navigation
       else {
         Navigator.pushReplacement(

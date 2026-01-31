@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../config/ethstorage_config.dart';
 import '../../services/database_service.dart';
 import '../../utils/responsive.dart';
 import 'create_journal_page.dart';
@@ -587,6 +589,45 @@ class _FinalizedEntrySheet extends StatelessWidget {
                       ),
                     ),
 
+                    // EthStorage Section
+                    if (entry.ethstorageTxHash != null) ...[
+                      const SizedBox(height: 16),
+                      _SectionCard(
+                        icon: Icons.cloud_done_rounded,
+                        iconColor: Colors.green,
+                        title: 'Stored on Blockchain',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'TX: ${entry.ethstorageTxHash!.substring(0, 10)}...${entry.ethstorageTxHash!.substring(entry.ethstorageTxHash!.length - 8)}',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    fontFamily: 'monospace',
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () => _openExplorer(
+                                  context,
+                                  EthStorageConfig.getExplorerTxUrl(
+                                    entry.ethstorageTxHash!,
+                                  ),
+                                ),
+                                icon: const Icon(Icons.open_in_new, size: 16),
+                                label: const Text('View on Etherscan'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -615,6 +656,32 @@ class _FinalizedEntrySheet extends StatelessWidget {
       'overwhelmed': Colors.red,
     };
     return emotionColors[emotion.toLowerCase()] ?? Colors.purple;
+  }
+
+  Future<void> _openExplorer(BuildContext context, String url) async {
+    final uri = Uri.parse(url);
+    debugPrint('Opening explorer URL: $url');
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        debugPrint('Failed to launch URL: $url');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not open browser. URL: $url')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error launching URL: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error opening URL: $e')));
+      }
+    }
   }
 
   Color _getRiskColor(String risk) {

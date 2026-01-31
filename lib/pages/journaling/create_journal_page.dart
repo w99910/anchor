@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import '../../services/ai_settings_service.dart';
 import '../../services/database_service.dart';
+import '../../services/gemini_service.dart';
 import '../../services/llm_service.dart';
 import '../../services/model_download_service.dart';
 import '../../utils/responsive.dart';
@@ -22,6 +24,8 @@ class _CreateJournalPageState extends State<CreateJournalPage> {
   final _contentFocus = FocusNode();
   final _databaseService = DatabaseService();
   final _llmService = LlmService();
+  final _aiSettings = AiSettingsService();
+  final _geminiService = GeminiService();
 
   String _selectedMood = '😊';
   bool _isSaving = false;
@@ -145,10 +149,15 @@ class _CreateJournalPageState extends State<CreateJournalPage> {
           future: downloadService.isModelDownloaded(),
           builder: (context, snapshot) {
             final isDownloaded = snapshot.data ?? false;
-            final isAiAvailable = _llmService.hasRealAI || isDownloaded;
+            // AI is available if: cloud provider is configured OR on-device model is ready/downloaded
+            final isCloudReady =
+                _aiSettings.isCloudProvider && _geminiService.isConfigured;
+            final isAiAvailable =
+                isCloudReady || _llmService.hasRealAI || isDownloaded;
             return _SaveOptionsSheet(
               isEditing: _isEditing,
               isAiAvailable: isAiAvailable,
+              isCloudProvider: isCloudReady,
               onSaveDraft: _saveDraftAndClose,
               onFinalize: _finalizeWithAI,
             );
@@ -186,39 +195,67 @@ class _CreateJournalPageState extends State<CreateJournalPage> {
     Navigator.pop(context); // Close bottom sheet
 
     if (_isAnalyzing) return;
-    setState(() => _isAnalyzing = true);
 
     try {
-      // First ensure the entry is saved
-      await _autoSaveDraft();
+      // First ensure the entry is saved BEFORE setting _isAnalyzing
+      // (because _autoSaveDraft checks _isAnalyzing and returns early if true)
+      if (_entryId == null && _contentController.text.trim().isNotEmpty) {
+        final newEntry = JournalEntry(
+          content: _contentController.text.trim(),
+          mood: _selectedMood,
+        );
+        _entryId = await _databaseService.insertJournalEntry(newEntry);
+        debugPrint('Created entry with id $_entryId before finalizing');
+      } else if (_entryId != null) {
+        // Update existing draft
+        final updatedEntry = JournalEntry(
+          id: _entryId,
+          content: _contentController.text.trim(),
+          mood: _selectedMood,
+          createdAt: widget.entry?.createdAt ?? DateTime.now(),
+        );
+        await _databaseService.updateJournalEntry(updatedEntry);
+        debugPrint('Updated entry $_entryId before finalizing');
+      }
 
       if (_entryId == null) {
         throw Exception('Failed to save entry before finalizing');
       }
 
+      setState(() => _isAnalyzing = true);
+
       final content = _contentController.text.trim();
       _AnalysisResult? analysisResult;
 
-      // Try to load model if it's downloaded but not loaded
-      if (!_llmService.hasRealAI && !_llmService.isLoading) {
-        final downloadService = ModelDownloadService();
-        await downloadService.initialize();
-        if (downloadService.isDownloaded) {
-          debugPrint('Model downloaded but not loaded, loading now...');
-          await _llmService.loadModel();
-        }
-      }
+      // Initialize AI settings
+      await _aiSettings.initialize();
 
-      // Only run AI analysis if real AI model is available (not mock)
-      if (_llmService.hasRealAI) {
-        debugPrint(
-          'Running AI analysis with backend: ${_llmService.activeBackend}',
-        );
-        analysisResult = await _analyzeJournalEntry(content);
+      // Check if using cloud provider
+      if (_aiSettings.isCloudProvider && _geminiService.isConfigured) {
+        debugPrint('Running AI analysis with Gemini cloud provider');
+        analysisResult = await _analyzeJournalEntryWithGemini(content);
       } else {
-        debugPrint(
-          'AI not available - backend: ${_llmService.activeBackend}, status: ${_llmService.status}',
-        );
+        // Try to load model if it's downloaded but not loaded
+        if (!_llmService.hasRealAI && !_llmService.isLoading) {
+          final downloadService = ModelDownloadService();
+          await downloadService.initialize();
+          if (downloadService.isDownloaded) {
+            debugPrint('Model downloaded but not loaded, loading now...');
+            await _llmService.loadModel();
+          }
+        }
+
+        // Only run AI analysis if real AI model is available (not mock)
+        if (_llmService.hasRealAI) {
+          debugPrint(
+            'Running AI analysis with backend: ${_llmService.activeBackend}',
+          );
+          analysisResult = await _analyzeJournalEntry(content);
+        } else {
+          debugPrint(
+            'AI not available - backend: ${_llmService.activeBackend}, status: ${_llmService.status}',
+          );
+        }
       }
 
       // Finalize the entry (with or without AI results)
@@ -290,6 +327,40 @@ JSON format:
       return _parseAnalysisResponse(response);
     } catch (e) {
       debugPrint('Error running AI analysis: $e');
+      return null;
+    }
+  }
+
+  /// Run AI analysis using Gemini cloud service
+  Future<_AnalysisResult?> _analyzeJournalEntryWithGemini(
+    String content,
+  ) async {
+    try {
+      final result = await _geminiService.analyzeJournalEntry(content);
+      if (result != null) {
+        final summary = (result['summary'] as String?)?.trim() ?? '';
+        final emotion = (result['emotion'] as String?)?.trim() ?? 'Reflective';
+        final risk = (result['risk'] as String?)?.trim() ?? 'low';
+        final actionsRaw = result['actions'];
+        List<String> actions = [];
+        if (actionsRaw is List) {
+          actions = actionsRaw.map((e) => e.toString().trim()).toList();
+        }
+
+        if (summary.isNotEmpty) {
+          return _AnalysisResult(
+            summary: summary,
+            emotionStatus: emotion,
+            actionItems: actions.isEmpty
+                ? ['Reflect on your feelings', 'Practice self-care']
+                : actions,
+            riskStatus: _normalizeRiskStatus(risk),
+          );
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error running Gemini analysis: $e');
       return null;
     }
   }
@@ -596,12 +667,14 @@ class _AnalysisResult {
 class _SaveOptionsSheet extends StatelessWidget {
   final bool isEditing;
   final bool isAiAvailable;
+  final bool isCloudProvider;
   final VoidCallback onSaveDraft;
   final VoidCallback onFinalize;
 
   const _SaveOptionsSheet({
     required this.isEditing,
     required this.isAiAvailable,
+    this.isCloudProvider = false,
     required this.onSaveDraft,
     required this.onFinalize,
   });
@@ -650,12 +723,22 @@ class _SaveOptionsSheet extends StatelessWidget {
             // Finalize option (with AI if available)
             _OptionCard(
               icon: isAiAvailable
-                  ? Icons.auto_awesome_rounded
+                  ? (isCloudProvider
+                        ? Icons.cloud_rounded
+                        : Icons.auto_awesome_rounded)
                   : Icons.lock_rounded,
-              iconColor: isAiAvailable ? Colors.amber : Colors.green,
-              title: isAiAvailable ? 'Finalize with AI' : 'Finalize Entry',
+              iconColor: isAiAvailable
+                  ? (isCloudProvider ? Colors.blue : Colors.amber)
+                  : Colors.green,
+              title: isAiAvailable
+                  ? (isCloudProvider
+                        ? 'Finalize with Cloud AI'
+                        : 'Finalize with AI')
+                  : 'Finalize Entry',
               description: isAiAvailable
-                  ? 'Get summary, emotion analysis & risk assessment'
+                  ? (isCloudProvider
+                        ? 'Get summary & analysis (uses Gemini)'
+                        : 'Get summary, emotion analysis & risk assessment')
                   : 'Lock entry and stop editing',
               onTap: onFinalize,
               highlighted: true,

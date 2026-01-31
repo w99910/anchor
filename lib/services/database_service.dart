@@ -58,6 +58,9 @@ class JournalEntry {
   final String?
   riskStatus; // "high", "medium", "low" - mental health risk assessment
 
+  // EthStorage transaction hash (populated after uploading to blockchain)
+  final String? ethstorageTxHash;
+
   JournalEntry({
     this.id,
     required this.content,
@@ -68,6 +71,7 @@ class JournalEntry {
     this.emotionStatus,
     this.actionItems,
     this.riskStatus,
+    this.ethstorageTxHash,
   }) : createdAt = createdAt ?? DateTime.now();
 
   /// Whether this entry is a draft (not yet finalized with AI analysis)
@@ -139,6 +143,7 @@ class JournalEntry {
       'emotion_status': emotionStatus,
       'action_items': actionItems?.join('|||'), // Store as delimited string
       'risk_status': riskStatus,
+      'ethstorage_tx_hash': ethstorageTxHash,
     };
   }
 
@@ -158,6 +163,7 @@ class JournalEntry {
           ? actionItemsStr.split('|||')
           : null,
       riskStatus: map['risk_status'] as String?,
+      ethstorageTxHash: map['ethstorage_tx_hash'] as String?,
     );
   }
 
@@ -171,6 +177,7 @@ class JournalEntry {
     String? emotionStatus,
     List<String>? actionItems,
     String? riskStatus,
+    String? ethstorageTxHash,
     bool clearLockedAt = false,
   }) {
     return JournalEntry(
@@ -183,6 +190,7 @@ class JournalEntry {
       emotionStatus: emotionStatus ?? this.emotionStatus,
       actionItems: actionItems ?? this.actionItems,
       riskStatus: riskStatus ?? this.riskStatus,
+      ethstorageTxHash: ethstorageTxHash ?? this.ethstorageTxHash,
     );
   }
 }
@@ -209,7 +217,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -241,7 +249,8 @@ class DatabaseService {
         summary TEXT,
         emotion_status TEXT,
         action_items TEXT,
-        risk_status TEXT
+        risk_status TEXT,
+        ethstorage_tx_hash TEXT
       )
     ''');
 
@@ -271,6 +280,14 @@ class DatabaseService {
         'ALTER TABLE journal_entries ADD COLUMN risk_status TEXT',
       );
       debugPrint('DatabaseService: Added risk_status column');
+    }
+
+    if (oldVersion < 4) {
+      // Add ethstorage_tx_hash column to journal_entries
+      await db.execute(
+        'ALTER TABLE journal_entries ADD COLUMN ethstorage_tx_hash TEXT',
+      );
+      debugPrint('DatabaseService: Added ethstorage_tx_hash column');
     }
   }
 
@@ -419,6 +436,19 @@ class DatabaseService {
       whereArgs: [id],
     );
     debugPrint('DatabaseService: Locked journal entry $id');
+    return count;
+  }
+
+  /// Update the EthStorage transaction hash for a journal entry
+  Future<int> updateEthStorageTxHash(int id, String txHash) async {
+    final db = await database;
+    final count = await db.update(
+      'journal_entries',
+      {'ethstorage_tx_hash': txHash},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    debugPrint('DatabaseService: Updated EthStorage tx hash for entry $id');
     return count;
   }
 

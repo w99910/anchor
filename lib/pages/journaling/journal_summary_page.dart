@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../config/ethstorage_config.dart';
+import '../../services/database_service.dart';
 import '../../services/ethstorage_service.dart';
 import '../../utils/responsive.dart';
 
@@ -32,6 +34,7 @@ class JournalSummaryPage extends StatefulWidget {
 
 class _JournalSummaryPageState extends State<JournalSummaryPage> {
   final EthStorageService _ethStorageService = EthStorageService();
+  final DatabaseService _databaseService = DatabaseService();
 
   bool _isUploadingToEthStorage = false;
   String? _ethStorageTxHash;
@@ -76,6 +79,12 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
       // Upload to EthStorage
       final result = await _ethStorageService.uploadJournalSummary(data);
 
+      // Save the tx hash to the database
+      await _databaseService.updateEthStorageTxHash(
+        widget.entryId!,
+        result.txHash,
+      );
+
       setState(() {
         _ethStorageTxHash = result.txHash;
         _isUploadingToEthStorage = false;
@@ -102,8 +111,29 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
 
   Future<void> _openExplorer(String url) async {
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    debugPrint('Opening explorer URL: $url');
+    try {
+      // Try to launch directly - canLaunchUrl can return false on Android 11+
+      // even when a browser is available
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        debugPrint('Failed to launch URL: $url');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not open browser. URL: $url')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error launching URL: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error opening URL: $e')));
+      }
     }
   }
 
@@ -410,7 +440,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                 ),
                 TextButton.icon(
                   onPressed: () => _openExplorer(
-                    'https://explorer.beta.testnet.l2.quarkchain.io/tx/$_ethStorageTxHash',
+                    EthStorageConfig.getExplorerTxUrl(_ethStorageTxHash!),
                   ),
                   icon: const Icon(Icons.open_in_new, size: 16),
                   label: const Text('View'),

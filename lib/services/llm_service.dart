@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'ai_settings_service.dart';
+import 'gemini_service.dart';
 import 'model_download_service.dart';
 
 /// Data class to pass to isolate
@@ -66,6 +68,7 @@ enum LlmBackend {
   executorchFlutter, // Using executorch_flutter package
   nativeRunner, // Using native llama_main binary
   mockResponses, // Fallback mock responses
+  geminiCloud, // Cloud Gemini API
 }
 
 /// Service for managing on-device LLM inference using ExecuTorch
@@ -79,6 +82,10 @@ class LlmService extends ChangeNotifier {
     'com.example.anchor/llm',
   );
 
+  // AI settings and Gemini services
+  final _aiSettings = AiSettingsService();
+  final _geminiService = GeminiService();
+
   ExecuTorchModel? _model;
   LlmTokenizer? _tokenizer;
 
@@ -89,7 +96,11 @@ class LlmService extends ChangeNotifier {
 
   // Model configuration
   static const int _maxSeqLen = 2048;
-  static const int _vocabSize = 128256; // Llama 3 vocabulary size
+  static const int _llamaVocabSize = 128256; // Llama vocabulary size
+  static const int _qwenVocabSize = 151936; // Qwen3 vocabulary size
+
+  // Track which model is loaded (true = Qwen/ChatML format, false = Llama format)
+  bool _isQwenModel = false;
 
   // Model paths (set during loadModel)
   String? _externalModelPath;
@@ -99,15 +110,29 @@ class LlmService extends ChangeNotifier {
   LlmModelStatus get status => _status;
   String? get errorMessage => _errorMessage;
   double get loadProgress => _loadProgress;
-  bool get isReady => _status == LlmModelStatus.ready;
+  bool get isReady => _status == LlmModelStatus.ready || isCloudProviderReady;
   bool get isLoading => _status == LlmModelStatus.loading;
-  LlmBackend get activeBackend => _activeBackend;
+  LlmBackend get activeBackend =>
+      _aiSettings.isCloudProvider && _geminiService.isConfigured
+      ? LlmBackend.geminiCloud
+      : _activeBackend;
+
+  /// Returns true if cloud provider is selected and ready
+  bool get isCloudProviderReady =>
+      _aiSettings.isCloudProvider && _geminiService.isConfigured;
+
+  /// Returns true if using cloud provider
+  bool get isUsingCloudProvider => _aiSettings.isCloudProvider;
 
   /// Returns true if a real AI model is loaded (not mock responses)
   bool get hasRealAI =>
-      _status == LlmModelStatus.ready &&
-      (_activeBackend == LlmBackend.nativeRunner ||
-          _activeBackend == LlmBackend.executorchFlutter);
+      isCloudProviderReady ||
+      (_status == LlmModelStatus.ready &&
+          (_activeBackend == LlmBackend.nativeRunner ||
+              _activeBackend == LlmBackend.executorchFlutter));
+
+  /// Returns true if Qwen model is loaded, false for Llama
+  bool get isQwenModel => _isQwenModel;
 
   /// Set an external model path (for models not bundled with the app)
   void setExternalModelPath(String path) {
@@ -171,9 +196,11 @@ class LlmService extends ChangeNotifier {
       final tokenizerPath = await downloadService.getTokenizerPath();
       _externalModelPath = modelPath;
       _tokenizerPath = tokenizerPath;
+      _isQwenModel = downloadService.useQwenModel;
 
       debugPrint('Model path: $modelPath');
       debugPrint('Tokenizer path: $tokenizerPath');
+      debugPrint('Model type: ${_isQwenModel ? "Qwen 2.5" : "Llama 3.2"}');
 
       _updateProgress(0.3, 'Initializing...');
 
@@ -234,6 +261,32 @@ class LlmService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Format prompt using Llama chat template
+  String _formatLlamaPrompt(String systemPrompt, String userPrompt) {
+    return '''<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+$systemPrompt<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+$userPrompt<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+''';
+  }
+
+  /// Format prompt using Qwen chat template (ChatML format)
+  /// Works with Qwen 2.5, Qwen3, and other ChatML-compatible models
+  String _formatQwenPrompt(String systemPrompt, String userPrompt) {
+    return '''<|im_start|>system
+'/no_think'
+$systemPrompt<|im_end|>
+<|im_start|>user
+$userPrompt<|im_end|>
+<|im_start|>assistant
+''';
+  }
+
+  /// Get the current vocabulary size based on model type
+  int get _vocabSize => _isQwenModel ? _qwenVocabSize : _llamaVocabSize;
+
   /// Generate a response for the given prompt
   Future<String> generateResponse({
     required String prompt,
@@ -242,7 +295,19 @@ class LlmService extends ChangeNotifier {
     double temperature = 0.7,
     StreamController<String>? streamController,
   }) async {
-    // Build the chat prompt with system message
+    // Check if cloud provider is selected and available
+    if (_aiSettings.isCloudProvider && _geminiService.isConfigured) {
+      debugPrint('Using Gemini cloud provider for response');
+      return _geminiService.generateResponse(
+        prompt: prompt,
+        mode: mode,
+        maxTokens: maxTokens,
+        temperature: temperature,
+        streamController: streamController,
+      );
+    }
+
+    // Build the chat prompt with system message for on-device model
     final systemPrompt = mode == 'friend'
         ? '''You are a warm, genuine, and supportive friend. You are NOT a clinical therapist.
 
@@ -273,14 +338,10 @@ Safety & Boundaries: Do not diagnose medical conditions. If the user mentions se
 
 Tone: Professional, calm, curious, and empathetic. Avoid being overly casual or using slang.''';
 
-    final fullPrompt =
-        '''<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-
-$systemPrompt<|eot_id|><|start_header_id|>user<|end_header_id|>
-
-$prompt<|eot_id|><|start_header_id|>assistant<|end_header_id|>
-
-''';
+    // Format prompt based on model type
+    final fullPrompt = _isQwenModel
+        ? _formatQwenPrompt(systemPrompt, prompt)
+        : _formatLlamaPrompt(systemPrompt, prompt);
 
     // Use native runner if available
     if (_activeBackend == LlmBackend.nativeRunner) {
@@ -511,25 +572,89 @@ $prompt<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 
     debugPrint('Joined text (before parsing): $fullText');
 
-    // Find the assistant's response after the header
-    final assistantMarkerIndex = fullText.lastIndexOf(
-      '<|start_header_id|>assistant<|end_header_id|>',
-    );
-    if (assistantMarkerIndex != -1) {
-      fullText = fullText.substring(
-        assistantMarkerIndex +
-            '<|start_header_id|>assistant<|end_header_id|>'.length,
+    // Find the assistant's response after the header based on model type
+    if (_isQwenModel) {
+      // Qwen uses <|im_start|>assistant format
+      final assistantMarkerIndex = fullText.lastIndexOf(
+        '<|im_start|>assistant',
       );
-    }
+      if (assistantMarkerIndex != -1) {
+        fullText = fullText.substring(
+          assistantMarkerIndex + '<|im_start|>assistant'.length,
+        );
+        // Remove newline after the marker
+        if (fullText.startsWith('\n')) {
+          fullText = fullText.substring(1);
+        }
+      }
 
-    // Remove any remaining special tokens and clean up
-    fullText = fullText
-        .replaceAll('<|eot_id|>', '')
-        .replaceAll('Reached to the end of generation', '')
-        .replaceAll('<|end_of_text|>', '')
-        .replaceAll('<|begin_of_text|>', '')
-        .replaceAll(RegExp(r'<\|start_header_id\|>\w+<\|end_header_id\|>'), '')
-        .trim();
+      // Stop at end markers - the model might continue generating past the response
+      // Look for <|im_end|> first
+      final endMarkerIndex = fullText.indexOf('<|im_end|>');
+      if (endMarkerIndex != -1) {
+        fullText = fullText.substring(0, endMarkerIndex);
+      }
+
+      // Also stop if the model starts hallucinating a new user turn
+      // The model often generates: "...response text. user I'm feeling..."
+      // We need to stop at " user " (with word boundaries)
+      final userTurnPatterns = [
+        RegExp(r'<\|im_start\|>user', caseSensitive: false),
+        RegExp(
+          r'\.\s+user\s+[A-Z]',
+        ), // ". user I" - period, user, capital letter
+        RegExp(
+          r'\?\s+user\s+[A-Z]',
+        ), // "? user I" - question, user, capital letter
+        RegExp(
+          r'!\s+user\s+[A-Z]',
+        ), // "! user I" - exclamation, user, capital letter
+        RegExp(r"\s+user\s+I'"), // " user I'" - user saying "I'm" or "I've"
+        RegExp(r'\bOMET'), // Garbage pattern seen in logs
+        RegExp(r'\bassistant\s+[A-Z]'), // Hallucinated assistant turn
+      ];
+      for (final pattern in userTurnPatterns) {
+        final match = pattern.firstMatch(fullText);
+        if (match != null) {
+          fullText = fullText.substring(0, match.start);
+          debugPrint(
+            'Stopped at hallucinated turn pattern: ${pattern.pattern}',
+          );
+        }
+      }
+
+      // Remove Qwen special tokens
+      fullText = fullText
+          .replaceAll('<|im_end|>', '')
+          .replaceAll('<|im_start|>', '')
+          .replaceAll('<|endoftext|>', '')
+          .replaceAll('Reached to the end of generation', '')
+          .replaceAll(RegExp(r'<\|im_start\|>\w+'), '')
+          .trim();
+    } else {
+      // Llama uses <|start_header_id|>assistant<|end_header_id|> format
+      final assistantMarkerIndex = fullText.lastIndexOf(
+        '<|start_header_id|>assistant<|end_header_id|>',
+      );
+      if (assistantMarkerIndex != -1) {
+        fullText = fullText.substring(
+          assistantMarkerIndex +
+              '<|start_header_id|>assistant<|end_header_id|>'.length,
+        );
+      }
+
+      // Remove Llama special tokens
+      fullText = fullText
+          .replaceAll('<|eot_id|>', '')
+          .replaceAll('Reached to the end of generation', '')
+          .replaceAll('<|end_of_text|>', '')
+          .replaceAll('<|begin_of_text|>', '')
+          .replaceAll(
+            RegExp(r'<\|start_header_id\|>\w+<\|end_header_id\|>'),
+            '',
+          )
+          .trim();
+    }
 
     // If no special tokens found, try to find the response after the prompt
     // The prompt is echoed first, then the response follows
