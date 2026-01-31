@@ -77,6 +77,7 @@ class _AiChatPageState extends State<AiChatPage> {
       'isReady: ${_llmService.isReady}, isLoading: ${_llmService.isLoading}',
     );
 
+    if (!mounted) return;
     setState(() => _isCheckingModel = true);
 
     // First check if model is downloaded
@@ -89,6 +90,7 @@ class _AiChatPageState extends State<AiChatPage> {
       }
     }
 
+    if (!mounted) return;
     setState(() => _isCheckingModel = false);
   }
 

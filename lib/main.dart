@@ -9,7 +9,9 @@ import 'pages/onboarding/language_selection_page.dart';
 import 'pages/onboarding/feature_intro_page.dart';
 import 'pages/main_scaffold.dart';
 import 'pages/help/payment_page.dart';
+import 'pages/lock_screen.dart';
 import 'services/ai_settings_service.dart';
+import 'services/app_lock_service.dart';
 import 'services/appointment_service.dart';
 import 'services/locale_service.dart';
 
@@ -48,6 +50,9 @@ void main() async {
 
   // Initialize appointment service
   await appointmentService.initialize();
+
+  // Initialize app lock service
+  await appLockService.initialize();
 
   runApp(const AnchorApp());
 }
@@ -139,8 +144,49 @@ Future<void> clearPendingPayment() async {
   await prefs.remove(_keyPendingPayment);
 }
 
-class AnchorApp extends StatelessWidget {
+class AnchorApp extends StatefulWidget {
   const AnchorApp({super.key});
+
+  @override
+  State<AnchorApp> createState() => _AnchorAppState();
+}
+
+class _AnchorAppState extends State<AnchorApp> with WidgetsBindingObserver {
+  bool _isLocked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _isLocked = appLockService.isLockEnabled && appLockService.isLocked;
+    appLockService.addListener(_onLockStateChanged);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    appLockService.removeListener(_onLockStateChanged);
+    super.dispose();
+  }
+
+  void _onLockStateChanged() {
+    setState(() {
+      _isLocked = appLockService.isLockEnabled && appLockService.isLocked;
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // Lock the app when it goes to background (if enabled)
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (appLockService.isLockEnabled && appLockService.lockOnBackground) {
+        appLockService.lock();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +210,9 @@ class AnchorApp extends StatelessWidget {
                 GlobalCupertinoLocalizations.delegate,
               ],
               supportedLocales: LocaleService.supportedLocales,
-              home: const SplashScreen(),
+              home: _isLocked
+                  ? LockScreen(onUnlocked: () => appLockService.unlock())
+                  : const SplashScreen(),
             );
           },
         );

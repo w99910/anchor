@@ -2197,6 +2197,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Switch Network'**
   String get switchNetwork;
+
+  /// Biometric prompt reason
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Anchor'**
+  String get unlockAnchor;
+
+  /// Lock screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PIN'**
+  String get enterYourPin;
+
+  /// Lock screen subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PIN to unlock the app'**
+  String get enterPinToUnlock;
+
+  /// Error when PIN is wrong
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN'**
+  String get incorrectPin;
+
+  /// Error with remaining attempts
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN. {attempts} attempts remaining'**
+  String incorrectPinAttempts(int attempts);
+
+  /// Lockout message
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again in {seconds} seconds'**
+  String tooManyAttempts(int seconds);
+
+  /// App lock setup page title
+  ///
+  /// In en, this message translates to:
+  /// **'Set Up App Lock'**
+  String get setUpAppLock;
+
+  /// Change PIN page title
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get changePin;
+
+  /// Disable app lock page title
+  ///
+  /// In en, this message translates to:
+  /// **'Disable App Lock'**
+  String get disableAppLock;
+
+  /// Step title for current PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Enter current PIN'**
+  String get enterCurrentPin;
+
+  /// Step title for new PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Create new PIN'**
+  String get createNewPin;
+
+  /// Step title for confirm PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your PIN'**
+  String get confirmYourPin;
+
+  /// Subtitle for disable lock
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PIN to disable app lock'**
+  String get enterPinToDisableLock;
+
+  /// Subtitle for current PIN step
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current PIN to continue'**
+  String get enterCurrentPinToContinue;
+
+  /// Subtitle for new PIN step
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a 4 digit PIN'**
+  String get choosePinDigits;
+
+  /// Subtitle for confirm step
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your PIN to confirm'**
+  String get reenterPinToConfirm;
+
+  /// Error for too short PIN
+  ///
+  /// In en, this message translates to:
+  /// **'PIN must be at least 4 digits'**
+  String get pinMustBeDigits;
+
+  /// Error when PINs don't match
+  ///
+  /// In en, this message translates to:
+  /// **'PINs do not match. Try again'**
+  String get pinsDoNotMatch;
+
+  /// Error when PIN setup fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to set PIN. Please try again'**
+  String get failedToSetPin;
+
+  /// Success message for enabling lock
+  ///
+  /// In en, this message translates to:
+  /// **'App lock enabled'**
+  String get appLockEnabled;
+
+  /// Success message for disabling lock
+  ///
+  /// In en, this message translates to:
+  /// **'App lock disabled'**
+  String get appLockDisabled;
+
+  /// Success message for changing PIN
+  ///
+  /// In en, this message translates to:
+  /// **'PIN changed successfully'**
+  String get pinChanged;
+
+  /// Toggle for biometric auth
+  ///
+  /// In en, this message translates to:
+  /// **'Use {biometricType}'**
+  String useBiometrics(String biometricType);
+
+  /// Biometric toggle subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with {biometricType} for faster access'**
+  String unlockWithBiometrics(String biometricType);
+
+  /// Toggle for lock on background
+  ///
+  /// In en, this message translates to:
+  /// **'Lock when leaving app'**
+  String get lockWhenLeaving;
+
+  /// Subtitle for lock on background
+  ///
+  /// In en, this message translates to:
+  /// **'Require PIN when returning to the app'**
+  String get lockWhenLeavingSubtitle;
+
+  /// Button to change PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN code'**
+  String get changePinCode;
+
+  /// Button to remove app lock
+  ///
+  /// In en, this message translates to:
+  /// **'Remove app lock'**
+  String get removeAppLock;
+
+  /// App lock settings page title
+  ///
+  /// In en, this message translates to:
+  /// **'App Lock Settings'**
+  String get appLockSettings;
+
+  /// App lock promo text
+  ///
+  /// In en, this message translates to:
+  /// **'Protect your privacy with a PIN code'**
+  String get protectYourPrivacy;
 }
 
 class _AppLocalizationsDelegate

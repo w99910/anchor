@@ -1931,5 +1931,175 @@
   "switchNetwork": "Switch Network",
   "@switchNetwork": {
     "description": "Button to switch blockchain network"
+  },
+  
+  "unlockAnchor": "Unlock Anchor",
+  "@unlockAnchor": {
+    "description": "Biometric prompt reason"
+  },
+  
+  "enterYourPin": "Enter your PIN",
+  "@enterYourPin": {
+    "description": "Lock screen title"
+  },
+  
+  "enterPinToUnlock": "Enter your PIN to unlock the app",
+  "@enterPinToUnlock": {
+    "description": "Lock screen subtitle"
+  },
+  
+  "incorrectPin": "Incorrect PIN",
+  "@incorrectPin": {
+    "description": "Error when PIN is wrong"
+  },
+  
+  "incorrectPinAttempts": "Incorrect PIN. {attempts} attempts remaining",
+  "@incorrectPinAttempts": {
+    "description": "Error with remaining attempts",
+    "placeholders": {
+      "attempts": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "tooManyAttempts": "Too many attempts. Try again in {seconds} seconds",
+  "@tooManyAttempts": {
+    "description": "Lockout message",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "setUpAppLock": "Set Up App Lock",
+  "@setUpAppLock": {
+    "description": "App lock setup page title"
+  },
+  
+  "changePin": "Change PIN",
+  "@changePin": {
+    "description": "Change PIN page title"
+  },
+  
+  "disableAppLock": "Disable App Lock",
+  "@disableAppLock": {
+    "description": "Disable app lock page title"
+  },
+  
+  "enterCurrentPin": "Enter current PIN",
+  "@enterCurrentPin": {
+    "description": "Step title for current PIN"
+  },
+  
+  "createNewPin": "Create new PIN",
+  "@createNewPin": {
+    "description": "Step title for new PIN"
+  },
+  
+  "confirmYourPin": "Confirm your PIN",
+  "@confirmYourPin": {
+    "description": "Step title for confirm PIN"
+  },
+  
+  "enterPinToDisableLock": "Enter your PIN to disable app lock",
+  "@enterPinToDisableLock": {
+    "description": "Subtitle for disable lock"
+  },
+  
+  "enterCurrentPinToContinue": "Enter your current PIN to continue",
+  "@enterCurrentPinToContinue": {
+    "description": "Subtitle for current PIN step"
+  },
+  
+  "choosePinDigits": "Choose a 4 digit PIN",
+  "@choosePinDigits": {
+    "description": "Subtitle for new PIN step"
+  },
+  
+  "reenterPinToConfirm": "Re-enter your PIN to confirm",
+  "@reenterPinToConfirm": {
+    "description": "Subtitle for confirm step"
+  },
+  
+  "pinMustBeDigits": "PIN must be at least 4 digits",
+  "@pinMustBeDigits": {
+    "description": "Error for too short PIN"
+  },
+  
+  "pinsDoNotMatch": "PINs do not match. Try again",
+  "@pinsDoNotMatch": {
+    "description": "Error when PINs don't match"
+  },
+  
+  "failedToSetPin": "Failed to set PIN. Please try again",
+  "@failedToSetPin": {
+    "description": "Error when PIN setup fails"
+  },
+  
+  "appLockEnabled": "App lock enabled",
+  "@appLockEnabled": {
+    "description": "Success message for enabling lock"
+  },
+  
+  "appLockDisabled": "App lock disabled",
+  "@appLockDisabled": {
+    "description": "Success message for disabling lock"
+  },
+  
+  "pinChanged": "PIN changed successfully",
+  "@pinChanged": {
+    "description": "Success message for changing PIN"
+  },
+  
+  "useBiometrics": "Use {biometricType}",
+  "@useBiometrics": {
+    "description": "Toggle for biometric auth",
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "unlockWithBiometrics": "Unlock with {biometricType} for faster access",
+  "@unlockWithBiometrics": {
+    "description": "Biometric toggle subtitle",
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "lockWhenLeaving": "Lock when leaving app",
+  "@lockWhenLeaving": {
+    "description": "Toggle for lock on background"
+  },
+  
+  "lockWhenLeavingSubtitle": "Require PIN when returning to the app",
+  "@lockWhenLeavingSubtitle": {
+    "description": "Subtitle for lock on background"
+  },
+  
+  "changePinCode": "Change PIN code",
+  "@changePinCode": {
+    "description": "Button to change PIN"
+  },
+  
+  "removeAppLock": "Remove app lock",
+  "@removeAppLock": {
+    "description": "Button to remove app lock"
+  },
+  
+  "appLockSettings": "App Lock Settings",
+  "@appLockSettings": {
+    "description": "App lock settings page title"
+  },
+  
+  "protectYourPrivacy": "Protect your privacy with a PIN code",
+  "@protectYourPrivacy": {
+    "description": "App lock promo text"
   }
 }

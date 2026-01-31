@@ -1145,4 +1145,102 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get switchNetwork => 'Switch Network';
+
+  @override
+  String get unlockAnchor => 'Unlock Anchor';
+
+  @override
+  String get enterYourPin => 'Enter your PIN';
+
+  @override
+  String get enterPinToUnlock => 'Enter your PIN to unlock the app';
+
+  @override
+  String get incorrectPin => 'Incorrect PIN';
+
+  @override
+  String incorrectPinAttempts(int attempts) {
+    return 'Incorrect PIN. $attempts attempts remaining';
+  }
+
+  @override
+  String tooManyAttempts(int seconds) {
+    return 'Too many attempts. Try again in $seconds seconds';
+  }
+
+  @override
+  String get setUpAppLock => 'Set Up App Lock';
+
+  @override
+  String get changePin => 'Change PIN';
+
+  @override
+  String get disableAppLock => 'Disable App Lock';
+
+  @override
+  String get enterCurrentPin => 'Enter current PIN';
+
+  @override
+  String get createNewPin => 'Create new PIN';
+
+  @override
+  String get confirmYourPin => 'Confirm your PIN';
+
+  @override
+  String get enterPinToDisableLock => 'Enter your PIN to disable app lock';
+
+  @override
+  String get enterCurrentPinToContinue => 'Enter your current PIN to continue';
+
+  @override
+  String get choosePinDigits => 'Choose a 4 digit PIN';
+
+  @override
+  String get reenterPinToConfirm => 'Re-enter your PIN to confirm';
+
+  @override
+  String get pinMustBeDigits => 'PIN must be at least 4 digits';
+
+  @override
+  String get pinsDoNotMatch => 'PINs do not match. Try again';
+
+  @override
+  String get failedToSetPin => 'Failed to set PIN. Please try again';
+
+  @override
+  String get appLockEnabled => 'App lock enabled';
+
+  @override
+  String get appLockDisabled => 'App lock disabled';
+
+  @override
+  String get pinChanged => 'PIN changed successfully';
+
+  @override
+  String useBiometrics(String biometricType) {
+    return 'Use $biometricType';
+  }
+
+  @override
+  String unlockWithBiometrics(String biometricType) {
+    return 'Unlock with $biometricType for faster access';
+  }
+
+  @override
+  String get lockWhenLeaving => 'Lock when leaving app';
+
+  @override
+  String get lockWhenLeavingSubtitle => 'Require PIN when returning to the app';
+
+  @override
+  String get changePinCode => 'Change PIN code';
+
+  @override
+  String get removeAppLock => 'Remove app lock';
+
+  @override
+  String get appLockSettings => 'App Lock Settings';
+
+  @override
+  String get protectYourPrivacy => 'Protect your privacy with a PIN code';
 }

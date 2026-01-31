@@ -64,6 +64,8 @@ dependencies:
   # Ethereum/Web3 for EthStorage integration
   web3dart: ^2.7.3
   convert: ^3.1.1
+  local_auth: ^3.0.0
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   flutter_test:
