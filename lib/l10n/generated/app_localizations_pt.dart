@@ -1138,106 +1138,108 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get pleaseSelectSepoliaNetwork =>
-      'Please switch to Sepolia testnet in your wallet';
+      'Por favor, mude para a rede de teste Sepolia na sua carteira';
 
   @override
-  String get switchNetwork => 'Switch Network';
+  String get switchNetwork => 'Mudar rede';
 
   @override
-  String get unlockAnchor => 'Unlock Anchor';
+  String get unlockAnchor => 'Desbloquear Anchor';
 
   @override
-  String get enterYourPin => 'Enter your PIN';
+  String get enterYourPin => 'Digite seu PIN';
 
   @override
-  String get enterPinToUnlock => 'Enter your PIN to unlock the app';
+  String get enterPinToUnlock => 'Digite seu PIN para desbloquear o app';
 
   @override
-  String get incorrectPin => 'Incorrect PIN';
+  String get incorrectPin => 'PIN incorreto';
 
   @override
   String incorrectPinAttempts(int attempts) {
-    return 'Incorrect PIN. $attempts attempts remaining';
+    return 'PIN incorreto. $attempts tentativas restantes';
   }
 
   @override
   String tooManyAttempts(int seconds) {
-    return 'Too many attempts. Try again in $seconds seconds';
+    return 'Muitas tentativas. Tente novamente em $seconds segundos';
   }
 
   @override
-  String get setUpAppLock => 'Set Up App Lock';
+  String get setUpAppLock => 'Configurar bloqueio do app';
 
   @override
-  String get changePin => 'Change PIN';
+  String get changePin => 'Alterar PIN';
 
   @override
-  String get disableAppLock => 'Disable App Lock';
+  String get disableAppLock => 'Desativar bloqueio do app';
 
   @override
-  String get enterCurrentPin => 'Enter current PIN';
+  String get enterCurrentPin => 'Digite o PIN atual';
 
   @override
-  String get createNewPin => 'Create new PIN';
+  String get createNewPin => 'Criar novo PIN';
 
   @override
-  String get confirmYourPin => 'Confirm your PIN';
+  String get confirmYourPin => 'Confirme seu PIN';
 
   @override
-  String get enterPinToDisableLock => 'Enter your PIN to disable app lock';
+  String get enterPinToDisableLock =>
+      'Digite seu PIN para desativar o bloqueio do app';
 
   @override
-  String get enterCurrentPinToContinue => 'Enter your current PIN to continue';
+  String get enterCurrentPinToContinue => 'Digite seu PIN atual para continuar';
 
   @override
-  String get choosePinDigits => 'Choose a 4 digit PIN';
+  String get choosePinDigits => 'Escolha um PIN de 4 dígitos';
 
   @override
-  String get reenterPinToConfirm => 'Re-enter your PIN to confirm';
+  String get reenterPinToConfirm => 'Digite novamente seu PIN para confirmar';
 
   @override
-  String get pinMustBeDigits => 'PIN must be at least 4 digits';
+  String get pinMustBeDigits => 'O PIN deve ter pelo menos 4 dígitos';
 
   @override
-  String get pinsDoNotMatch => 'PINs do not match. Try again';
+  String get pinsDoNotMatch => 'Os PINs não coincidem. Tente novamente';
 
   @override
-  String get failedToSetPin => 'Failed to set PIN. Please try again';
+  String get failedToSetPin =>
+      'Falha ao definir PIN. Por favor, tente novamente';
 
   @override
-  String get appLockEnabled => 'App lock enabled';
+  String get appLockEnabled => 'Bloqueio do app ativado';
 
   @override
-  String get appLockDisabled => 'App lock disabled';
+  String get appLockDisabled => 'Bloqueio do app desativado';
 
   @override
-  String get pinChanged => 'PIN changed successfully';
+  String get pinChanged => 'PIN alterado com sucesso';
 
   @override
   String useBiometrics(String biometricType) {
-    return 'Use $biometricType';
+    return 'Usar $biometricType';
   }
 
   @override
   String unlockWithBiometrics(String biometricType) {
-    return 'Unlock with $biometricType for faster access';
+    return 'Desbloquear com $biometricType para acesso mais rápido';
   }
 
   @override
-  String get lockWhenLeaving => 'Lock when leaving app';
+  String get lockWhenLeaving => 'Bloquear ao sair do app';
 
   @override
-  String get lockWhenLeavingSubtitle => 'Require PIN when returning to the app';
+  String get lockWhenLeavingSubtitle => 'Exigir PIN ao retornar ao app';
 
   @override
-  String get changePinCode => 'Change PIN code';
+  String get changePinCode => 'Alterar código PIN';
 
   @override
-  String get removeAppLock => 'Remove app lock';
+  String get removeAppLock => 'Remover bloqueio do app';
 
   @override
-  String get appLockSettings => 'App Lock Settings';
+  String get appLockSettings => 'Configurações de bloqueio do app';
 
   @override
-  String get protectYourPrivacy => 'Protect your privacy with a PIN code';
+  String get protectYourPrivacy => 'Proteja sua privacidade com um código PIN';
 }

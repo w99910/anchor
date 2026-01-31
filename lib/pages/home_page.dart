@@ -3,7 +3,9 @@ import '../l10n/generated/app_localizations.dart';
 import '../utils/responsive.dart';
 import '../services/appointment_service.dart';
 import '../services/database_service.dart';
+import '../services/nft_service.dart';
 import '../main.dart' show appointmentService;
+import 'rewards_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -295,6 +297,8 @@ class _HomePageState extends State<HomePage> {
                 _buildGreeting(context, l10n),
                 const SizedBox(height: 32),
                 _buildQuickMood(context, l10n),
+                const SizedBox(height: 24),
+                _buildStreakCard(context, l10n),
 
                 // Upcoming appointments section
                 _buildAppointmentsSection(context, l10n),
@@ -303,8 +307,6 @@ class _HomePageState extends State<HomePage> {
                 _buildSectionTitle(context, l10n.thisWeek),
                 const SizedBox(height: 16),
                 _buildStats(context, l10n),
-                const SizedBox(height: 32),
-                _buildStreakCard(context, l10n),
                 const SizedBox(height: 24),
               ],
             ),
@@ -488,56 +490,103 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.primary.withOpacity(0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const RewardsPage()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
         ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text('🔥', style: TextStyle(fontSize: 28)),
             ),
-            child: const Text('🔥', style: TextStyle(fontSize: 28)),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.dayStreak(_streak),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.dayStreak(_streak),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _streak >= 7
-                      ? l10n.amazingConsistency
-                      : l10n.keepMomentumGoing,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withOpacity(0.8),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _streak >= 7
+                              ? l10n.amazingConsistency
+                              : l10n.keepMomentumGoing,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.white.withOpacity(0.8)),
+                        ),
+                      ),
+                      if (_hasUnlockedReward())
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('🎁', style: TextStyle(fontSize: 12)),
+                              SizedBox(width: 4),
+                              Text(
+                                'Claim NFT',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right, color: Colors.white.withOpacity(0.8)),
+          ],
+        ),
       ),
     );
+  }
+
+  bool _hasUnlockedReward() {
+    final nftService = NFTService();
+    final unlockedMilestones = nftService.getUnlockedMilestones(_streak);
+    return unlockedMilestones.isNotEmpty;
   }
 }
 

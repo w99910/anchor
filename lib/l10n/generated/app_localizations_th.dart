@@ -1123,106 +1123,106 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get pleaseSelectSepoliaNetwork =>
-      'Please switch to Sepolia testnet in your wallet';
+      'กรุณาเปลี่ยนไปใช้เครือข่ายทดสอบ Sepolia ในกระเป๋าเงินของคุณ';
 
   @override
-  String get switchNetwork => 'Switch Network';
+  String get switchNetwork => 'เปลี่ยนเครือข่าย';
 
   @override
-  String get unlockAnchor => 'Unlock Anchor';
+  String get unlockAnchor => 'ปลดล็อค Anchor';
 
   @override
-  String get enterYourPin => 'Enter your PIN';
+  String get enterYourPin => 'ใส่ PIN ของคุณ';
 
   @override
-  String get enterPinToUnlock => 'Enter your PIN to unlock the app';
+  String get enterPinToUnlock => 'ใส่ PIN เพื่อปลดล็อคแอป';
 
   @override
-  String get incorrectPin => 'Incorrect PIN';
+  String get incorrectPin => 'PIN ไม่ถูกต้อง';
 
   @override
   String incorrectPinAttempts(int attempts) {
-    return 'Incorrect PIN. $attempts attempts remaining';
+    return 'PIN ไม่ถูกต้อง เหลือ $attempts ครั้ง';
   }
 
   @override
   String tooManyAttempts(int seconds) {
-    return 'Too many attempts. Try again in $seconds seconds';
+    return 'ลองมากเกินไป ลองใหม่ในอีก $seconds วินาที';
   }
 
   @override
-  String get setUpAppLock => 'Set Up App Lock';
+  String get setUpAppLock => 'ตั้งค่าล็อคแอป';
 
   @override
-  String get changePin => 'Change PIN';
+  String get changePin => 'เปลี่ยน PIN';
 
   @override
-  String get disableAppLock => 'Disable App Lock';
+  String get disableAppLock => 'ปิดการล็อคแอป';
 
   @override
-  String get enterCurrentPin => 'Enter current PIN';
+  String get enterCurrentPin => 'ใส่ PIN ปัจจุบัน';
 
   @override
-  String get createNewPin => 'Create new PIN';
+  String get createNewPin => 'สร้าง PIN ใหม่';
 
   @override
-  String get confirmYourPin => 'Confirm your PIN';
+  String get confirmYourPin => 'ยืนยัน PIN ของคุณ';
 
   @override
-  String get enterPinToDisableLock => 'Enter your PIN to disable app lock';
+  String get enterPinToDisableLock => 'ใส่ PIN เพื่อปิดการล็อคแอป';
 
   @override
-  String get enterCurrentPinToContinue => 'Enter your current PIN to continue';
+  String get enterCurrentPinToContinue => 'ใส่ PIN ปัจจุบันเพื่อดำเนินการต่อ';
 
   @override
-  String get choosePinDigits => 'Choose a 4 digit PIN';
+  String get choosePinDigits => 'เลือก PIN 4 หลัก';
 
   @override
-  String get reenterPinToConfirm => 'Re-enter your PIN to confirm';
+  String get reenterPinToConfirm => 'ใส่ PIN อีกครั้งเพื่อยืนยัน';
 
   @override
-  String get pinMustBeDigits => 'PIN must be at least 4 digits';
+  String get pinMustBeDigits => 'PIN ต้องมีอย่างน้อย 4 หลัก';
 
   @override
-  String get pinsDoNotMatch => 'PINs do not match. Try again';
+  String get pinsDoNotMatch => 'PIN ไม่ตรงกัน ลองใหม่';
 
   @override
-  String get failedToSetPin => 'Failed to set PIN. Please try again';
+  String get failedToSetPin => 'ตั้งค่า PIN ไม่สำเร็จ กรุณาลองใหม่';
 
   @override
-  String get appLockEnabled => 'App lock enabled';
+  String get appLockEnabled => 'เปิดใช้งานล็อคแอปแล้ว';
 
   @override
-  String get appLockDisabled => 'App lock disabled';
+  String get appLockDisabled => 'ปิดการล็อคแอปแล้ว';
 
   @override
-  String get pinChanged => 'PIN changed successfully';
+  String get pinChanged => 'เปลี่ยน PIN สำเร็จ';
 
   @override
   String useBiometrics(String biometricType) {
-    return 'Use $biometricType';
+    return 'ใช้ $biometricType';
   }
 
   @override
   String unlockWithBiometrics(String biometricType) {
-    return 'Unlock with $biometricType for faster access';
+    return 'ปลดล็อคด้วย $biometricType เพื่อเข้าถึงเร็วขึ้น';
   }
 
   @override
-  String get lockWhenLeaving => 'Lock when leaving app';
+  String get lockWhenLeaving => 'ล็อคเมื่อออกจากแอป';
 
   @override
-  String get lockWhenLeavingSubtitle => 'Require PIN when returning to the app';
+  String get lockWhenLeavingSubtitle => 'ต้องใส่ PIN เมื่อกลับมาที่แอป';
 
   @override
-  String get changePinCode => 'Change PIN code';
+  String get changePinCode => 'เปลี่ยนรหัส PIN';
 
   @override
-  String get removeAppLock => 'Remove app lock';
+  String get removeAppLock => 'ลบการล็อคแอป';
 
   @override
-  String get appLockSettings => 'App Lock Settings';
+  String get appLockSettings => 'ตั้งค่าการล็อคแอป';
 
   @override
-  String get protectYourPrivacy => 'Protect your privacy with a PIN code';
+  String get protectYourPrivacy => 'ปกป้องความเป็นส่วนตัวด้วยรหัส PIN';
 }

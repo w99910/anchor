@@ -1,0 +1,281 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:web3dart/web3dart.dart';
+import 'package:reown_appkit/reown_appkit.dart';
+import 'web3_service.dart';
+
+/// NFT Milestone definitions for streak rewards
+enum StreakMilestone {
+  firstStep(1, 'First Step', 'Completed your first journal entry'),
+  weekWarrior(7, 'Week Warrior', 'Completed 7 consecutive days of journaling'),
+  monthlyMaster(
+    30,
+    'Monthly Master',
+    'Completed 30 consecutive days of journaling',
+  ),
+  centuryChampion(
+    100,
+    'Century Champion',
+    'Completed 100 consecutive days of journaling',
+  ),
+  yearLegend(
+    365,
+    'Year Legend',
+    'Completed 365 consecutive days of journaling',
+  );
+
+  final int requiredStreak;
+  final String name;
+  final String description;
+
+  const StreakMilestone(this.requiredStreak, this.name, this.description);
+
+  /// Get emoji for display
+  String get emoji {
+    switch (this) {
+      case StreakMilestone.firstStep:
+        return '🌱';
+      case StreakMilestone.weekWarrior:
+        return '🥉';
+      case StreakMilestone.monthlyMaster:
+        return '🥈';
+      case StreakMilestone.centuryChampion:
+        return '🥇';
+      case StreakMilestone.yearLegend:
+        return '🏆';
+    }
+  }
+
+  /// Get rarity tier
+  String get rarity {
+    switch (this) {
+      case StreakMilestone.firstStep:
+        return 'Starter';
+      case StreakMilestone.weekWarrior:
+        return 'Common';
+      case StreakMilestone.monthlyMaster:
+        return 'Rare';
+      case StreakMilestone.centuryChampion:
+        return 'Epic';
+      case StreakMilestone.yearLegend:
+        return 'Legendary';
+    }
+  }
+}
+
+/// Represents an earned or available NFT reward
+class NFTReward {
+  final StreakMilestone milestone;
+  final bool isEarned;
+  final bool isMinted;
+  final String? tokenId;
+  final String? transactionHash;
+  final DateTime? mintedAt;
+
+  NFTReward({
+    required this.milestone,
+    required this.isEarned,
+    this.isMinted = false,
+    this.tokenId,
+    this.transactionHash,
+    this.mintedAt,
+  });
+}
+
+/// NFT Service for minting streak reward NFTs
+///
+/// Uses ERC-721 contract on Sepolia testnet for testing
+class NFTService extends ChangeNotifier {
+  static final NFTService _instance = NFTService._internal();
+  factory NFTService() => _instance;
+  NFTService._internal();
+
+  final Web3Service _web3Service = Web3Service();
+
+  // Contract deployed on Sepolia testnet
+  static const String _contractAddress =
+      '0x67c6A729D373E6772c35298bca91393274490F44';
+
+  // Claimed milestones (stored locally, should sync with contract)
+  final Set<StreakMilestone> _claimedMilestones = {};
+
+  bool _initialized = false;
+  bool get isInitialized => _initialized;
+
+  /// Initialize the NFT service
+  Future<void> initialize() async {
+    if (_initialized) return;
+
+    // TODO: Load claimed milestones from local storage or contract
+    _initialized = true;
+    notifyListeners();
+  }
+
+  /// Get all available rewards based on current streak
+  List<NFTReward> getAvailableRewards(int currentStreak) {
+    return StreakMilestone.values.map((milestone) {
+      final isEarned = currentStreak >= milestone.requiredStreak;
+      final isMinted = _claimedMilestones.contains(milestone);
+
+      return NFTReward(
+        milestone: milestone,
+        isEarned: isEarned,
+        isMinted: isMinted,
+      );
+    }).toList();
+  }
+
+  /// Get newly unlocked milestones (earned but not yet minted)
+  List<StreakMilestone> getUnlockedMilestones(int currentStreak) {
+    return StreakMilestone.values
+        .where(
+          (m) =>
+              currentStreak >= m.requiredStreak &&
+              !_claimedMilestones.contains(m),
+        )
+        .toList();
+  }
+
+  /// Check if a specific milestone is unlocked
+  bool isMilestoneUnlocked(StreakMilestone milestone, int currentStreak) {
+    return currentStreak >= milestone.requiredStreak;
+  }
+
+  /// Check if a milestone NFT has been minted
+  bool isMilestoneMinted(StreakMilestone milestone) {
+    return _claimedMilestones.contains(milestone);
+  }
+
+  /// Mint a streak reward NFT
+  ///
+  /// Returns the transaction hash if successful.
+  /// Automatically connects wallet if not already connected.
+  Future<String?> mintStreakNFT(StreakMilestone milestone) async {
+    // Auto-connect wallet if not connected
+    if (!_web3Service.isConnected) {
+      if (kDebugMode) {
+        print('NFTService: Wallet not connected, opening connection modal...');
+      }
+      await _web3Service.connectWallet();
+
+      // Check if connection was successful
+      if (!_web3Service.isConnected) {
+        throw Exception('Wallet connection required to mint NFT');
+      }
+    }
+
+    if (_claimedMilestones.contains(milestone)) {
+      throw Exception('NFT already minted for this milestone');
+    }
+
+    try {
+      // Contract ABI for mintStreakReward function
+      // function mintStreakReward(address to, uint256 milestoneId)
+      final contractAbi = ContractAbi.fromJson('''[
+          {
+            "inputs": [
+              {"internalType": "address", "name": "to", "type": "address"},
+              {"internalType": "uint256", "name": "milestoneId", "type": "uint256"}
+            ],
+            "name": "mintStreakReward",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          }
+        ]''', 'AnchorStreakNFT');
+
+      final contract = DeployedContract(
+        contractAbi,
+        EthereumAddress.fromHex(_contractAddress),
+      );
+
+      final mintFunction = contract.function('mintStreakReward');
+
+      // Encode function call
+      final data = mintFunction.encodeCall([
+        EthereumAddress.fromHex(_web3Service.walletAddress!),
+        BigInt.from(milestone.index),
+      ]);
+
+      // Send transaction via Web3Service
+      // Note: This uses the AppKit modal's transaction signing
+      final txHash = await _web3Service.sendTransaction(
+        toAddress: _contractAddress,
+        data:
+            '0x${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+      );
+
+      if (txHash != null) {
+        _claimedMilestones.add(milestone);
+        notifyListeners();
+
+        if (kDebugMode) {
+          print('NFTService: Minted ${milestone.name} NFT - TX: $txHash');
+        }
+
+        return txHash;
+      }
+
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('NFTService: Failed to mint NFT: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Get OpenSea URL for viewing NFT (Sepolia testnet)
+  String getOpenSeaUrl(String tokenId) {
+    return 'https://testnets.opensea.io/assets/sepolia/$_contractAddress/$tokenId';
+  }
+
+  /// Get Etherscan URL for transaction
+  String getEtherscanUrl(String txHash) {
+    return 'https://sepolia.etherscan.io/tx/$txHash';
+  }
+}
+
+// Extension to Web3Service for transaction sending with data
+extension Web3ServiceNFT on Web3Service {
+  /// Send a transaction with custom data (for contract calls)
+  Future<String?> sendTransaction({
+    required String toAddress,
+    String? data,
+    BigInt? value,
+  }) async {
+    if (!isConnected || appKitModal == null) {
+      throw Exception('Wallet not connected');
+    }
+
+    try {
+      final session = appKitModal!.session;
+      if (session == null) {
+        throw Exception('No active session');
+      }
+
+      final result = await appKitModal!.request(
+        topic: session.topic ?? '',
+        chainId: appKitModal!.selectedChain!.chainId,
+        request: SessionRequestParams(
+          method: 'eth_sendTransaction',
+          params: [
+            {
+              'from': walletAddress!,
+              'to': toAddress,
+              'data': data ?? '0x',
+              'value': value != null ? '0x${value.toRadixString(16)}' : '0x0',
+            },
+          ],
+        ),
+      );
+
+      return result.toString();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Web3Service: Transaction failed: $e');
+      }
+      rethrow;
+    }
+  }
+}
