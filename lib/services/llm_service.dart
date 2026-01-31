@@ -100,7 +100,8 @@ class LlmService extends ChangeNotifier {
   static const int _qwenVocabSize = 151936; // Qwen3 vocabulary size
 
   // Track which model is loaded (true = Qwen/ChatML format, false = Llama format)
-  bool _isQwenModel = false;
+  // bool _isQwenModel = false;
+  bool _useAdvanceModel = false;
 
   // Model paths (set during loadModel)
   String? _externalModelPath;
@@ -132,7 +133,7 @@ class LlmService extends ChangeNotifier {
               _activeBackend == LlmBackend.executorchFlutter));
 
   /// Returns true if Qwen model is loaded, false for Llama
-  bool get isQwenModel => _isQwenModel;
+  bool get useAdvancedModel => _useAdvanceModel;
 
   /// Set an external model path (for models not bundled with the app)
   void setExternalModelPath(String path) {
@@ -196,11 +197,10 @@ class LlmService extends ChangeNotifier {
       final tokenizerPath = await downloadService.getTokenizerPath();
       _externalModelPath = modelPath;
       _tokenizerPath = tokenizerPath;
-      _isQwenModel = downloadService.useQwenModel;
+      _useAdvanceModel = downloadService.useAdvancedModel;
 
       debugPrint('Model path: $modelPath');
       debugPrint('Tokenizer path: $tokenizerPath');
-      debugPrint('Model type: ${_isQwenModel ? "Qwen 2.5" : "Llama 3.2"}');
 
       _updateProgress(0.3, 'Initializing...');
 
@@ -285,7 +285,7 @@ $userPrompt<|im_end|>
   }
 
   /// Get the current vocabulary size based on model type
-  int get _vocabSize => _isQwenModel ? _qwenVocabSize : _llamaVocabSize;
+  int get _vocabSize => _useAdvanceModel ? _qwenVocabSize : _llamaVocabSize;
 
   /// Generate a response for the given prompt
   Future<String> generateResponse({
@@ -339,9 +339,7 @@ Safety & Boundaries: Do not diagnose medical conditions. If the user mentions se
 Tone: Professional, calm, curious, and empathetic. Avoid being overly casual or using slang.''';
 
     // Format prompt based on model type
-    final fullPrompt = _isQwenModel
-        ? _formatQwenPrompt(systemPrompt, prompt)
-        : _formatLlamaPrompt(systemPrompt, prompt);
+    final fullPrompt = _formatLlamaPrompt(systemPrompt, prompt);
 
     // Use native runner if available
     if (_activeBackend == LlmBackend.nativeRunner) {
@@ -571,90 +569,25 @@ Tone: Professional, calm, curious, and empathetic. Avoid being overly casual or 
     String fullText = textParts.join(' ').trim();
 
     debugPrint('Joined text (before parsing): $fullText');
-
-    // Find the assistant's response after the header based on model type
-    if (_isQwenModel) {
-      // Qwen uses <|im_start|>assistant format
-      final assistantMarkerIndex = fullText.lastIndexOf(
-        '<|im_start|>assistant',
+    // Llama uses <|start_header_id|>assistant<|end_header_id|> format
+    final assistantMarkerIndex = fullText.lastIndexOf(
+      '<|start_header_id|>assistant<|end_header_id|>',
+    );
+    if (assistantMarkerIndex != -1) {
+      fullText = fullText.substring(
+        assistantMarkerIndex +
+            '<|start_header_id|>assistant<|end_header_id|>'.length,
       );
-      if (assistantMarkerIndex != -1) {
-        fullText = fullText.substring(
-          assistantMarkerIndex + '<|im_start|>assistant'.length,
-        );
-        // Remove newline after the marker
-        if (fullText.startsWith('\n')) {
-          fullText = fullText.substring(1);
-        }
-      }
-
-      // Stop at end markers - the model might continue generating past the response
-      // Look for <|im_end|> first
-      final endMarkerIndex = fullText.indexOf('<|im_end|>');
-      if (endMarkerIndex != -1) {
-        fullText = fullText.substring(0, endMarkerIndex);
-      }
-
-      // Also stop if the model starts hallucinating a new user turn
-      // The model often generates: "...response text. user I'm feeling..."
-      // We need to stop at " user " (with word boundaries)
-      final userTurnPatterns = [
-        RegExp(r'<\|im_start\|>user', caseSensitive: false),
-        RegExp(
-          r'\.\s+user\s+[A-Z]',
-        ), // ". user I" - period, user, capital letter
-        RegExp(
-          r'\?\s+user\s+[A-Z]',
-        ), // "? user I" - question, user, capital letter
-        RegExp(
-          r'!\s+user\s+[A-Z]',
-        ), // "! user I" - exclamation, user, capital letter
-        RegExp(r"\s+user\s+I'"), // " user I'" - user saying "I'm" or "I've"
-        RegExp(r'\bOMET'), // Garbage pattern seen in logs
-        RegExp(r'\bassistant\s+[A-Z]'), // Hallucinated assistant turn
-      ];
-      for (final pattern in userTurnPatterns) {
-        final match = pattern.firstMatch(fullText);
-        if (match != null) {
-          fullText = fullText.substring(0, match.start);
-          debugPrint(
-            'Stopped at hallucinated turn pattern: ${pattern.pattern}',
-          );
-        }
-      }
-
-      // Remove Qwen special tokens
-      fullText = fullText
-          .replaceAll('<|im_end|>', '')
-          .replaceAll('<|im_start|>', '')
-          .replaceAll('<|endoftext|>', '')
-          .replaceAll('Reached to the end of generation', '')
-          .replaceAll(RegExp(r'<\|im_start\|>\w+'), '')
-          .trim();
-    } else {
-      // Llama uses <|start_header_id|>assistant<|end_header_id|> format
-      final assistantMarkerIndex = fullText.lastIndexOf(
-        '<|start_header_id|>assistant<|end_header_id|>',
-      );
-      if (assistantMarkerIndex != -1) {
-        fullText = fullText.substring(
-          assistantMarkerIndex +
-              '<|start_header_id|>assistant<|end_header_id|>'.length,
-        );
-      }
-
-      // Remove Llama special tokens
-      fullText = fullText
-          .replaceAll('<|eot_id|>', '')
-          .replaceAll('Reached to the end of generation', '')
-          .replaceAll('<|end_of_text|>', '')
-          .replaceAll('<|begin_of_text|>', '')
-          .replaceAll(
-            RegExp(r'<\|start_header_id\|>\w+<\|end_header_id\|>'),
-            '',
-          )
-          .trim();
     }
+
+    // Remove Llama special tokens
+    fullText = fullText
+        .replaceAll('<|eot_id|>', '')
+        .replaceAll('Reached to the end of generation', '')
+        .replaceAll('<|end_of_text|>', '')
+        .replaceAll('<|begin_of_text|>', '')
+        .replaceAll(RegExp(r'<\|start_header_id\|>\w+<\|end_header_id\|>'), '')
+        .trim();
 
     // If no special tokens found, try to find the response after the prompt
     // The prompt is echoed first, then the response follows

@@ -27,9 +27,9 @@ class ModelDownloadService extends ChangeNotifier {
   // Model configurations based on RAM capacity
   // Advanced AI model (~2.66GB) - for devices with enough RAM (Qwen3-4B)
   static const String _advancedModelUrl =
-      'https://huggingface.co/pytorch/Qwen3-4B-INT8-INT4/resolve/main/model.pte';
+      'https://assets.thomasbrillion.pro/data/llama3_2.pte';
   static const String _advancedTokenizerUrl =
-      'https://huggingface.co/pytorch/Qwen3-4B-INT8-INT4/resolve/main/tokenizer.json';
+      'https://assets.thomasbrillion.pro/data/tokenizer.model';
 
   // Compact AI model (~1.1GB) - for devices with less RAM (Llama 3.2 1B)
   static const String _compactModelUrl =
@@ -64,7 +64,7 @@ class ModelDownloadService extends ChangeNotifier {
   bool get isDownloading => _status == ModelDownloadStatus.downloading;
   bool get useAdvancedModel => _useAdvancedModel;
   @Deprecated('Use useAdvancedModel instead')
-  bool get useQwenModel => _useAdvancedModel;
+  bool get useAdvanceModel => _useAdvancedModel;
   int get deviceRamBytes => _deviceRamBytes;
   String get selectedModelName =>
       _useAdvancedModel ? 'Advanced AI' : 'Compact AI';
@@ -101,8 +101,8 @@ class ModelDownloadService extends ChangeNotifier {
       final advancedModelBytes = (_advancedModelSizeGb * 1024 * 1024 * 1024)
           .toInt();
 
-      // _useAdvancedModel = availableRam >= advancedModelBytes;
-      _useAdvancedModel = false;
+      _useAdvancedModel = availableRam >= advancedModelBytes;
+      // _useAdvancedModel = false;
 
       debugPrint('Device RAM: ${getFormattedSize(_deviceRamBytes)}');
       debugPrint('40% of RAM: ${getFormattedSize(availableRam.toInt())}');

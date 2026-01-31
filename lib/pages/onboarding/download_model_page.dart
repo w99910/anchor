@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../main.dart' show setOnboardingComplete;
-import '../../services/llm_service.dart';
 import '../../utils/responsive.dart';
 import '../main_scaffold.dart';
 
@@ -14,7 +13,6 @@ class DownloadModelPage extends StatefulWidget {
 }
 
 class _DownloadModelPageState extends State<DownloadModelPage> {
-  final _llmService = LlmService();
   AiModelChoice? _selectedChoice;
   bool _isSettingUp = false;
   double _setupProgress = 0.0;
@@ -30,25 +28,29 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
   Future<void> _continue() async {
     if (_selectedChoice == null) return;
 
+    // if (_selectedChoice == AiModelChoice.onDevice) {
+    //   // Navigate to dedicated download page
+    //   Navigator.push(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => const OnDeviceDownloadPage()),
+    //   );
+    //   return;
+    // }
+
+    // Cloud setup
     setState(() {
       _isSettingUp = true;
       _errorMessage = null;
     });
 
     try {
-      if (_selectedChoice == AiModelChoice.onDevice) {
-        // Listen to progress updates
-        _llmService.addListener(_onServiceStatusChanged);
-        await _llmService.loadModel();
-      } else {
-        // Cloud setup - simulate brief setup
-        for (var i = 0; i <= 10; i++) {
-          await Future.delayed(const Duration(milliseconds: 50));
-          if (mounted) {
-            setState(() => _setupProgress = i / 10);
-          }
-        }
-      }
+      // Cloud setup - simulate brief setup
+      // for (var i = 0; i <= 10; i++) {
+      //   await Future.delayed(const Duration(milliseconds: 50));
+      //   if (mounted) {
+      //     setState(() => _setupProgress = i / 10);
+      //   }
+      // }
 
       // Mark onboarding as complete
       await setOnboardingComplete();
@@ -73,26 +75,7 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
           _errorMessage = 'Setup failed. Please try again.';
         });
       }
-    } finally {
-      _llmService.removeListener(_onServiceStatusChanged);
     }
-  }
-
-  void _onServiceStatusChanged() {
-    if (!mounted) return;
-    setState(() {
-      _setupProgress = _llmService.loadProgress;
-      if (_llmService.status == LlmModelStatus.error) {
-        _errorMessage = _llmService.errorMessage ?? 'Error loading model';
-        _isSettingUp = false;
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _llmService.removeListener(_onServiceStatusChanged);
-    super.dispose();
   }
 
   @override
@@ -208,7 +191,7 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
                   onPressed: _selectedChoice != null ? _continue : null,
                   child: Text(
                     _selectedChoice == AiModelChoice.onDevice
-                        ? 'Download & Continue'
+                        ? 'Continue'
                         : 'Continue',
                   ),
                 ),
