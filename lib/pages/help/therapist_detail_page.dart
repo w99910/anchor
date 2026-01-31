@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 import 'booking_page.dart';
 
@@ -30,6 +31,7 @@ class TherapistDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -114,21 +116,21 @@ class TherapistDetailPage extends StatelessWidget {
                       _StatItem(
                         icon: Icons.star_rounded,
                         value: rating.toString(),
-                        label: '$reviews reviews',
+                        label: l10n.reviewsCount(reviews),
                         color: Colors.amber[700]!,
                       ),
                       const SizedBox(width: 24),
                       _StatItem(
                         icon: Icons.attach_money_rounded,
                         value: '\$$price',
-                        label: 'per session',
+                        label: l10n.perSessionLabel,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 24),
                       _StatItem(
                         icon: Icons.schedule_rounded,
                         value: '50',
-                        label: 'minutes',
+                        label: l10n.minutes,
                         color: Colors.blue,
                       ),
                     ],
@@ -162,8 +164,8 @@ class TherapistDetailPage extends StatelessWidget {
                             children: [
                               Text(
                                 available
-                                    ? 'Available'
-                                    : 'Currently unavailable',
+                                    ? l10n.available
+                                    : l10n.currentlyUnavailable,
                                 style: Theme.of(context).textTheme.titleSmall
                                     ?.copyWith(
                                       fontWeight: FontWeight.w600,
@@ -174,7 +176,7 @@ class TherapistDetailPage extends StatelessWidget {
                               ),
                               if (available)
                                 Text(
-                                  'Next slot: $nextAvailable',
+                                  l10n.nextSlot(nextAvailable),
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(color: Colors.green),
                                 ),
@@ -189,7 +191,7 @@ class TherapistDetailPage extends StatelessWidget {
 
                   // About
                   Text(
-                    'About',
+                    l10n.about,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -207,7 +209,7 @@ class TherapistDetailPage extends StatelessWidget {
 
                   // Specializations
                   Text(
-                    'Specializations',
+                    l10n.specializations,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -244,7 +246,7 @@ class TherapistDetailPage extends StatelessWidget {
 
                   // Languages
                   Text(
-                    'Languages',
+                    l10n.languages,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -271,15 +273,12 @@ class TherapistDetailPage extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        'Reviews',
+                        l10n.reviews,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const Spacer(),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('See all'),
-                      ),
+                      TextButton(onPressed: () {}, child: Text(l10n.seeAll)),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -330,7 +329,9 @@ class TherapistDetailPage extends StatelessWidget {
                     }
                   : null,
               child: Text(
-                available ? 'Book session - \$$price' : 'Currently unavailable',
+                available
+                    ? l10n.bookSessionWithPrice(price)
+                    : l10n.currentlyUnavailable,
               ),
             ),
           ),

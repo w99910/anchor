@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../main.dart' show setOnboardingComplete;
 import '../../utils/responsive.dart';
 import '../main_scaffold.dart';
@@ -82,6 +83,7 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: SafeArea(
@@ -94,7 +96,7 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
               const Spacer(flex: 1),
 
               Text(
-                'Choose your AI',
+                l10n.chooseYourAi,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -102,7 +104,7 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Select how you want to power your AI assistant',
+                l10n.selectHowToPowerAi,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -114,19 +116,15 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
               // On-device option
               _ModelOptionCard(
                 icon: Icons.smartphone_rounded,
-                title: 'On-Device AI',
-                subtitle: 'Maximum privacy',
-                description:
-                    'Runs entirely on your device. Your data never leaves your phone.',
-                benefits: const [
-                  'Complete privacy',
-                  'Works offline',
-                  'No subscription needed',
+                title: l10n.onDeviceAi,
+                subtitle: l10n.maximumPrivacy,
+                description: l10n.onDeviceDescription,
+                benefits: [
+                  l10n.completePrivacy,
+                  l10n.worksOffline,
+                  l10n.noSubscriptionNeeded,
                 ],
-                drawbacks: const [
-                  'Requires ~2GB download',
-                  'Uses device resources',
-                ],
+                drawbacks: [l10n.requires2GBDownload, l10n.usesDeviceResources],
                 isSelected: _selectedChoice == AiModelChoice.onDevice,
                 onTap: _isSettingUp
                     ? null
@@ -138,16 +136,15 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
               // Cloud option
               _ModelOptionCard(
                 icon: Icons.cloud_rounded,
-                title: 'Cloud AI',
-                subtitle: 'More powerful',
-                description:
-                    'Powered by cloud providers for faster, smarter responses.',
-                benefits: const [
-                  'More capable models',
-                  'Faster responses',
-                  'No storage needed',
+                title: l10n.cloudAi,
+                subtitle: l10n.morePowerful,
+                description: l10n.cloudDescription,
+                benefits: [
+                  l10n.moreCapableModels,
+                  l10n.fasterResponses,
+                  l10n.noStorageNeeded,
                 ],
-                drawbacks: const ['Requires internet', 'Data sent to cloud'],
+                drawbacks: [l10n.requiresInternet, l10n.dataSentToCloud],
                 isSelected: _selectedChoice == AiModelChoice.cloud,
                 onTap: _isSettingUp
                     ? null
@@ -157,7 +154,7 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
               if (_errorMessage != null) ...[
                 const SizedBox(height: 16),
                 Text(
-                  _errorMessage!,
+                  l10n.setupFailed,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.error,
                   ),
@@ -179,8 +176,8 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
                 const SizedBox(height: 12),
                 Text(
                   _selectedChoice == AiModelChoice.onDevice
-                      ? 'Downloading model... ${(_setupProgress * 100).toInt()}%'
-                      : 'Setting up... ${(_setupProgress * 100).toInt()}%',
+                      ? l10n.downloadingModel((_setupProgress * 100).toInt())
+                      : l10n.settingUp((_setupProgress * 100).toInt()),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -189,11 +186,7 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
               ] else ...[
                 FilledButton(
                   onPressed: _selectedChoice != null ? _continue : null,
-                  child: Text(
-                    _selectedChoice == AiModelChoice.onDevice
-                        ? 'Continue'
-                        : 'Continue',
-                  ),
+                  child: Text(l10n.continueText),
                 ),
               ],
 

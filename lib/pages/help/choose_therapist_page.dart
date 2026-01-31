@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 import 'booking_page.dart';
 import 'therapist_detail_page.dart';
@@ -120,13 +121,14 @@ class _ChooseTherapistPageState extends State<ChooseTherapistPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: const Text('Find a therapist'),
+        title: Text(l10n.findTherapist),
       ),
       body: Column(
         children: [
@@ -140,7 +142,7 @@ class _ChooseTherapistPageState extends State<ChooseTherapistPage> {
                   TextField(
                     onChanged: (v) => setState(() => _searchQuery = v),
                     decoration: InputDecoration(
-                      hintText: 'Search by name or specialty...',
+                      hintText: l10n.searchByNameOrSpecialty,
                       prefixIcon: const Icon(Icons.search_rounded),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
@@ -190,7 +192,7 @@ class _ChooseTherapistPageState extends State<ChooseTherapistPage> {
               child: Row(
                 children: [
                   Text(
-                    '${_filteredTherapists.length} therapist${_filteredTherapists.length != 1 ? 's' : ''} available',
+                    l10n.therapistsAvailable(_filteredTherapists.length),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -297,6 +299,7 @@ class _TherapistCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Material(
@@ -406,7 +409,7 @@ class _TherapistCard extends StatelessWidget {
                                     ),
                               ),
                               Text(
-                                '/session',
+                                l10n.perSession,
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: Theme.of(
@@ -483,7 +486,7 @@ class _TherapistCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          'Unavailable',
+                          l10n.unavailable,
                           style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(
                                 color: Theme.of(
@@ -506,14 +509,14 @@ class _TherapistCard extends StatelessWidget {
                           style: FilledButton.styleFrom(
                             minimumSize: const Size(0, 44),
                           ),
-                          child: const Text('Book session'),
+                          child: Text(l10n.bookSession),
                         )
                       : OutlinedButton(
                           onPressed: onTap,
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(0, 44),
                           ),
-                          child: const Text('View profile'),
+                          child: Text(l10n.viewProfile),
                         ),
                 ),
               ],

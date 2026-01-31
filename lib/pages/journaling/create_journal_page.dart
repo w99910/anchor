@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../services/ai_settings_service.dart';
 import '../../services/database_service.dart';
 import '../../services/gemini_service.dart';
@@ -133,7 +134,9 @@ class _CreateJournalPageState extends State<CreateJournalPage> {
   void _showSaveOptions() {
     if (_contentController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please write something first')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.pleaseWriteSomething),
+        ),
       );
       return;
     }
@@ -183,9 +186,13 @@ class _CreateJournalPageState extends State<CreateJournalPage> {
       debugPrint('Error saving draft: $e');
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to save: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.failedToSave(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }
@@ -292,9 +299,13 @@ class _CreateJournalPageState extends State<CreateJournalPage> {
       debugPrint('Error finalizing entry: $e');
       if (mounted) {
         setState(() => _isAnalyzing = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to finalize: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.failedToFinalize(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }
@@ -487,7 +498,7 @@ JSON format:
           ),
           title: _hasUnsavedChanges
               ? Text(
-                  'Unsaved changes',
+                  AppLocalizations.of(context)!.unsavedChanges,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -506,7 +517,7 @@ JSON format:
                       vertical: 10,
                     ),
                   ),
-                  child: const Text('Done'),
+                  child: Text(AppLocalizations.of(context)!.done),
                 ),
               ),
           ],
@@ -587,7 +598,7 @@ JSON format:
                         context,
                       ).textTheme.bodyLarge?.copyWith(height: 1.6),
                       decoration: InputDecoration(
-                        hintText: 'What\'s on your mind?',
+                        hintText: AppLocalizations.of(context)!.whatsOnYourMind,
                         hintStyle: TextStyle(
                           color: Theme.of(
                             context,
@@ -619,18 +630,20 @@ JSON format:
                       const SizedBox(height: 24),
                       Text(
                         _llmService.isLoading
-                            ? 'Loading AI model...'
+                            ? AppLocalizations.of(context)!.loadingAiModel
                             : _llmService.hasRealAI
-                            ? 'Analyzing your entry...'
-                            : 'Finalizing...',
+                            ? AppLocalizations.of(context)!.analyzingEntry
+                            : AppLocalizations.of(context)!.finalizing,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       if (_llmService.hasRealAI || _llmService.isLoading) ...[
                         const SizedBox(height: 8),
                         Text(
                           _llmService.isLoading
-                              ? 'This may take a moment'
-                              : 'AI is generating insights',
+                              ? AppLocalizations.of(context)!.thisMayTakeAMoment
+                              : AppLocalizations.of(
+                                  context,
+                                )!.aiGeneratingInsights,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: Theme.of(
@@ -702,7 +715,7 @@ class _SaveOptionsSheet extends StatelessWidget {
             const SizedBox(height: 24),
 
             Text(
-              'What would you like to do?',
+              AppLocalizations.of(context)!.whatWouldYouLikeToDo,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
@@ -713,8 +726,8 @@ class _SaveOptionsSheet extends StatelessWidget {
             _OptionCard(
               icon: Icons.edit_note_rounded,
               iconColor: Theme.of(context).colorScheme.primary,
-              title: 'Save as Draft',
-              description: 'Keep editing for up to 3 days',
+              title: AppLocalizations.of(context)!.saveAsDraft,
+              description: AppLocalizations.of(context)!.keepEditingForDays,
               onTap: onSaveDraft,
             ),
 
@@ -732,14 +745,16 @@ class _SaveOptionsSheet extends StatelessWidget {
                   : Colors.green,
               title: isAiAvailable
                   ? (isCloudProvider
-                        ? 'Finalize with Cloud AI'
-                        : 'Finalize with AI')
-                  : 'Finalize Entry',
+                        ? AppLocalizations.of(context)!.finalizeWithCloudAi
+                        : AppLocalizations.of(context)!.finalizeWithAi)
+                  : AppLocalizations.of(context)!.finalizeEntry,
               description: isAiAvailable
                   ? (isCloudProvider
-                        ? 'Get summary & analysis (uses Gemini)'
-                        : 'Get summary, emotion analysis & risk assessment')
-                  : 'Lock entry and stop editing',
+                        ? AppLocalizations.of(
+                            context,
+                          )!.getSummaryAndAnalysisGemini
+                        : AppLocalizations.of(context)!.getSummaryEmotionRisk)
+                  : AppLocalizations.of(context)!.lockEntryAndStopEditing,
               onTap: onFinalize,
               highlighted: true,
             ),
@@ -748,7 +763,7 @@ class _SaveOptionsSheet extends StatelessWidget {
 
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
           ],
         ),

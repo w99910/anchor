@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 import 'evaluation_questions_page.dart';
 
@@ -7,6 +8,7 @@ class MentalStatePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final padding = Responsive.pagePadding(context);
 
     return Scaffold(
@@ -20,14 +22,14 @@ class MentalStatePage extends StatelessWidget {
               children: [
                 const SizedBox(height: 8),
                 Text(
-                  'Insights',
+                  l10n.insights,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Track and understand your mental wellness',
+                  l10n.trackMentalWellness,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -35,7 +37,7 @@ class MentalStatePage extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 Text(
-                  'Take an assessment',
+                  l10n.takeAssessment,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -45,8 +47,8 @@ class MentalStatePage extends StatelessWidget {
 
                 _AssessmentCard(
                   emoji: '❤️',
-                  title: 'Emotional check-in',
-                  subtitle: 'Understand your current emotional state',
+                  title: l10n.emotionalCheckIn,
+                  subtitle: l10n.understandEmotionalState,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -61,8 +63,8 @@ class MentalStatePage extends StatelessWidget {
                 const SizedBox(height: 12),
                 _AssessmentCard(
                   emoji: '⚡',
-                  title: 'Stress assessment',
-                  subtitle: 'Measure your stress levels',
+                  title: l10n.stressAssessment,
+                  subtitle: l10n.measureStressLevels,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -77,7 +79,7 @@ class MentalStatePage extends StatelessWidget {
 
                 const SizedBox(height: 32),
                 Text(
-                  'Recent results',
+                  l10n.recentResults,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/web3_config.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 import 'payment_page.dart';
 
@@ -25,13 +26,14 @@ class CheckoutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: const Text('Checkout'),
+        title: Text(l10n.checkout),
       ),
       body: SingleChildScrollView(
         padding: Responsive.pagePadding(context),
@@ -41,7 +43,7 @@ class CheckoutPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Summary',
+                l10n.summary,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -57,15 +59,15 @@ class CheckoutPage extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _SummaryRow(label: 'Therapist', value: therapistName),
+                    _SummaryRow(label: l10n.therapist, value: therapistName),
                     _SummaryRow(
-                      label: 'Date',
+                      label: l10n.date,
                       value: '${date.day}/${date.month}/${date.year}',
                     ),
-                    _SummaryRow(label: 'Time', value: time),
+                    _SummaryRow(label: l10n.time, value: time),
                     _SummaryRow(
-                      label: 'Type',
-                      value: urgency == 'urgent' ? 'Urgent' : 'Normal',
+                      label: l10n.type,
+                      value: urgency == 'urgent' ? l10n.urgent : l10n.normal,
                     ),
                   ],
                 ),
@@ -73,7 +75,7 @@ class CheckoutPage extends StatelessWidget {
 
               const SizedBox(height: 24),
               Text(
-                'Price',
+                l10n.price,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -89,15 +91,15 @@ class CheckoutPage extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _PriceRow(label: 'Session', amount: price),
+                    _PriceRow(label: l10n.session, amount: price),
                     if (_urgencyFee > 0)
-                      _PriceRow(label: 'Urgency fee', amount: _urgencyFee),
+                      _PriceRow(label: l10n.urgencyFee, amount: _urgencyFee),
                     const Divider(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Total',
+                          l10n.total,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -116,7 +118,7 @@ class CheckoutPage extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
-              
+
               // Test mode indicator
               if (Web3Config.useTestnet)
                 Container(
@@ -137,17 +139,18 @@ class CheckoutPage extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Test mode: Using \$1 amount on Sepolia testnet',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.orange,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          l10n.testModeMessage,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Colors.orange,
+                                fontWeight: FontWeight.w500,
+                              ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              
+
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -164,7 +167,7 @@ class CheckoutPage extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Free cancellation up to 24 hours before',
+                        l10n.freeCancellation,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -189,7 +192,7 @@ class CheckoutPage extends StatelessWidget {
                     ),
                   );
                 },
-                child: Text('Pay \$$_total'),
+                child: Text(l10n.payAmount(_total)),
               ),
             ],
           ),

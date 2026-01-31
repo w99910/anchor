@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/ethstorage_config.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../services/database_service.dart';
 import '../../utils/responsive.dart';
 import 'create_journal_page.dart';
@@ -80,6 +81,7 @@ class _JournalingPageState extends State<JournalingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final padding = Responsive.pagePadding(context);
 
     return Scaffold(
@@ -99,7 +101,7 @@ class _JournalingPageState extends State<JournalingPage> {
                         children: [
                           Expanded(
                             child: Text(
-                              'Journal',
+                              l10n.journal,
                               style: Theme.of(context).textTheme.headlineMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
@@ -107,7 +109,7 @@ class _JournalingPageState extends State<JournalingPage> {
                           FilledButton.icon(
                             onPressed: _navigateToCreate,
                             icon: const Icon(Icons.add_rounded, size: 20),
-                            label: const Text('New'),
+                            label: Text(l10n.newEntry),
                             style: FilledButton.styleFrom(
                               minimumSize: Size.zero,
                               padding: const EdgeInsets.symmetric(
@@ -141,7 +143,7 @@ class _JournalingPageState extends State<JournalingPage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No journal entries yet',
+                        l10n.noJournalEntriesYet,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               color: Theme.of(
@@ -151,7 +153,7 @@ class _JournalingPageState extends State<JournalingPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Tap the + button to create your first entry',
+                        l10n.tapToCreateFirstEntry,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         ),
@@ -194,6 +196,7 @@ class _JournalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDraft = entry.isDraft;
 
     return Container(
@@ -290,7 +293,7 @@ class _JournalCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  isDraft ? 'Draft' : 'Finalized',
+                                  isDraft ? l10n.draft : l10n.finalized,
                                   style: Theme.of(context).textTheme.labelSmall
                                       ?.copyWith(
                                         color: isDraft
@@ -471,7 +474,7 @@ class _FinalizedEntrySheet extends StatelessWidget {
                       _SectionCard(
                         icon: _getRiskIcon(entry.riskStatus!),
                         iconColor: _getRiskColor(entry.riskStatus!),
-                        title: 'Risk Assessment',
+                        title: AppLocalizations.of(context)!.riskAssessment,
                         child: Row(
                           children: [
                             Container(
@@ -498,7 +501,7 @@ class _FinalizedEntrySheet extends StatelessWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                _getRiskDescription(entry.riskStatus!),
+                                _getRiskDescription(context, entry.riskStatus!),
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: Theme.of(
@@ -518,7 +521,7 @@ class _FinalizedEntrySheet extends StatelessWidget {
                       _SectionCard(
                         icon: Icons.auto_awesome_rounded,
                         iconColor: Colors.amber,
-                        title: 'AI Summary',
+                        title: AppLocalizations.of(context)!.aiSummary,
                         child: Text(
                           entry.summary!,
                           style: Theme.of(
@@ -535,7 +538,7 @@ class _FinalizedEntrySheet extends StatelessWidget {
                       _SectionCard(
                         icon: Icons.lightbulb_outline_rounded,
                         iconColor: Colors.green,
-                        title: 'Suggested Actions',
+                        title: AppLocalizations.of(context)!.suggestedActions,
                         child: Column(
                           children: entry.actionItems!
                               .map(
@@ -580,7 +583,7 @@ class _FinalizedEntrySheet extends StatelessWidget {
                     _SectionCard(
                       icon: Icons.article_outlined,
                       iconColor: Theme.of(context).colorScheme.primary,
-                      title: 'Original Entry',
+                      title: AppLocalizations.of(context)!.originalEntry,
                       child: Text(
                         entry.content,
                         style: Theme.of(
@@ -595,7 +598,7 @@ class _FinalizedEntrySheet extends StatelessWidget {
                       _SectionCard(
                         icon: Icons.cloud_done_rounded,
                         iconColor: Colors.green,
-                        title: 'Stored on Blockchain',
+                        title: AppLocalizations.of(context)!.storedOnBlockchain,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -620,7 +623,9 @@ class _FinalizedEntrySheet extends StatelessWidget {
                                   ),
                                 ),
                                 icon: const Icon(Icons.open_in_new, size: 16),
-                                label: const Text('View on Etherscan'),
+                                label: Text(
+                                  AppLocalizations.of(context)!.viewOnEtherscan,
+                                ),
                               ),
                             ),
                           ],
@@ -670,16 +675,24 @@ class _FinalizedEntrySheet extends StatelessWidget {
         debugPrint('Failed to launch URL: $url');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not open browser. URL: $url')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.couldNotOpenBrowser(url),
+              ),
+            ),
           );
         }
       }
     } catch (e) {
       debugPrint('Error launching URL: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error opening URL: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.errorOpeningUrl(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }
@@ -708,15 +721,16 @@ class _FinalizedEntrySheet extends StatelessWidget {
     }
   }
 
-  String _getRiskDescription(String risk) {
+  String _getRiskDescription(BuildContext context, String risk) {
+    final l10n = AppLocalizations.of(context)!;
     switch (risk.toLowerCase()) {
       case 'high':
-        return 'Consider reaching out to a mental health professional';
+        return l10n.riskHighDesc;
       case 'medium':
-        return 'Some concerns detected - monitor your wellbeing';
+        return l10n.riskMediumDesc;
       case 'low':
       default:
-        return 'No significant concerns detected';
+        return l10n.riskLowDesc;
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 
 class EvaluationResultsPage extends StatelessWidget {
@@ -33,6 +34,7 @@ class EvaluationResultsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: ResponsiveCenter(
@@ -76,8 +78,8 @@ class EvaluationResultsPage extends StatelessWidget {
 
               Text(
                 evaluationType == 'emotion'
-                    ? 'Emotional well-being'
-                    : 'Stress management',
+                    ? l10n.emotionalWellbeing
+                    : l10n.stressManagement,
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
@@ -118,7 +120,7 @@ class EvaluationResultsPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Suggestions',
+                          l10n.suggestions,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -158,12 +160,12 @@ class EvaluationResultsPage extends StatelessWidget {
               FilledButton(
                 onPressed: () =>
                     Navigator.popUntil(context, (route) => route.isFirst),
-                child: const Text('Done'),
+                child: Text(l10n.done),
               ),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () {},
-                child: const Text('Talk to a professional'),
+                child: Text(l10n.talkToProfessional),
               ),
               const SizedBox(height: 16),
             ],

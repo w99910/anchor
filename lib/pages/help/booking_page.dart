@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 import 'checkout_page.dart';
 
@@ -31,10 +32,11 @@ class _BookingPageState extends State<BookingPage> {
   ];
 
   void _continue() {
+    final l10n = AppLocalizations.of(context)!;
     if (_selectedTime == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a time')));
+      ).showSnackBar(SnackBar(content: Text(l10n.pleaseSelectTime)));
       return;
     }
 
@@ -54,13 +56,14 @@ class _BookingPageState extends State<BookingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: const Text('Book session'),
+        title: Text(l10n.bookSession),
       ),
       body: SingleChildScrollView(
         padding: Responsive.pagePadding(context),
@@ -101,7 +104,7 @@ class _BookingPageState extends State<BookingPage> {
                         ),
                       ),
                       Text(
-                        '\$${widget.price}/session',
+                        '\$${widget.price}${l10n.perSession}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                         ),
@@ -112,7 +115,7 @@ class _BookingPageState extends State<BookingPage> {
               ),
 
               const SizedBox(height: 32),
-              _buildLabel(context, 'Date'),
+              _buildLabel(context, l10n.date),
               const SizedBox(height: 10),
               _DateSelector(
                 selectedDate: _selectedDate,
@@ -120,7 +123,7 @@ class _BookingPageState extends State<BookingPage> {
               ),
 
               const SizedBox(height: 24),
-              _buildLabel(context, 'Time'),
+              _buildLabel(context, l10n.time),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
@@ -140,25 +143,28 @@ class _BookingPageState extends State<BookingPage> {
               ),
 
               const SizedBox(height: 24),
-              _buildLabel(context, 'Urgency'),
+              _buildLabel(context, l10n.urgency),
               const SizedBox(height: 10),
               _UrgencyOption(
-                title: 'Normal',
-                subtitle: 'Regular scheduling',
+                title: l10n.normal,
+                subtitle: l10n.regularScheduling,
                 value: 'normal',
                 groupValue: _urgency,
                 onChanged: (v) => setState(() => _urgency = v),
               ),
               _UrgencyOption(
-                title: 'Urgent',
-                subtitle: 'Priority (+\$20)',
+                title: l10n.urgent,
+                subtitle: l10n.priority,
                 value: 'urgent',
                 groupValue: _urgency,
                 onChanged: (v) => setState(() => _urgency = v),
               ),
 
               const SizedBox(height: 40),
-              FilledButton(onPressed: _continue, child: const Text('Continue')),
+              FilledButton(
+                onPressed: _continue,
+                child: Text(l10n.continueText),
+              ),
             ],
           ),
         ),

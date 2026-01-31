@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../services/ai_settings_service.dart';
 import '../services/database_service.dart';
 import '../services/llm_service.dart';
@@ -91,18 +92,25 @@ class _AiChatPageState extends State<AiChatPage> {
     setState(() => _isCheckingModel = false);
   }
 
-  void _openDownloadPage() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ModelDownloadPage(
-          onDownloadComplete: () async {
-            Navigator.of(context).pop();
-            // Wait for the model to load after download
-            await _checkAndLoadModel();
-          },
-        ),
-      ),
-    );
+  void _openDownloadPage({bool forChangeModel = false}) {
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) => ModelDownloadPage(
+              forceShowModelSelection: forChangeModel,
+              onDownloadComplete: () async {
+                Navigator.of(context).pop();
+                // Wait for the model to load after download
+                await _checkAndLoadModel();
+              },
+            ),
+          ),
+        )
+        .then((_) {
+          // When returning from download page (even without downloading),
+          // refresh the model state to ensure we use the current downloaded model
+          _checkAndLoadModel();
+        });
   }
 
   void _onServiceStatusChanged() {
@@ -175,9 +183,21 @@ class _AiChatPageState extends State<AiChatPage> {
           }
         });
 
+        // Build chat history from previous messages (exclude the current one we just added)
+        final chatHistory = _messages
+            .where((m) => !m.isError && m != userMessage)
+            .map(
+              (m) => {
+                'role': m.isUser ? 'user' : 'assistant',
+                'content': m.text,
+              },
+            )
+            .toList();
+
         final response = await _llmService.generateResponse(
           prompt: text,
           mode: _mode,
+          chatHistory: chatHistory,
           maxTokens: 1024,
           temperature: 0.7,
           streamController: streamController,
@@ -258,6 +278,7 @@ class _AiChatPageState extends State<AiChatPage> {
   @override
   Widget build(BuildContext context) {
     final padding = Responsive.pagePadding(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: SafeArea(
@@ -273,7 +294,7 @@ class _AiChatPageState extends State<AiChatPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Chat',
+                          l10n.chat,
                           style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -287,11 +308,25 @@ class _AiChatPageState extends State<AiChatPage> {
                       ],
                     ),
                   ),
+                  // Show change model button if using on-device and can use advanced model
+                  if (!_aiSettings.isCloudProvider &&
+                      _downloadService.canUseAdvancedModel &&
+                      _downloadService.isDownloaded)
+                    IconButton(
+                      onPressed: () => _openDownloadPage(forChangeModel: true),
+                      icon: const Icon(Icons.swap_horiz_rounded),
+                      tooltip: l10n.changeModelTooltip(
+                        _downloadService.selectedModelName,
+                      ),
+                    ),
                   _ModeToggle(
                     mode: _mode,
                     onChanged: (mode) {
-                      setState(() => _mode = mode);
-                      _loadMessages(); // Reload messages for new mode
+                      setState(() {
+                        _mode = mode;
+                        _messages
+                            .clear(); // Clear messages when switching modes
+                      });
                     },
                   ),
                 ],
@@ -348,10 +383,10 @@ class _AiChatPageState extends State<AiChatPage> {
                             !_llmService.isLoading,
                         decoration: InputDecoration(
                           hintText: _isGenerating
-                              ? 'Thinking...'
+                              ? l10n.thinking
                               : (_isCheckingModel || _llmService.isLoading)
-                              ? 'Loading model...'
-                              : 'Type a message...',
+                              ? l10n.loadingModel
+                              : l10n.typeMessage,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 14,
@@ -404,22 +439,27 @@ class _ModelStatusBadge extends StatelessWidget {
   const _ModelStatusBadge({required this.status, required this.backend});
 
   (IconData, String, Color) _getReadyStatus(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return switch (backend) {
-      LlmBackend.nativeRunner => (Icons.memory, 'Native AI', Colors.green),
+      LlmBackend.nativeRunner => (Icons.memory, l10n.nativeAi, Colors.green),
       LlmBackend.executorchFlutter => (
         Icons.auto_awesome,
-        'AI Ready',
+        l10n.aiReady,
         Colors.green,
       ),
-      LlmBackend.geminiCloud => (Icons.cloud_rounded, 'Cloud AI', Colors.blue),
+      LlmBackend.geminiCloud => (
+        Icons.cloud_rounded,
+        l10n.cloudAi,
+        Colors.blue,
+      ),
       LlmBackend.mockResponses => (
         Icons.chat_bubble_outline,
-        'Demo mode',
+        l10n.demoMode,
         Colors.orange,
       ),
       LlmBackend.none => (
         Icons.cloud_off_outlined,
-        'Offline',
+        l10n.offline,
         Theme.of(context).colorScheme.outline,
       ),
     };
@@ -427,20 +467,21 @@ class _ModelStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final (icon, label, color) = switch (status) {
       LlmModelStatus.notLoaded => (
         Icons.cloud_off_outlined,
-        'Offline mode',
+        l10n.offlineMode,
         Theme.of(context).colorScheme.outline,
       ),
       LlmModelStatus.loading => (
         Icons.downloading_rounded,
-        'Loading model...',
+        l10n.loadingModel,
         Theme.of(context).colorScheme.primary,
       ),
       LlmModelStatus.error => (
         Icons.error_outline,
-        'Model error',
+        l10n.modelError,
         Theme.of(context).colorScheme.error,
       ),
       LlmModelStatus.ready => _getReadyStatus(context),
@@ -468,6 +509,7 @@ class _ModeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -478,12 +520,12 @@ class _ModeToggle extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _ModeChip(
-            label: 'Friend',
+            label: l10n.friend,
             isSelected: mode == 'friend',
             onTap: () => onChanged('friend'),
           ),
           _ModeChip(
-            label: 'Therapist',
+            label: l10n.therapist,
             isSelected: mode == 'therapist',
             onTap: () => onChanged('therapist'),
           ),
@@ -558,6 +600,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // If using cloud provider, show ready state
     if (isCloudProvider) {
       return Center(
@@ -581,7 +624,9 @@ class _EmptyState extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                mode == 'friend' ? 'Chat with a friend' : 'Guided conversation',
+                mode == 'friend'
+                    ? l10n.chatWithFriend
+                    : l10n.guidedConversation,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -589,8 +634,8 @@ class _EmptyState extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 mode == 'friend'
-                    ? 'I\'m here to listen. Share anything on your mind.'
-                    : 'Explore your thoughts with guided therapeutic dialogue.',
+                    ? l10n.friendEmptyStateDescription
+                    : l10n.therapistEmptyStateDescription,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -616,7 +661,7 @@ class _EmptyState extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Using Cloud AI',
+                      l10n.usingCloudAi,
                       style: Theme.of(
                         context,
                       ).textTheme.labelSmall?.copyWith(color: Colors.blue),
@@ -651,7 +696,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              mode == 'friend' ? 'Chat with a friend' : 'Guided conversation',
+              mode == 'friend' ? l10n.chatWithFriend : l10n.guidedConversation,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -659,8 +704,8 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               mode == 'friend'
-                  ? 'I\'m here to listen. Share anything on your mind.'
-                  : 'Explore your thoughts with guided therapeutic dialogue.',
+                  ? l10n.friendEmptyStateDescription
+                  : l10n.therapistEmptyStateDescription,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -671,7 +716,7 @@ class _EmptyState extends StatelessWidget {
               const CircularProgressIndicator(),
               const SizedBox(height: 12),
               Text(
-                'Checking model...',
+                l10n.checkingModel,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -694,14 +739,14 @@ class _EmptyState extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Loading AI Model...',
+                      l10n.loadingAiModel,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Preparing the model for chat',
+                      l10n.preparingModelForChat,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -728,14 +773,14 @@ class _EmptyState extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Download AI Model',
+                      l10n.downloadAiModel,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Get the $modelName model for private, on-device AI chat',
+                      l10n.getModelForPrivateChat(modelName),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -743,7 +788,7 @@ class _EmptyState extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '~$modelSize download',
+                      l10n.downloadSize(modelSize),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.outline,
                       ),
@@ -752,7 +797,7 @@ class _EmptyState extends StatelessWidget {
                     FilledButton.icon(
                       onPressed: onDownloadModel,
                       icon: const Icon(Icons.download),
-                      label: const Text('Download Model'),
+                      label: Text(l10n.downloadModel),
                     ),
                   ],
                 ),
@@ -774,14 +819,14 @@ class _EmptyState extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'AI model ready',
+                      l10n.aiModelReady,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Load the model to start chatting',
+                      l10n.loadModelToStartChatting,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -790,7 +835,7 @@ class _EmptyState extends StatelessWidget {
                     const SizedBox(height: 12),
                     FilledButton.tonal(
                       onPressed: onLoadModel,
-                      child: const Text('Load Model'),
+                      child: Text(l10n.loadModel),
                     ),
                   ],
                 ),

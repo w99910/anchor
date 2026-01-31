@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/ethstorage_config.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../services/database_service.dart';
 import '../../services/ethstorage_service.dart';
 import '../../utils/responsive.dart';
@@ -93,9 +94,9 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Successfully uploaded to EthStorage!'),
+            content: Text(AppLocalizations.of(context)!.successfullyUploaded),
             action: SnackBarAction(
-              label: 'View',
+              label: AppLocalizations.of(context)!.view,
               onPressed: () => _openExplorer(result.explorerUrl),
             ),
           ),
@@ -123,16 +124,24 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
         debugPrint('Failed to launch URL: $url');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not open browser. URL: $url')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.couldNotOpenBrowser(url),
+              ),
+            ),
           );
         }
       }
     } catch (e) {
       debugPrint('Error launching URL: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error opening URL: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.errorOpeningUrl(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }
@@ -167,15 +176,17 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                       const SizedBox(height: 32),
 
                       Text(
-                        _hasAiAnalysis ? 'Entry Finalized' : 'Entry Saved',
+                        _hasAiAnalysis
+                            ? AppLocalizations.of(context)!.entryFinalized
+                            : AppLocalizations.of(context)!.entrySaved,
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         _hasAiAnalysis
-                            ? 'Your journal entry has been analyzed'
-                            : 'Your draft has been saved',
+                            ? AppLocalizations.of(context)!.entryAnalyzed
+                            : AppLocalizations.of(context)!.draftSaved,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -190,7 +201,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                           _AnalysisCard(
                             icon: _getRiskIcon(widget.riskStatus!),
                             iconColor: _getRiskColor(widget.riskStatus!),
-                            title: 'Risk Assessment',
+                            title: AppLocalizations.of(context)!.riskAssessment,
                             child: Row(
                               children: [
                                 Container(
@@ -221,7 +232,10 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    _getRiskDescription(widget.riskStatus!),
+                                    _getRiskDescription(
+                                      context,
+                                      widget.riskStatus!,
+                                    ),
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: Theme.of(
@@ -242,7 +256,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                           _AnalysisCard(
                             icon: Icons.mood_rounded,
                             iconColor: _getEmotionColor(widget.emotionStatus!),
-                            title: 'Emotional State',
+                            title: AppLocalizations.of(context)!.emotionalState,
                             child: Text(
                               widget.emotionStatus!,
                               style: Theme.of(context).textTheme.titleLarge
@@ -263,7 +277,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                           _AnalysisCard(
                             icon: Icons.summarize_rounded,
                             iconColor: Theme.of(context).colorScheme.primary,
-                            title: 'AI Summary',
+                            title: AppLocalizations.of(context)!.aiSummary,
                             child: Text(
                               widget.summary!,
                               style: Theme.of(
@@ -280,7 +294,9 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                           _AnalysisCard(
                             icon: Icons.lightbulb_outline_rounded,
                             iconColor: Colors.amber,
-                            title: 'Suggested Actions',
+                            title: AppLocalizations.of(
+                              context,
+                            )!.suggestedActions,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: widget.actionItems!
@@ -340,7 +356,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Draft Mode',
+                                    AppLocalizations.of(context)!.draftMode,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleSmall
@@ -350,7 +366,9 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'You can continue editing this entry for up to 3 days. When ready, finalize it to get AI-powered insights.',
+                                AppLocalizations.of(
+                                  context,
+                                )!.draftModeDescription,
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: Theme.of(
@@ -385,7 +403,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                       Navigator.popUntil(context, (route) => route.isFirst);
                     }
                   },
-                  child: const Text('Done'),
+                  child: Text(AppLocalizations.of(context)!.done),
                 ),
               ),
               const SizedBox(height: 16),
@@ -418,7 +436,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Stored on EthStorage',
+                  AppLocalizations.of(context)!.storedOnEthStorage,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.green,
@@ -443,7 +461,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                     EthStorageConfig.getExplorerTxUrl(_ethStorageTxHash!),
                   ),
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('View'),
+                  label: Text(AppLocalizations.of(context)!.view),
                 ),
               ],
             ),
@@ -475,7 +493,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'EthStorage Configuration Required',
+                    AppLocalizations.of(context)!.ethStorageConfigRequired,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: Colors.orange,
@@ -495,7 +513,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
             OutlinedButton.icon(
               onPressed: _uploadToEthStorage,
               icon: const Icon(Icons.refresh, size: 16),
-              label: const Text('Retry'),
+              label: Text(AppLocalizations.of(context)!.retry),
             ),
           ],
         ),
@@ -516,8 +534,8 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
             : const Icon(Icons.cloud_upload_outlined),
         label: Text(
           _isUploadingToEthStorage
-              ? 'Uploading to EthStorage...'
-              : 'Store on EthStorage (Testnet)',
+              ? AppLocalizations.of(context)!.uploadingToEthStorage
+              : AppLocalizations.of(context)!.storeOnEthStorage,
         ),
       ),
     );
@@ -566,15 +584,16 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
     }
   }
 
-  String _getRiskDescription(String risk) {
+  String _getRiskDescription(BuildContext context, String risk) {
+    final l10n = AppLocalizations.of(context)!;
     switch (risk.toLowerCase()) {
       case 'high':
-        return 'Consider reaching out to a mental health professional';
+        return l10n.riskHighDesc;
       case 'medium':
-        return 'Some concerns detected - monitor your wellbeing';
+        return l10n.riskMediumDesc;
       case 'low':
       default:
-        return 'No significant concerns detected';
+        return l10n.riskLowDesc;
     }
   }
 }

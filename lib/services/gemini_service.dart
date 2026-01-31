@@ -25,6 +25,7 @@ class GeminiService extends ChangeNotifier {
   Future<String> generateResponse({
     required String prompt,
     required String mode, // 'friend' or 'therapist'
+    List<Map<String, String>>? chatHistory, // Previous messages
     int maxTokens = 1024,
     double temperature = 0.7,
     StreamController<String>? streamController,
@@ -40,14 +41,32 @@ class GeminiService extends ChangeNotifier {
         '$_baseUrl/models/$_model:generateContent?key=$_apiKey',
       );
 
-      final requestBody = {
-        'contents': [
-          {
+      // Build contents with chat history
+      final contents = <Map<String, dynamic>>[];
+
+      // Add conversation history
+      if (chatHistory != null && chatHistory.isNotEmpty) {
+        for (final message in chatHistory) {
+          final role = message['role'] == 'user' ? 'user' : 'model';
+          contents.add({
+            'role': role,
             'parts': [
-              {'text': prompt},
+              {'text': message['content'] ?? ''},
             ],
-          },
+          });
+        }
+      }
+
+      // Add current user message
+      contents.add({
+        'role': 'user',
+        'parts': [
+          {'text': prompt},
         ],
+      });
+
+      final requestBody = {
+        'contents': contents,
         'systemInstruction': {
           'parts': [
             {'text': systemPrompt},

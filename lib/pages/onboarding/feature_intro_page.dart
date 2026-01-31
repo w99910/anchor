@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 import 'user_info_page.dart';
 
@@ -13,25 +14,26 @@ class _FeatureIntroPageState extends State<FeatureIntroPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<_Feature> _features = [
-    _Feature(
-      emoji: '📝',
-      title: 'Journal your thoughts',
-      description:
-          'Express yourself freely and track your emotional journey over time.',
-    ),
-    _Feature(
-      emoji: '💬',
-      title: 'Talk to AI companion',
-      description: 'Chat anytime with a supportive AI friend or therapist.',
-    ),
-    _Feature(
-      emoji: '📊',
-      title: 'Track your progress',
-      description:
-          'Understand your mental patterns with insights and evaluations.',
-    ),
-  ];
+  List<_Feature> _getFeatures(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      _Feature(
+        emoji: '📝',
+        title: l10n.journalYourThoughts,
+        description: l10n.journalDescription,
+      ),
+      _Feature(
+        emoji: '💬',
+        title: l10n.talkToAiCompanion,
+        description: l10n.talkToAiDescription,
+      ),
+      _Feature(
+        emoji: '📊',
+        title: l10n.trackYourProgress,
+        description: l10n.trackProgressDescription,
+      ),
+    ];
+  }
 
   @override
   void dispose() {
@@ -40,7 +42,8 @@ class _FeatureIntroPageState extends State<FeatureIntroPage> {
   }
 
   void _next() {
-    if (_currentPage < _features.length - 1) {
+    final features = _getFeatures(context);
+    if (_currentPage < features.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeOutCubic,
@@ -62,6 +65,9 @@ class _FeatureIntroPageState extends State<FeatureIntroPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final features = _getFeatures(context);
+
     return Scaffold(
       body: SafeArea(
         child: ResponsiveCenter(
@@ -74,7 +80,7 @@ class _FeatureIntroPageState extends State<FeatureIntroPage> {
                 child: TextButton(
                   onPressed: _skip,
                   child: Text(
-                    'Skip',
+                    l10n.skip,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -86,23 +92,23 @@ class _FeatureIntroPageState extends State<FeatureIntroPage> {
                   controller: _pageController,
                   onPageChanged: (index) =>
                       setState(() => _currentPage = index),
-                  itemCount: _features.length,
+                  itemCount: features.length,
                   itemBuilder: (context, index) {
-                    return _FeaturePage(feature: _features[index]);
+                    return _FeaturePage(feature: features[index]);
                   },
                 ),
               ),
               const SizedBox(height: 32),
-              _PageIndicator(count: _features.length, current: _currentPage),
+              _PageIndicator(count: features.length, current: _currentPage),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: _next,
                   child: Text(
-                    _currentPage < _features.length - 1
-                        ? 'Next'
-                        : 'Get Started',
+                    _currentPage < features.length - 1
+                        ? l10n.next
+                        : l10n.getStarted,
                   ),
                 ),
               ),

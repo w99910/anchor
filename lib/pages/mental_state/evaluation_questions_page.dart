@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 import 'evaluation_results_page.dart';
 
@@ -122,6 +123,7 @@ class _EvaluationQuestionsPageState extends State<EvaluationQuestionsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hasAnswer = _answers.containsKey(_currentPage);
     final isLast = _currentPage == _questions.length - 1;
 
@@ -151,7 +153,7 @@ class _EvaluationQuestionsPageState extends State<EvaluationQuestionsPage> {
                   const Spacer(),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text(l10n.cancel),
                   ),
                 ],
               ),
@@ -169,7 +171,7 @@ class _EvaluationQuestionsPageState extends State<EvaluationQuestionsPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                '${_currentPage + 1} of ${_questions.length}',
+                l10n.nOfTotal(_currentPage + 1, _questions.length),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -217,7 +219,7 @@ class _EvaluationQuestionsPageState extends State<EvaluationQuestionsPage> {
               if (isLast && hasAnswer)
                 FilledButton(
                   onPressed: _showResults,
-                  child: const Text('See Results'),
+                  child: Text(AppLocalizations.of(context)!.seeResults),
                 ),
               const SizedBox(height: 16),
             ],
