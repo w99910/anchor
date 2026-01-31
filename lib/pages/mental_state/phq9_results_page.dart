@@ -1,34 +1,35 @@
 import 'package:flutter/material.dart';
 import '../../utils/responsive.dart';
 
-class EvaluationResultsPage extends StatelessWidget {
-  final String evaluationType;
+class Phq9ResultsPage extends StatelessWidget {
   final Map<int, int> answers;
 
-  const EvaluationResultsPage({
+  const Phq9ResultsPage({
     super.key,
-    required this.evaluationType,
     required this.answers,
   });
 
   int get _score {
     if (answers.isEmpty) return 0;
     final total = answers.values.reduce((a, b) => a + b);
-    return ((total / (answers.length * 4)) * 100).round();
+    return total;
   }
 
+  // PHQ-9 Specific Thresholds
   String get _status {
-    if (_score >= 75) return 'Excellent';
-    if (_score >= 50) return 'Good';
-    if (_score >= 25) return 'Moderate';
-    return 'Needs attention';
+    if (_score <= 4) return 'Minimal depression';
+    if (_score <= 9) return 'Mild depression';
+    if (_score <= 14) return 'Moderate depression';
+    if (_score <= 19) return 'Moderately severe';
+    return 'Severe depression';
   }
 
   Color get _statusColor {
-    if (_score >= 75) return Colors.green;
-    if (_score >= 50) return Colors.lightGreen;
-    if (_score >= 25) return Colors.amber;
-    return Colors.orange;
+    if (_score <= 4) return Colors.green;
+    if (_score <= 9) return Colors.lightGreen;
+    if (_score <= 14) return Colors.amber;
+    if (_score <= 19) return Colors.orange;
+    return Colors.red;
   }
 
   @override
@@ -63,6 +64,7 @@ class EvaluationResultsPage extends StatelessWidget {
                     ),
                     Text(
                       _status,
+                      textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: _statusColor,
                         fontWeight: FontWeight.w500,
@@ -75,9 +77,7 @@ class EvaluationResultsPage extends StatelessWidget {
               const SizedBox(height: 32),
 
               Text(
-                evaluationType == 'emotion'
-                    ? 'Emotional well-being'
-                    : 'Stress management',
+                'PHQ-9 Depression Assessment',
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
@@ -118,7 +118,7 @@ class EvaluationResultsPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Suggestions',
+                          'Next Steps',
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -174,30 +174,33 @@ class EvaluationResultsPage extends StatelessWidget {
   }
 
   String _getDescription() {
-    if (_score >= 75) {
-      return 'Great job! Your ${evaluationType == 'emotion' ? 'emotional health' : 'stress levels'} appear well-managed.';
+    if (_score <= 4) {
+      return 'Symptoms suggest minimal depression. Continue monitoring your mood.';
     }
-    if (_score >= 50) {
-      return 'You\'re doing well. There\'s room for improvement in some areas.';
+    if (_score <= 9) {
+      return 'Symptoms suggest mild depression. It may be helpful to talk with a counselor.';
     }
-    if (_score >= 25) {
-      return 'Consider giving some attention to your ${evaluationType == 'emotion' ? 'emotional well-being' : 'stress management'}.';
+    if (_score <= 14) {
+      return 'Symptoms suggest moderate depression. Consider a consultation with a healthcare professional.';
     }
-    return 'Reaching out to a professional could be beneficial for support.';
+    if (_score <= 19) {
+      return 'Symptoms suggest moderately severe depression. Please reach out to a professional for support.';
+    }
+    return 'Symptoms suggest severe depression. We strongly recommend seeking immediate professional help.';
   }
 
   List<String> _getRecommendations() {
-    if (evaluationType == 'emotion') {
-      return [
-        'Practice gratitude journaling daily',
-        'Maintain a regular sleep schedule',
-        'Connect with friends and family',
-      ];
-    }
-    return [
-      'Take regular breaks during work',
-      'Practice deep breathing exercises',
-      'Set boundaries with work and personal time',
+    List<String> recs = [
+      'Maintain a routine for sleep and meals',
+      'Set small, achievable daily goals',
+      'Stay connected with your support network',
     ];
+
+    // If score is high or Q9 (Suicidal ideation) is marked, add urgent advice
+    if (_score >= 15 || (answers[8] ?? 0) > 0) {
+      recs.insert(0, 'Contact a mental health crisis hotline');
+    }
+    
+    return recs;
   }
 }

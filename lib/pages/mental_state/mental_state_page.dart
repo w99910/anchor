@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/responsive.dart';
-import 'evaluation_questions_page.dart';
+import 'gad7_assessment_page.dart';
+import 'phq9_assessment_page.dart';
 
 class MentalStatePage extends StatelessWidget {
   const MentalStatePage({super.key});
@@ -45,15 +46,13 @@ class MentalStatePage extends StatelessWidget {
 
                 _AssessmentCard(
                   emoji: '❤️',
-                  title: 'Emotional check-in',
-                  subtitle: 'Understand your current emotional state',
+                  title: 'Anxiety check-in',
+                  subtitle: 'Understand your current Anxiety state',
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const EvaluationQuestionsPage(
-                          evaluationType: 'emotion',
-                        ),
+                        builder: (_) => const Gad7AssessmentPage(),
                       ),
                     );
                   },
@@ -61,15 +60,13 @@ class MentalStatePage extends StatelessWidget {
                 const SizedBox(height: 12),
                 _AssessmentCard(
                   emoji: '⚡',
-                  title: 'Stress assessment',
-                  subtitle: 'Measure your stress levels',
+                  title: 'Depression assessment',
+                  subtitle: 'Measure your depression levels',
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const EvaluationQuestionsPage(
-                          evaluationType: 'stress',
-                        ),
+                        builder: (_) => const Phq9AssessmentPage(),
                       ),
                     );
                   },
@@ -86,19 +83,19 @@ class MentalStatePage extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 _ResultCard(
-                  type: 'Emotional',
+                  type: 'Anxiety',
                   score: 72,
                   date: 'Jan 25',
                   status: 'Good',
                 ),
                 _ResultCard(
-                  type: 'Stress',
+                  type: 'Depression',
                   score: 45,
                   date: 'Jan 20',
                   status: 'Moderate',
                 ),
                 _ResultCard(
-                  type: 'Emotional',
+                  type: 'Anxiety',
                   score: 85,
                   date: 'Jan 15',
                   status: 'Excellent',
