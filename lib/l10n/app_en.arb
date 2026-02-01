@@ -1,0 +1,2105 @@
+{
+  "@@locale": "en",
+  
+  "appName": "Anchor",
+  "@appName": {
+    "description": "The name of the application"
+  },
+  
+  "chat": "Chat",
+  "@chat": {
+    "description": "Chat page title"
+  },
+  
+  "journal": "Journal",
+  "@journal": {
+    "description": "Journal page title"
+  },
+  
+  "home": "Home",
+  "@home": {
+    "description": "Home page title"
+  },
+  
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings page title"
+  },
+  
+  "help": "Help",
+  "@help": {
+    "description": "Help page title"
+  },
+  
+  "friend": "Friend",
+  "@friend": {
+    "description": "Friend mode in chat"
+  },
+  
+  "therapist": "Therapist",
+  "@therapist": {
+    "description": "Therapist mode in chat"
+  },
+  
+  "chatWithFriend": "Chat with a friend",
+  "@chatWithFriend": {
+    "description": "Empty state title for friend mode"
+  },
+  
+  "guidedConversation": "Guided conversation",
+  "@guidedConversation": {
+    "description": "Empty state title for therapist mode"
+  },
+  
+  "friendEmptyStateDescription": "I'm here to listen. Share anything on your mind.",
+  "@friendEmptyStateDescription": {
+    "description": "Empty state description for friend mode"
+  },
+  
+  "therapistEmptyStateDescription": "Explore your thoughts with guided therapeutic dialogue.",
+  "@therapistEmptyStateDescription": {
+    "description": "Empty state description for therapist mode"
+  },
+  
+  "typeMessage": "Type a message...",
+  "@typeMessage": {
+    "description": "Input placeholder"
+  },
+  
+  "thinking": "Thinking...",
+  "@thinking": {
+    "description": "Shown while AI is generating"
+  },
+  
+  "loadingModel": "Loading model...",
+  "@loadingModel": {
+    "description": "Shown while model is loading"
+  },
+  
+  "downloadModel": "Download Model",
+  "@downloadModel": {
+    "description": "Download model button"
+  },
+  
+  "downloadAiModel": "Download AI Model",
+  "@downloadAiModel": {
+    "description": "Download AI model title"
+  },
+  
+  "advancedAi": "Advanced AI",
+  "@advancedAi": {
+    "description": "Advanced AI model name"
+  },
+  
+  "compactAi": "Compact AI",
+  "@compactAi": {
+    "description": "Compact AI model name"
+  },
+  
+  "onDeviceAiChat": "On-Device AI Chat",
+  "@onDeviceAiChat": {
+    "description": "On-device AI chat title"
+  },
+  
+  "selectModel": "Select Model",
+  "@selectModel": {
+    "description": "Select model section title"
+  },
+  
+  "recommended": "Recommended",
+  "@recommended": {
+    "description": "Recommended badge"
+  },
+  
+  "current": "Current",
+  "@current": {
+    "description": "Current badge for downloaded model"
+  },
+  
+  "currentlyInUse": "Currently in use",
+  "@currentlyInUse": {
+    "description": "Label for currently used model"
+  },
+  
+  "moreCapableBetterResponses": "More capable • Better responses",
+  "@moreCapableBetterResponses": {
+    "description": "Advanced model description"
+  },
+  
+  "lightweightFastResponses": "Lightweight • Fast responses",
+  "@lightweightFastResponses": {
+    "description": "Compact model description"
+  },
+  
+  "downloadSize": "~{size} download",
+  "@downloadSize": {
+    "description": "Download size label",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "2.66 GB"
+      }
+    }
+  },
+  
+  "modelReady": "Model Ready",
+  "@modelReady": {
+    "description": "Model ready status"
+  },
+  
+  "startChatting": "Start Chatting",
+  "@startChatting": {
+    "description": "Start chatting button"
+  },
+  
+  "switchToDifferentModel": "Switch to Different Model",
+  "@switchToDifferentModel": {
+    "description": "Switch model button"
+  },
+  
+  "appearance": "Appearance",
+  "@appearance": {
+    "description": "Appearance settings section"
+  },
+  
+  "language": "Language",
+  "@language": {
+    "description": "Language settings section"
+  },
+  
+  "selectLanguage": "Select Language",
+  "@selectLanguage": {
+    "description": "Select language title"
+  },
+  
+  "aiProvider": "AI Provider",
+  "@aiProvider": {
+    "description": "AI provider settings section"
+  },
+  
+  "security": "Security",
+  "@security": {
+    "description": "Security settings section"
+  },
+  
+  "notifications": "Notifications",
+  "@notifications": {
+    "description": "Notifications settings section"
+  },
+  
+  "data": "Data",
+  "@data": {
+    "description": "Data settings section"
+  },
+  
+  "appLock": "App lock",
+  "@appLock": {
+    "description": "App lock setting"
+  },
+  
+  "pushNotifications": "Push notifications",
+  "@pushNotifications": {
+    "description": "Push notifications setting"
+  },
+  
+  "clearHistory": "Clear history",
+  "@clearHistory": {
+    "description": "Clear history option"
+  },
+  
+  "exportData": "Export data",
+  "@exportData": {
+    "description": "Export data option"
+  },
+  
+  "skip": "Skip",
+  "@skip": {
+    "description": "Skip button"
+  },
+  
+  "next": "Next",
+  "@next": {
+    "description": "Next button"
+  },
+  
+  "getStarted": "Get Started",
+  "@getStarted": {
+    "description": "Get started button"
+  },
+  
+  "continueText": "Continue",
+  "@continueText": {
+    "description": "Continue button"
+  },
+  
+  "journalYourThoughts": "Journal your thoughts",
+  "@journalYourThoughts": {
+    "description": "Onboarding feature 1 title"
+  },
+  
+  "journalDescription": "Express yourself freely and track your emotional journey over time.",
+  "@journalDescription": {
+    "description": "Onboarding feature 1 description"
+  },
+  
+  "talkToAiCompanion": "Talk to AI companion",
+  "@talkToAiCompanion": {
+    "description": "Onboarding feature 2 title"
+  },
+  
+  "talkToAiDescription": "Chat anytime with a supportive AI friend or therapist.",
+  "@talkToAiDescription": {
+    "description": "Onboarding feature 2 description"
+  },
+  
+  "trackYourProgress": "Track your progress",
+  "@trackYourProgress": {
+    "description": "Onboarding feature 3 title"
+  },
+  
+  "trackProgressDescription": "Understand your mental patterns with insights and evaluations.",
+  "@trackProgressDescription": {
+    "description": "Onboarding feature 3 description"
+  },
+  
+  "chooseYourLanguage": "Choose your language",
+  "@chooseYourLanguage": {
+    "description": "Language selection page title"
+  },
+  
+  "languageDescription": "Select your preferred language for the app. You can change this later in settings.",
+  "@languageDescription": {
+    "description": "Language selection page description"
+  },
+  
+  "english": "English",
+  "@english": {
+    "description": "English language name"
+  },
+  
+  "thai": "ไทย",
+  "@thai": {
+    "description": "Thai language name"
+  },
+  
+  "german": "Deutsch",
+  "@german": {
+    "description": "German language name"
+  },
+  
+  "french": "Français",
+  "@french": {
+    "description": "French language name"
+  },
+  
+  "italian": "Italiano",
+  "@italian": {
+    "description": "Italian language name"
+  },
+  
+  "portuguese": "Português",
+  "@portuguese": {
+    "description": "Portuguese language name"
+  },
+  
+  "hindi": "हिन्दी",
+  "@hindi": {
+    "description": "Hindi language name"
+  },
+  
+  "spanish": "Español",
+  "@spanish": {
+    "description": "Spanish language name"
+  },
+  
+  "onDevice": "On-device",
+  "@onDevice": {
+    "description": "On-device AI option"
+  },
+  
+  "cloud": "Cloud",
+  "@cloud": {
+    "description": "Cloud AI option"
+  },
+  
+  "privateOnDevice": "100% on-device",
+  "@privateOnDevice": {
+    "description": "Privacy label for on-device"
+  },
+  
+  "usingCloudAi": "Using Cloud AI",
+  "@usingCloudAi": {
+    "description": "Cloud AI status"
+  },
+  
+  "offlineMode": "Offline mode",
+  "@offlineMode": {
+    "description": "Offline mode status"
+  },
+  
+  "aiReady": "AI Ready",
+  "@aiReady": {
+    "description": "AI ready status"
+  },
+  
+  "nativeAi": "Native AI",
+  "@nativeAi": {
+    "description": "Native AI backend"
+  },
+  
+  "demoMode": "Demo mode",
+  "@demoMode": {
+    "description": "Demo mode status"
+  },
+  
+  "checkingModel": "Checking model...",
+  "@checkingModel": {
+    "description": "Checking model status"
+  },
+  
+  "loadingAiModel": "Loading AI Model...",
+  "@loadingAiModel": {
+    "description": "Loading AI model status"
+  },
+  
+  "preparingModelForChat": "Preparing the model for chat",
+  "@preparingModelForChat": {
+    "description": "Preparing model description"
+  },
+  
+  "getModelForPrivateChat": "Get the {modelName} model for private, on-device AI chat",
+  "@getModelForPrivateChat": {
+    "description": "Model download description",
+    "placeholders": {
+      "modelName": {
+        "type": "String",
+        "example": "Advanced AI"
+      }
+    }
+  },
+  
+  "loadModel": "Load Model",
+  "@loadModel": {
+    "description": "Load model button"
+  },
+  
+  "aiModelReady": "AI model ready",
+  "@aiModelReady": {
+    "description": "AI model ready status"
+  },
+  
+  "loadModelToStartChatting": "Load the model to start chatting",
+  "@loadModelToStartChatting": {
+    "description": "Load model description"
+  },
+  
+  "deviceHasEnoughRam": "Your device has enough RAM for both models",
+  "@deviceHasEnoughRam": {
+    "description": "Device RAM message"
+  },
+  
+  "wifiRecommended": "Requires Wi-Fi recommended. Download size: ~{size}",
+  "@wifiRecommended": {
+    "description": "Wi-Fi recommendation message",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "2.66 GB"
+      }
+    }
+  },
+  
+  "checkingModelStatus": "Checking model status...",
+  "@checkingModelStatus": {
+    "description": "Checking model status message"
+  },
+  
+  "downloadFailed": "Download Failed",
+  "@downloadFailed": {
+    "description": "Download failed title"
+  },
+  
+  "retryDownload": "Retry Download",
+  "@retryDownload": {
+    "description": "Retry download button"
+  },
+  
+  "keepAppOpen": "Please keep the app open during download",
+  "@keepAppOpen": {
+    "description": "Keep app open message"
+  },
+  
+  "keepAppOpenDuringDownload": "Please keep the app open during download",
+  "@keepAppOpenDuringDownload": {
+    "description": "Keep app open during download message"
+  },
+  
+  "switchText": "Switch",
+  "@switchText": {
+    "description": "Switch button text"
+  },
+  
+  "change": "Change",
+  "@change": {
+    "description": "Change button text"
+  },
+  
+  "downloading": "Downloading...",
+  "@downloading": {
+    "description": "Downloading status"
+  },
+  
+  "changeModel": "Change model",
+  "@changeModel": {
+    "description": "Change model tooltip"
+  },
+  
+  "errorOccurred": "I'm sorry, I encountered an issue. Please try again.",
+  "@errorOccurred": {
+    "description": "Error message in chat"
+  },
+  
+  "size": "Size",
+  "@size": {
+    "description": "Size label"
+  },
+  
+  "privacy": "Privacy",
+  "@privacy": {
+    "description": "Privacy label"
+  },
+  
+  "downloadModelDescription": "Download the AI model to enable private, on-device conversations.",
+  "@downloadModelDescription": {
+    "description": "Download model page description"
+  },
+  
+  "choosePreferredAiModel": "Choose your preferred AI model for private, on-device conversations.",
+  "@choosePreferredAiModel": {
+    "description": "Choose AI model page description"
+  },
+  
+  "requiresWifiDownloadSize": "Requires Wi-Fi recommended. Download size: ~{size}",
+  "@requiresWifiDownloadSize": {
+    "description": "Wi-Fi recommendation with download size",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "2.66 GB"
+      }
+    }
+  },
+  
+  "chooseModelDescription": "Choose your preferred AI model for private, on-device conversations.",
+  "@chooseModelDescription": {
+    "description": "Choose model page description"
+  },
+  
+  "aboutYou": "About you",
+  "@aboutYou": {
+    "description": "User info page title"
+  },
+  
+  "helpPersonalizeExperience": "Help us personalize your experience",
+  "@helpPersonalizeExperience": {
+    "description": "User info page subtitle"
+  },
+  
+  "whatShouldWeCallYou": "What should we call you?",
+  "@whatShouldWeCallYou": {
+    "description": "Name field label"
+  },
+  
+  "enterNameOrNickname": "Enter your name or nickname",
+  "@enterNameOrNickname": {
+    "description": "Name field placeholder"
+  },
+  
+  "birthYear": "Birth year",
+  "@birthYear": {
+    "description": "Birth year field label"
+  },
+  
+  "selectYear": "Select year",
+  "@selectYear": {
+    "description": "Year selector placeholder"
+  },
+  
+  "selectBirthYear": "Select birth year",
+  "@selectBirthYear": {
+    "description": "Year picker title"
+  },
+  
+  "gender": "Gender",
+  "@gender": {
+    "description": "Gender field label"
+  },
+  
+  "male": "Male",
+  "@male": {
+    "description": "Male gender option"
+  },
+  
+  "female": "Female",
+  "@female": {
+    "description": "Female gender option"
+  },
+  
+  "nonBinary": "Non-binary",
+  "@nonBinary": {
+    "description": "Non-binary gender option"
+  },
+  
+  "preferNotToSay": "Prefer not to say",
+  "@preferNotToSay": {
+    "description": "Prefer not to say gender option"
+  },
+  
+  "whatBringsYouHere": "What brings you here?",
+  "@whatBringsYouHere": {
+    "description": "First personalized question"
+  },
+  
+  "manageStress": "Manage stress",
+  "@manageStress": {
+    "description": "Answer option"
+  },
+  
+  "trackMood": "Track mood",
+  "@trackMood": {
+    "description": "Answer option"
+  },
+  
+  "buildHabits": "Build habits",
+  "@buildHabits": {
+    "description": "Answer option"
+  },
+  
+  "selfReflection": "Self-reflection",
+  "@selfReflection": {
+    "description": "Answer option"
+  },
+  
+  "justExploring": "Just exploring",
+  "@justExploring": {
+    "description": "Answer option"
+  },
+  
+  "howOftenJournal": "How often would you like to journal?",
+  "@howOftenJournal": {
+    "description": "Second personalized question"
+  },
+  
+  "daily": "Daily",
+  "@daily": {
+    "description": "Answer option"
+  },
+  
+  "fewTimesWeek": "Few times a week",
+  "@fewTimesWeek": {
+    "description": "Answer option"
+  },
+  
+  "weekly": "Weekly",
+  "@weekly": {
+    "description": "Answer option"
+  },
+  
+  "whenIFeelLikeIt": "When I feel like it",
+  "@whenIFeelLikeIt": {
+    "description": "Answer option"
+  },
+  
+  "bestTimeForCheckIns": "What time works best for check-ins?",
+  "@bestTimeForCheckIns": {
+    "description": "Third personalized question"
+  },
+  
+  "morning": "Morning",
+  "@morning": {
+    "description": "Answer option"
+  },
+  
+  "afternoon": "Afternoon",
+  "@afternoon": {
+    "description": "Answer option"
+  },
+  
+  "evening": "Evening",
+  "@evening": {
+    "description": "Answer option"
+  },
+  
+  "flexible": "Flexible",
+  "@flexible": {
+    "description": "Answer option"
+  },
+  
+  "questionOf": "{current} of {total}",
+  "@questionOf": {
+    "description": "Question progress indicator",
+    "placeholders": {
+      "current": {
+        "type": "int",
+        "example": "1"
+      },
+      "total": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  
+  "chooseYourAi": "Choose your AI",
+  "@chooseYourAi": {
+    "description": "Download model page title"
+  },
+  
+  "selectHowToPowerAi": "Select how you want to power your AI assistant",
+  "@selectHowToPowerAi": {
+    "description": "Download model page subtitle"
+  },
+  
+  "onDeviceAi": "On-Device AI",
+  "@onDeviceAi": {
+    "description": "On-device AI option title"
+  },
+  
+  "maximumPrivacy": "Maximum privacy",
+  "@maximumPrivacy": {
+    "description": "On-device AI subtitle"
+  },
+  
+  "onDeviceDescription": "Runs entirely on your device. Your data never leaves your phone.",
+  "@onDeviceDescription": {
+    "description": "On-device AI description"
+  },
+  
+  "completePrivacy": "Complete privacy",
+  "@completePrivacy": {
+    "description": "On-device benefit"
+  },
+  
+  "worksOffline": "Works offline",
+  "@worksOffline": {
+    "description": "On-device benefit"
+  },
+  
+  "noSubscriptionNeeded": "No subscription needed",
+  "@noSubscriptionNeeded": {
+    "description": "On-device benefit"
+  },
+  
+  "requires2GBDownload": "Requires ~2GB download",
+  "@requires2GBDownload": {
+    "description": "On-device drawback"
+  },
+  
+  "usesDeviceResources": "Uses device resources",
+  "@usesDeviceResources": {
+    "description": "On-device drawback"
+  },
+  
+  "cloudAi": "Cloud AI",
+  "@cloudAi": {
+    "description": "Cloud AI option title"
+  },
+  
+  "morePowerful": "More powerful",
+  "@morePowerful": {
+    "description": "Cloud AI subtitle"
+  },
+  
+  "cloudDescription": "Powered by cloud providers for faster, smarter responses.",
+  "@cloudDescription": {
+    "description": "Cloud AI description"
+  },
+  
+  "moreCapableModels": "More capable models",
+  "@moreCapableModels": {
+    "description": "Cloud benefit"
+  },
+  
+  "fasterResponses": "Faster responses",
+  "@fasterResponses": {
+    "description": "Cloud benefit"
+  },
+  
+  "noStorageNeeded": "No storage needed",
+  "@noStorageNeeded": {
+    "description": "Cloud benefit"
+  },
+  
+  "requiresInternet": "Requires internet",
+  "@requiresInternet": {
+    "description": "Cloud drawback"
+  },
+  
+  "dataSentToCloud": "Data sent to cloud",
+  "@dataSentToCloud": {
+    "description": "Cloud drawback"
+  },
+  
+  "downloadingModel": "Downloading model... {progress}%",
+  "@downloadingModel": {
+    "description": "Downloading model progress",
+    "placeholders": {
+      "progress": {
+        "type": "int",
+        "example": "50"
+      }
+    }
+  },
+  
+  "settingUp": "Setting up... {progress}%",
+  "@settingUp": {
+    "description": "Setting up progress",
+    "placeholders": {
+      "progress": {
+        "type": "int",
+        "example": "50"
+      }
+    }
+  },
+  
+  "setupFailed": "Setup failed. Please try again.",
+  "@setupFailed": {
+    "description": "Setup failed error message"
+  },
+  
+  "insights": "Insights",
+  "@insights": {
+    "description": "Insights page title"
+  },
+  
+  "goodMorning": "Good morning",
+  "@goodMorning": {
+    "description": "Morning greeting"
+  },
+  
+  "goodAfternoon": "Good afternoon",
+  "@goodAfternoon": {
+    "description": "Afternoon greeting"
+  },
+  
+  "goodEvening": "Good evening",
+  "@goodEvening": {
+    "description": "Evening greeting"
+  },
+  
+  "howAreYouToday": "How are you today?",
+  "@howAreYouToday": {
+    "description": "Greeting question"
+  },
+  
+  "moodGreat": "Great",
+  "@moodGreat": {
+    "description": "Great mood label"
+  },
+  
+  "moodGood": "Good",
+  "@moodGood": {
+    "description": "Good mood label"
+  },
+  
+  "moodOkay": "Okay",
+  "@moodOkay": {
+    "description": "Okay mood label"
+  },
+  
+  "moodLow": "Low",
+  "@moodLow": {
+    "description": "Low mood label"
+  },
+  
+  "moodSad": "Sad",
+  "@moodSad": {
+    "description": "Sad mood label"
+  },
+  
+  "thisWeek": "This Week",
+  "@thisWeek": {
+    "description": "This week section title"
+  },
+  
+  "upcomingAppointments": "Upcoming Appointments",
+  "@upcomingAppointments": {
+    "description": "Upcoming appointments section title"
+  },
+  
+  "avgMood": "Avg. Mood",
+  "@avgMood": {
+    "description": "Average mood stat label"
+  },
+  
+  "journalEntries": "Journal Entries",
+  "@journalEntries": {
+    "description": "Journal entries stat label"
+  },
+  
+  "chatSessions": "Chat Sessions",
+  "@chatSessions": {
+    "description": "Chat sessions stat label"
+  },
+  
+  "stressLevel": "Stress Level",
+  "@stressLevel": {
+    "description": "Stress level stat label"
+  },
+  
+  "startYourStreak": "Start your streak!",
+  "@startYourStreak": {
+    "description": "Start streak prompt"
+  },
+  
+  "writeJournalToBegin": "Write a journal entry to begin",
+  "@writeJournalToBegin": {
+    "description": "Start streak description"
+  },
+  
+  "dayStreak": "{count} day streak!",
+  "@dayStreak": {
+    "description": "Streak count message",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "amazingConsistency": "Amazing consistency! Keep it up!",
+  "@amazingConsistency": {
+    "description": "Long streak encouragement"
+  },
+  
+  "keepMomentumGoing": "Keep the momentum going",
+  "@keepMomentumGoing": {
+    "description": "Short streak encouragement"
+  },
+  
+  "today": "Today",
+  "@today": {
+    "description": "Today label"
+  },
+  
+  "tomorrow": "Tomorrow",
+  "@tomorrow": {
+    "description": "Tomorrow label"
+  },
+  
+  "newEntry": "New",
+  "@newEntry": {
+    "description": "New entry button"
+  },
+  
+  "noJournalEntriesYet": "No journal entries yet",
+  "@noJournalEntriesYet": {
+    "description": "Empty journal state title"
+  },
+  
+  "tapToCreateFirstEntry": "Tap the + button to create your first entry",
+  "@tapToCreateFirstEntry": {
+    "description": "Empty journal state description"
+  },
+  
+  "draft": "Draft",
+  "@draft": {
+    "description": "Draft status label"
+  },
+  
+  "finalized": "Finalized",
+  "@finalized": {
+    "description": "Finalized status label"
+  },
+  
+  "getHelp": "Get help",
+  "@getHelp": {
+    "description": "Help page title"
+  },
+  
+  "connectWithProfessionals": "Connect with licensed professionals",
+  "@connectWithProfessionals": {
+    "description": "Help page subtitle"
+  },
+  
+  "yourAppointments": "Your Appointments",
+  "@yourAppointments": {
+    "description": "Your appointments section title"
+  },
+  
+  "inCrisis": "In crisis?",
+  "@inCrisis": {
+    "description": "Crisis card title"
+  },
+  
+  "callEmergencyServices": "Call emergency services immediately",
+  "@callEmergencyServices": {
+    "description": "Crisis card description"
+  },
+  
+  "call": "Call",
+  "@call": {
+    "description": "Call button"
+  },
+  
+  "services": "Services",
+  "@services": {
+    "description": "Services section title"
+  },
+  
+  "resources": "Resources",
+  "@resources": {
+    "description": "Resources section title"
+  },
+  
+  "therapistSession": "Therapist session",
+  "@therapistSession": {
+    "description": "Therapist session service title"
+  },
+  
+  "oneOnOneWithTherapist": "One-on-one with a licensed therapist",
+  "@oneOnOneWithTherapist": {
+    "description": "Therapist session description"
+  },
+  
+  "mentalHealthConsultation": "Mental health consultation",
+  "@mentalHealthConsultation": {
+    "description": "Consultation service title"
+  },
+  
+  "generalWellnessGuidance": "General wellness guidance",
+  "@generalWellnessGuidance": {
+    "description": "Consultation service description"
+  },
+  
+  "articles": "Articles",
+  "@articles": {
+    "description": "Articles resource"
+  },
+  
+  "guidedMeditations": "Guided meditations",
+  "@guidedMeditations": {
+    "description": "Meditations resource"
+  },
+  
+  "crisisHotlines": "Crisis hotlines",
+  "@crisisHotlines": {
+    "description": "Hotlines resource"
+  },
+  
+  "join": "Join",
+  "@join": {
+    "description": "Join button for appointments"
+  },
+  
+  "trackMentalWellness": "Track and understand your mental wellness",
+  "@trackMentalWellness": {
+    "description": "Insights page subtitle"
+  },
+  
+  "takeAssessment": "Take an assessment",
+  "@takeAssessment": {
+    "description": "Assessment section title"
+  },
+  
+  "emotionalCheckIn": "Emotional check-in",
+  "@emotionalCheckIn": {
+    "description": "Emotional assessment title"
+  },
+  
+  "understandEmotionalState": "Understand your current emotional state",
+  "@understandEmotionalState": {
+    "description": "Emotional assessment description"
+  },
+  
+  "stressAssessment": "Stress assessment",
+  "@stressAssessment": {
+    "description": "Stress assessment title"
+  },
+  
+  "measureStressLevels": "Measure your stress levels",
+  "@measureStressLevels": {
+    "description": "Stress assessment description"
+  },
+  
+  "recentResults": "Recent results",
+  "@recentResults": {
+    "description": "Recent results section title"
+  },
+  
+  "checkIn": "check-in",
+  "@checkIn": {
+    "description": "Check-in label"
+  },
+  
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button"
+  },
+  
+  "nOfTotal": "{current} of {total}",
+  "@nOfTotal": {
+    "description": "Progress indicator",
+    "placeholders": {
+      "current": {
+        "type": "int",
+        "example": "1"
+      },
+      "total": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  
+  "emotionalWellbeing": "Emotional well-being",
+  "@emotionalWellbeing": {
+    "description": "Emotional well-being title"
+  },
+  
+  "stressManagement": "Stress management",
+  "@stressManagement": {
+    "description": "Stress management title"
+  },
+  
+  "suggestions": "Suggestions",
+  "@suggestions": {
+    "description": "Suggestions section title"
+  },
+  
+  "done": "Done",
+  "@done": {
+    "description": "Done button"
+  },
+  
+  "talkToProfessional": "Talk to a professional",
+  "@talkToProfessional": {
+    "description": "Talk to professional button"
+  },
+  
+  "aiModel": "AI Model",
+  "@aiModel": {
+    "description": "AI Model page title"
+  },
+  
+  "pleaseWriteSomethingFirst": "Please write something first",
+  "@pleaseWriteSomethingFirst": {
+    "description": "Empty content warning"
+  },
+  
+  "useCloudAi": "Use Cloud AI?",
+  "@useCloudAi": {
+    "description": "Cloud AI dialog title"
+  },
+  
+  "aboutToSwitchToCloud": "You are about to switch to a cloud AI provider (Gemini).",
+  "@aboutToSwitchToCloud": {
+    "description": "Cloud AI switch warning"
+  },
+  
+  "cloudPrivacyWarning": "Your conversations will be sent to Google servers. We cannot guarantee data privacy when using cloud AI.",
+  "@cloudPrivacyWarning": {
+    "description": "Cloud AI privacy warning"
+  },
+  
+  "forMaxPrivacy": "For maximum privacy, use the on-device AI option.",
+  "@forMaxPrivacy": {
+    "description": "On-device privacy recommendation"
+  },
+  
+  "iUnderstand": "I Understand",
+  "@iUnderstand": {
+    "description": "Understand confirmation button"
+  },
+  
+  "switchedToCloudAi": "Switched to Cloud AI (Gemini)",
+  "@switchedToCloudAi": {
+    "description": "Cloud AI switched message"
+  },
+  
+  "switchedToOnDeviceAi": "Switched to On-Device AI",
+  "@switchedToOnDeviceAi": {
+    "description": "On-device AI switched message"
+  },
+  
+  "languageChangedTo": "Language changed to {language}",
+  "@languageChangedTo": {
+    "description": "Language changed message",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "English"
+      }
+    }
+  },
+  
+  "clearHistoryQuestion": "Clear history?",
+  "@clearHistoryQuestion": {
+    "description": "Clear history dialog title"
+  },
+  
+  "clearHistoryWarning": "This will delete all your data. This cannot be undone.",
+  "@clearHistoryWarning": {
+    "description": "Clear history warning"
+  },
+  
+  "clear": "Clear",
+  "@clear": {
+    "description": "Clear button"
+  },
+  
+  "historyCleared": "History cleared",
+  "@historyCleared": {
+    "description": "History cleared message"
+  },
+  
+  "aboutAnchor": "About Anchor",
+  "@aboutAnchor": {
+    "description": "About Anchor menu item"
+  },
+  
+  "privacyPolicy": "Privacy policy",
+  "@privacyPolicy": {
+    "description": "Privacy policy menu item"
+  },
+  
+  "helpAndSupport": "Help & support",
+  "@helpAndSupport": {
+    "description": "Help and support menu item"
+  },
+  
+  "version": "Version {version}",
+  "@version": {
+    "description": "Version label",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.0"
+      }
+    }
+  },
+  
+  "yourWellnessCompanion": "Your mental wellness companion.",
+  "@yourWellnessCompanion": {
+    "description": "App description"
+  },
+  
+  "system": "System",
+  "@system": {
+    "description": "System theme option"
+  },
+  
+  "light": "Light",
+  "@light": {
+    "description": "Light theme option"
+  },
+  
+  "dark": "Dark",
+  "@dark": {
+    "description": "Dark theme option"
+  },
+  
+  "onDeviceProvider": "On-Device",
+  "@onDeviceProvider": {
+    "description": "On-device AI provider option"
+  },
+  
+  "privateRunsLocally": "Private, runs locally",
+  "@privateRunsLocally": {
+    "description": "On-device description"
+  },
+  
+  "cloudGemini": "Cloud (Gemini)",
+  "@cloudGemini": {
+    "description": "Cloud Gemini provider option"
+  },
+  
+  "fasterRequiresInternet": "Faster, requires internet",
+  "@fasterRequiresInternet": {
+    "description": "Cloud provider description"
+  },
+  
+  "apiKeyNotConfigured": "API key not configured",
+  "@apiKeyNotConfigured": {
+    "description": "API key not configured message"
+  },
+  
+  "about": "About",
+  "@about": {
+    "description": "About section title"
+  },
+  
+  "findTherapist": "Find a therapist",
+  "@findTherapist": {
+    "description": "Find therapist page title"
+  },
+  
+  "searchByNameOrSpecialty": "Search by name or specialty...",
+  "@searchByNameOrSpecialty": {
+    "description": "Search placeholder"
+  },
+  
+  "therapistsAvailable": "{count, plural, =1{{count} therapist available} other{{count} therapists available}}",
+  "@therapistsAvailable": {
+    "description": "Therapists count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "size": "Size",
+  "@size": {
+    "description": "Size label"
+  },
+  
+  "privacy": "Privacy",
+  "@privacy": {
+    "description": "Privacy label"
+  },
+  
+  "switchLabel": "Switch",
+  "@switchLabel": {
+    "description": "Switch button"
+  },
+  
+  "change": "Change",
+  "@change": {
+    "description": "Change button"
+  },
+  
+  "changeModelTooltip": "Change model ({modelName})",
+  "@changeModelTooltip": {
+    "description": "Change model tooltip",
+    "placeholders": {
+      "modelName": {
+        "type": "String",
+        "example": "Advanced AI"
+      }
+    }
+  },
+  
+  "offlineMode": "Offline mode",
+  "@offlineMode": {
+    "description": "Offline mode label"
+  },
+  
+  "offline": "Offline",
+  "@offline": {
+    "description": "Offline status"
+  },
+  
+  "modelError": "Model error",
+  "@modelError": {
+    "description": "Model error label"
+  },
+  
+  "cloudAiLabel": "Cloud AI",
+  "@cloudAiLabel": {
+    "description": "Cloud AI label"
+  },
+  
+  "usingCloudAiLabel": "Using Cloud AI",
+  "@usingCloudAiLabel": {
+    "description": "Using Cloud AI badge label"
+  },
+  
+  "from": "From",
+  "@from": {
+    "description": "From price label"
+  },
+  
+  "perSession": "/session",
+  "@perSession": {
+    "description": "Per session price suffix"
+  },
+  
+  "unavailable": "Unavailable",
+  "@unavailable": {
+    "description": "Unavailable status"
+  },
+  
+  "bookSession": "Book session",
+  "@bookSession": {
+    "description": "Book session button"
+  },
+  
+  "viewProfile": "View profile",
+  "@viewProfile": {
+    "description": "View profile button"
+  },
+  
+  "pleaseSelectTime": "Please select a time",
+  "@pleaseSelectTime": {
+    "description": "Time selection validation message"
+  },
+  
+  "date": "Date",
+  "@date": {
+    "description": "Date label"
+  },
+  
+  "time": "Time",
+  "@time": {
+    "description": "Time label"
+  },
+  
+  "urgency": "Urgency",
+  "@urgency": {
+    "description": "Urgency label"
+  },
+  
+  "normal": "Normal",
+  "@normal": {
+    "description": "Normal urgency option"
+  },
+  
+  "regularScheduling": "Regular scheduling",
+  "@regularScheduling": {
+    "description": "Regular scheduling description"
+  },
+  
+  "urgent": "Urgent",
+  "@urgent": {
+    "description": "Urgent option"
+  },
+  
+  "priority": "Priority (+$20)",
+  "@priority": {
+    "description": "Priority description with price"
+  },
+  
+  "checkout": "Checkout",
+  "@checkout": {
+    "description": "Checkout page title"
+  },
+  
+  "summary": "Summary",
+  "@summary": {
+    "description": "Summary section title"
+  },
+  
+  "therapist": "Therapist",
+  "@therapist": {
+    "description": "Therapist label"
+  },
+  
+  "type": "Type",
+  "@type": {
+    "description": "Type label"
+  },
+  
+  "price": "Price",
+  "@price": {
+    "description": "Price label"
+  },
+  
+  "session": "Session",
+  "@session": {
+    "description": "Session label"
+  },
+  
+  "urgencyFee": "Urgency fee",
+  "@urgencyFee": {
+    "description": "Urgency fee label"
+  },
+  
+  "total": "Total",
+  "@total": {
+    "description": "Total label"
+  },
+  
+  "testModeMessage": "Test mode: Using $1 amount on Sepolia testnet",
+  "@testModeMessage": {
+    "description": "Test mode warning message"
+  },
+  
+  "freeCancellation": "Free cancellation up to 24 hours before",
+  "@freeCancellation": {
+    "description": "Cancellation policy message"
+  },
+  
+  "payAmount": "Pay ${amount}",
+  "@payAmount": {
+    "description": "Pay button with amount",
+    "placeholders": {
+      "amount": {
+        "type": "int",
+        "example": "100"
+      }
+    }
+  },
+  
+  "payment": "Payment",
+  "@payment": {
+    "description": "Payment page title"
+  },
+  
+  "paymentMethod": "Payment method",
+  "@paymentMethod": {
+    "description": "Payment method section title"
+  },
+  
+  "creditDebitCard": "Credit / Debit Card",
+  "@creditDebitCard": {
+    "description": "Credit/Debit card option"
+  },
+  
+  "visaMastercardAmex": "Visa, Mastercard, Amex",
+  "@visaMastercardAmex": {
+    "description": "Card brands"
+  },
+  
+  "payWithPaypal": "Pay with your PayPal account",
+  "@payWithPaypal": {
+    "description": "PayPal option description"
+  },
+  
+  "cardNumber": "Card number",
+  "@cardNumber": {
+    "description": "Card number field label"
+  },
+  
+  "walletConnected": "Wallet connected",
+  "@walletConnected": {
+    "description": "Wallet connected status"
+  },
+  
+  "securedByBlockchain": "Secured by blockchain",
+  "@securedByBlockchain": {
+    "description": "Blockchain security badge"
+  },
+  
+  "securePayment": "Secure payment",
+  "@securePayment": {
+    "description": "Secure payment badge"
+  },
+  
+  "connectWalletToPay": "Connect wallet to pay",
+  "@connectWalletToPay": {
+    "description": "Connect wallet button"
+  },
+  
+  "reviewsCount": "{count} reviews",
+  "@reviewsCount": {
+    "description": "Reviews count label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "127"
+      }
+    }
+  },
+  
+  "perSessionLabel": "per session",
+  "@perSessionLabel": {
+    "description": "Per session label"
+  },
+  
+  "minutes": "minutes",
+  "@minutes": {
+    "description": "Minutes label"
+  },
+  
+  "available": "Available",
+  "@available": {
+    "description": "Available status"
+  },
+  
+  "currentlyUnavailable": "Currently unavailable",
+  "@currentlyUnavailable": {
+    "description": "Currently unavailable status"
+  },
+  
+  "nextSlot": "Next slot: {time}",
+  "@nextSlot": {
+    "description": "Next available slot",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "Today, 3:00 PM"
+      }
+    }
+  },
+  
+  "about": "About",
+  "@about": {
+    "description": "About section title"
+  },
+  
+  "specializations": "Specializations",
+  "@specializations": {
+    "description": "Specializations section title"
+  },
+  
+  "languages": "Languages",
+  "@languages": {
+    "description": "Languages section title"
+  },
+  
+  "reviews": "Reviews",
+  "@reviews": {
+    "description": "Reviews section title"
+  },
+  
+  "seeAll": "See all",
+  "@seeAll": {
+    "description": "See all button"
+  },
+  
+  "bookSessionWithPrice": "Book session - ${price}",
+  "@bookSessionWithPrice": {
+    "description": "Book session button with price",
+    "placeholders": {
+      "price": {
+        "type": "int",
+        "example": "100"
+      }
+    }
+  },
+  
+  "unsavedChanges": "Unsaved changes",
+  "@unsavedChanges": {
+    "description": "Unsaved changes indicator"
+  },
+  
+  "done": "Done",
+  "@done": {
+    "description": "Done button"
+  },
+  
+  "whatsOnYourMind": "What's on your mind?",
+  "@whatsOnYourMind": {
+    "description": "Journal entry placeholder text"
+  },
+  
+  "loadingAiModel": "Loading AI model...",
+  "@loadingAiModel": {
+    "description": "Loading AI model status"
+  },
+  
+  "analyzingEntry": "Analyzing your entry...",
+  "@analyzingEntry": {
+    "description": "Analyzing entry status"
+  },
+  
+  "finalizing": "Finalizing...",
+  "@finalizing": {
+    "description": "Finalizing status"
+  },
+  
+  "thisMayTakeAMoment": "This may take a moment",
+  "@thisMayTakeAMoment": {
+    "description": "Status message for loading"
+  },
+  
+  "aiGeneratingInsights": "AI is generating insights",
+  "@aiGeneratingInsights": {
+    "description": "AI generating insights status"
+  },
+  
+  "pleaseWriteSomething": "Please write something first",
+  "@pleaseWriteSomething": {
+    "description": "Error when trying to save empty journal"
+  },
+  
+  "failedToSave": "Failed to save: {error}",
+  "@failedToSave": {
+    "description": "Failed to save error message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+  
+  "failedToFinalize": "Failed to finalize: {error}",
+  "@failedToFinalize": {
+    "description": "Failed to finalize error message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+  
+  "whatWouldYouLikeToDo": "What would you like to do?",
+  "@whatWouldYouLikeToDo": {
+    "description": "Save options sheet title"
+  },
+  
+  "saveAsDraft": "Save as Draft",
+  "@saveAsDraft": {
+    "description": "Save as draft option"
+  },
+  
+  "keepEditingForDays": "Keep editing for up to 3 days",
+  "@keepEditingForDays": {
+    "description": "Draft description"
+  },
+  
+  "finalizeWithAi": "Finalize with AI",
+  "@finalizeWithAi": {
+    "description": "Finalize with on-device AI"
+  },
+  
+  "finalizeWithCloudAi": "Finalize with Cloud AI",
+  "@finalizeWithCloudAi": {
+    "description": "Finalize with cloud AI"
+  },
+  
+  "finalizeEntry": "Finalize Entry",
+  "@finalizeEntry": {
+    "description": "Finalize entry without AI"
+  },
+  
+  "getSummaryAndAnalysisGemini": "Get summary & analysis (uses Gemini)",
+  "@getSummaryAndAnalysisGemini": {
+    "description": "Cloud AI finalize description"
+  },
+  
+  "getSummaryEmotionRisk": "Get summary, emotion analysis & risk assessment",
+  "@getSummaryEmotionRisk": {
+    "description": "On-device AI finalize description"
+  },
+  
+  "lockEntryAndStopEditing": "Lock entry and stop editing",
+  "@lockEntryAndStopEditing": {
+    "description": "No AI finalize description"
+  },
+  
+  "entryFinalized": "Entry Finalized",
+  "@entryFinalized": {
+    "description": "Entry finalized title"
+  },
+  
+  "entrySaved": "Entry Saved",
+  "@entrySaved": {
+    "description": "Entry saved title"
+  },
+  
+  "entryAnalyzed": "Your journal entry has been analyzed",
+  "@entryAnalyzed": {
+    "description": "Entry analyzed subtitle"
+  },
+  
+  "draftSaved": "Your draft has been saved",
+  "@draftSaved": {
+    "description": "Draft saved subtitle"
+  },
+  
+  "riskAssessment": "Risk Assessment",
+  "@riskAssessment": {
+    "description": "Risk assessment card title"
+  },
+  
+  "emotionalState": "Emotional State",
+  "@emotionalState": {
+    "description": "Emotional state card title"
+  },
+  
+  "aiSummary": "AI Summary",
+  "@aiSummary": {
+    "description": "AI summary card title"
+  },
+  
+  "suggestedActions": "Suggested Actions",
+  "@suggestedActions": {
+    "description": "Suggested actions card title"
+  },
+  
+  "draftMode": "Draft Mode",
+  "@draftMode": {
+    "description": "Draft mode indicator"
+  },
+  
+  "draftModeDescription": "You can continue editing this entry for up to 3 days. When ready, finalize it to get AI-powered insights.",
+  "@draftModeDescription": {
+    "description": "Draft mode description"
+  },
+  
+  "storedOnEthStorage": "Stored on EthStorage",
+  "@storedOnEthStorage": {
+    "description": "EthStorage stored label"
+  },
+  
+  "ethStorageConfigRequired": "EthStorage Configuration Required",
+  "@ethStorageConfigRequired": {
+    "description": "EthStorage configuration required title"
+  },
+  
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry button"
+  },
+  
+  "view": "View",
+  "@view": {
+    "description": "View button"
+  },
+  
+  "uploadingToEthStorage": "Uploading to EthStorage...",
+  "@uploadingToEthStorage": {
+    "description": "Uploading status"
+  },
+  
+  "storeOnEthStorage": "Store on EthStorage (Testnet)",
+  "@storeOnEthStorage": {
+    "description": "Store on EthStorage button"
+  },
+  
+  "successfullyUploaded": "Successfully uploaded to EthStorage!",
+  "@successfullyUploaded": {
+    "description": "Success message for EthStorage upload"
+  },
+  
+  "couldNotOpenBrowser": "Could not open browser. URL: {url}",
+  "@couldNotOpenBrowser": {
+    "description": "Browser open error message",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://example.com"
+      }
+    }
+  },
+  
+  "errorOpeningUrl": "Error opening URL: {error}",
+  "@errorOpeningUrl": {
+    "description": "URL open error message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+  
+  "riskHighDesc": "Consider reaching out to a mental health professional",
+  "@riskHighDesc": {
+    "description": "High risk description"
+  },
+  
+  "riskMediumDesc": "Some concerns detected - monitor your wellbeing",
+  "@riskMediumDesc": {
+    "description": "Medium risk description"
+  },
+  
+  "riskLowDesc": "No significant concerns detected",
+  "@riskLowDesc": {
+    "description": "Low risk description"
+  },
+  
+  "booked": "Booked!",
+  "@booked": {
+    "description": "Booking confirmed title"
+  },
+  
+  "sessionConfirmed": "Your session with {therapistName} is confirmed.",
+  "@sessionConfirmed": {
+    "description": "Session confirmed message",
+    "placeholders": {
+      "therapistName": {
+        "type": "String",
+        "example": "Dr. Smith"
+      }
+    }
+  },
+  
+  "tbd": "TBD",
+  "@tbd": {
+    "description": "To be determined"
+  },
+  
+  "paidWithDigitalWallet": "Paid with Digital Wallet",
+  "@paidWithDigitalWallet": {
+    "description": "Digital wallet payment indicator"
+  },
+  
+  "viewMyAppointments": "View my appointments",
+  "@viewMyAppointments": {
+    "description": "View appointments button"
+  },
+  
+  "paymentFailed": "Payment failed: {error}",
+  "@paymentFailed": {
+    "description": "Payment failed error message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Insufficient funds"
+      }
+    }
+  },
+  
+  "failedToConnectWallet": "Failed to connect wallet: {error}",
+  "@failedToConnectWallet": {
+    "description": "Wallet connection error message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+  
+  "connectWallet": "Connect wallet",
+  "@connectWallet": {
+    "description": "Connect wallet button"
+  },
+  
+  "disconnect": "Disconnect",
+  "@disconnect": {
+    "description": "Disconnect button"
+  },
+  
+  "viewOnEtherscan": "View on Etherscan",
+  "@viewOnEtherscan": {
+    "description": "View on Etherscan button"
+  },
+  
+  "continueButton": "Continue",
+  "@continueButton": {
+    "description": "Continue button"
+  },
+  
+  "seeResults": "See Results",
+  "@seeResults": {
+    "description": "See results button"
+  },
+  
+  "originalEntry": "Original Entry",
+  "@originalEntry": {
+    "description": "Original entry section title"
+  },
+  
+  "storedOnBlockchain": "Stored on Blockchain",
+  "@storedOnBlockchain": {
+    "description": "Blockchain storage section title"
+  },
+  
+  "stressLow": "Low",
+  "@stressLow": {
+    "description": "Low stress level"
+  },
+  
+  "stressMedium": "Medium",
+  "@stressMedium": {
+    "description": "Medium stress level"
+  },
+  
+  "stressHigh": "High",
+  "@stressHigh": {
+    "description": "High stress level"
+  },
+  
+  "stressUnknown": "Unknown",
+  "@stressUnknown": {
+    "description": "Unknown stress level"
+  },
+  
+  "trendNew": "New",
+  "@trendNew": {
+    "description": "New trend indicator"
+  },
+  
+  "trendStable": "Stable",
+  "@trendStable": {
+    "description": "Stable trend indicator"
+  },
+  
+  "trendImproved": "Improved",
+  "@trendImproved": {
+    "description": "Improved trend indicator"
+  },
+  
+  "trendWorsened": "Worsened",
+  "@trendWorsened": {
+    "description": "Worsened trend indicator"
+  },
+  
+  "pleaseSelectSepoliaNetwork": "Please switch to Sepolia testnet in your wallet",
+  "@pleaseSelectSepoliaNetwork": {
+    "description": "Error message when wrong network is selected"
+  },
+  
+  "switchNetwork": "Switch Network",
+  "@switchNetwork": {
+    "description": "Button to switch blockchain network"
+  },
+  
+  "unlockAnchor": "Unlock Anchor",
+  "@unlockAnchor": {
+    "description": "Biometric prompt reason"
+  },
+  
+  "enterYourPin": "Enter your PIN",
+  "@enterYourPin": {
+    "description": "Lock screen title"
+  },
+  
+  "enterPinToUnlock": "Enter your PIN to unlock the app",
+  "@enterPinToUnlock": {
+    "description": "Lock screen subtitle"
+  },
+  
+  "incorrectPin": "Incorrect PIN",
+  "@incorrectPin": {
+    "description": "Error when PIN is wrong"
+  },
+  
+  "incorrectPinAttempts": "Incorrect PIN. {attempts} attempts remaining",
+  "@incorrectPinAttempts": {
+    "description": "Error with remaining attempts",
+    "placeholders": {
+      "attempts": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "tooManyAttempts": "Too many attempts. Try again in {seconds} seconds",
+  "@tooManyAttempts": {
+    "description": "Lockout message",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "setUpAppLock": "Set Up App Lock",
+  "@setUpAppLock": {
+    "description": "App lock setup page title"
+  },
+  
+  "changePin": "Change PIN",
+  "@changePin": {
+    "description": "Change PIN page title"
+  },
+  
+  "disableAppLock": "Disable App Lock",
+  "@disableAppLock": {
+    "description": "Disable app lock page title"
+  },
+  
+  "enterCurrentPin": "Enter current PIN",
+  "@enterCurrentPin": {
+    "description": "Step title for current PIN"
+  },
+  
+  "createNewPin": "Create new PIN",
+  "@createNewPin": {
+    "description": "Step title for new PIN"
+  },
+  
+  "confirmYourPin": "Confirm your PIN",
+  "@confirmYourPin": {
+    "description": "Step title for confirm PIN"
+  },
+  
+  "enterPinToDisableLock": "Enter your PIN to disable app lock",
+  "@enterPinToDisableLock": {
+    "description": "Subtitle for disable lock"
+  },
+  
+  "enterCurrentPinToContinue": "Enter your current PIN to continue",
+  "@enterCurrentPinToContinue": {
+    "description": "Subtitle for current PIN step"
+  },
+  
+  "choosePinDigits": "Choose a 4 digit PIN",
+  "@choosePinDigits": {
+    "description": "Subtitle for new PIN step"
+  },
+  
+  "reenterPinToConfirm": "Re-enter your PIN to confirm",
+  "@reenterPinToConfirm": {
+    "description": "Subtitle for confirm step"
+  },
+  
+  "pinMustBeDigits": "PIN must be at least 4 digits",
+  "@pinMustBeDigits": {
+    "description": "Error for too short PIN"
+  },
+  
+  "pinsDoNotMatch": "PINs do not match. Try again",
+  "@pinsDoNotMatch": {
+    "description": "Error when PINs don't match"
+  },
+  
+  "failedToSetPin": "Failed to set PIN. Please try again",
+  "@failedToSetPin": {
+    "description": "Error when PIN setup fails"
+  },
+  
+  "appLockEnabled": "App lock enabled",
+  "@appLockEnabled": {
+    "description": "Success message for enabling lock"
+  },
+  
+  "appLockDisabled": "App lock disabled",
+  "@appLockDisabled": {
+    "description": "Success message for disabling lock"
+  },
+  
+  "pinChanged": "PIN changed successfully",
+  "@pinChanged": {
+    "description": "Success message for changing PIN"
+  },
+  
+  "useBiometrics": "Use {biometricType}",
+  "@useBiometrics": {
+    "description": "Toggle for biometric auth",
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "unlockWithBiometrics": "Unlock with {biometricType} for faster access",
+  "@unlockWithBiometrics": {
+    "description": "Biometric toggle subtitle",
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "lockWhenLeaving": "Lock when leaving app",
+  "@lockWhenLeaving": {
+    "description": "Toggle for lock on background"
+  },
+  
+  "lockWhenLeavingSubtitle": "Require PIN when returning to the app",
+  "@lockWhenLeavingSubtitle": {
+    "description": "Subtitle for lock on background"
+  },
+  
+  "changePinCode": "Change PIN code",
+  "@changePinCode": {
+    "description": "Button to change PIN"
+  },
+  
+  "removeAppLock": "Remove app lock",
+  "@removeAppLock": {
+    "description": "Button to remove app lock"
+  },
+  
+  "appLockSettings": "App Lock Settings",
+  "@appLockSettings": {
+    "description": "App lock settings page title"
+  },
+  
+  "protectYourPrivacy": "Protect your privacy with a PIN code",
+  "@protectYourPrivacy": {
+    "description": "App lock promo text"
+  }
+}

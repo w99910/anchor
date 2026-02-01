@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 import 'personalized_questions_page.dart';
 
@@ -11,15 +12,8 @@ class UserInfoPage extends StatefulWidget {
 
 class _UserInfoPageState extends State<UserInfoPage> {
   final _nameController = TextEditingController();
-  String? _selectedGender;
+  String? _selectedGenderKey;
   int? _selectedYear;
-
-  final List<String> _genders = [
-    'Male',
-    'Female',
-    'Non-binary',
-    'Prefer not to say',
-  ];
 
   List<int> get _years {
     final currentYear = DateTime.now().year;
@@ -34,7 +28,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
   bool get _canContinue =>
       _nameController.text.isNotEmpty &&
-      _selectedGender != null &&
+      _selectedGenderKey != null &&
       _selectedYear != null;
 
   void _continue() {
@@ -46,8 +40,27 @@ class _UserInfoPageState extends State<UserInfoPage> {
     }
   }
 
+  String _getGenderLabel(BuildContext context, String key) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (key) {
+      case 'male':
+        return l10n.male;
+      case 'female':
+        return l10n.female;
+      case 'nonBinary':
+        return l10n.nonBinary;
+      case 'preferNotToSay':
+        return l10n.preferNotToSay;
+      default:
+        return key;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final genderKeys = ['male', 'female', 'nonBinary', 'preferNotToSay'];
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -59,33 +72,33 @@ class _UserInfoPageState extends State<UserInfoPage> {
               children: [
                 const SizedBox(height: 32),
                 Text(
-                  'About you',
+                  l10n.aboutYou,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Help us personalize your experience',
+                  l10n.helpPersonalizeExperience,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 48),
 
-                _buildLabel(context, 'What should we call you?'),
+                _buildLabel(context, l10n.whatShouldWeCallYou),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _nameController,
                   onChanged: (_) => setState(() {}),
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your name or nickname',
+                  decoration: InputDecoration(
+                    hintText: l10n.enterNameOrNickname,
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                _buildLabel(context, 'Birth year'),
+                _buildLabel(context, l10n.birthYear),
                 const SizedBox(height: 8),
                 _YearSelector(
                   years: _years,
@@ -94,18 +107,18 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 ),
                 const SizedBox(height: 24),
 
-                _buildLabel(context, 'Gender'),
+                _buildLabel(context, l10n.gender),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: _genders.map((gender) {
-                    final isSelected = _selectedGender == gender;
+                  children: genderKeys.map((key) {
+                    final isSelected = _selectedGenderKey == key;
                     return ChoiceChip(
-                      label: Text(gender),
+                      label: Text(_getGenderLabel(context, key)),
                       selected: isSelected,
                       onSelected: (_) =>
-                          setState(() => _selectedGender = gender),
+                          setState(() => _selectedGenderKey = key),
                       showCheckmark: false,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -119,7 +132,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                   width: double.infinity,
                   child: FilledButton(
                     onPressed: _canContinue ? _continue : null,
-                    child: const Text('Continue'),
+                    child: Text(l10n.continueText),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -154,6 +167,7 @@ class _YearSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => _showYearPicker(context),
       child: Container(
@@ -169,7 +183,7 @@ class _YearSelector extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                selectedYear?.toString() ?? 'Select year',
+                selectedYear?.toString() ?? l10n.selectYear,
                 style: TextStyle(
                   color: selectedYear != null
                       ? Theme.of(context).colorScheme.onSurface
@@ -188,6 +202,7 @@ class _YearSelector extends StatelessWidget {
   }
 
   void _showYearPicker(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -212,7 +227,7 @@ class _YearSelector extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Select birth year',
+                l10n.selectBirthYear,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

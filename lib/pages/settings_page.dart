@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../main.dart' show themeNotifier, saveTheme;
 import '../services/ai_settings_service.dart';
+import '../services/app_lock_service.dart';
 import '../services/gemini_service.dart';
+import '../services/locale_service.dart';
 import '../utils/responsive.dart';
+import 'app_lock_setup_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -13,7 +17,6 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _notifications = true;
-  bool _appLock = false;
   final _aiSettings = AiSettingsService();
   final _geminiService = GeminiService();
 
@@ -21,6 +24,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     _aiSettings.addListener(_onSettingsChanged);
+    appLockService.addListener(_onSettingsChanged);
     _initializeSettings();
   }
 
@@ -36,11 +40,13 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void dispose() {
     _aiSettings.removeListener(_onSettingsChanged);
+    appLockService.removeListener(_onSettingsChanged);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final padding = Responsive.pagePadding(context);
 
     return Scaffold(
@@ -54,18 +60,23 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 const SizedBox(height: 8),
                 Text(
-                  'Settings',
+                  l10n.settings,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 32),
 
-                _SectionTitle('Appearance'),
+                _SectionTitle(l10n.appearance),
                 _ThemeSelector(),
+                const SizedBox(height: 8),
+                _LanguageSelector(
+                  currentLocale: localeService.locale,
+                  onChanged: (locale) => _onLanguageChanged(locale),
+                ),
 
                 const SizedBox(height: 24),
-                _SectionTitle('AI Provider'),
+                _SectionTitle(l10n.aiProvider),
                 _AiProviderSelector(
                   isCloudProvider: _aiSettings.isCloudProvider,
                   isGeminiConfigured: _geminiService.isConfigured,
@@ -73,58 +84,56 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
 
                 const SizedBox(height: 24),
-                _SectionTitle('Security'),
-                _ToggleTile(
-                  icon: Icons.lock_outline_rounded,
-                  title: 'App lock',
-                  value: _appLock,
-                  onChanged: (v) => setState(() => _appLock = v),
+                _SectionTitle(l10n.security),
+                _AppLockTile(
+                  isEnabled: appLockService.isLockEnabled,
+                  onTap: () => _onAppLockTap(),
                 ),
 
                 const SizedBox(height: 24),
-                _SectionTitle('Notifications'),
+                _SectionTitle(l10n.notifications),
                 _ToggleTile(
                   icon: Icons.notifications_outlined,
-                  title: 'Push notifications',
+                  title: l10n.pushNotifications,
                   value: _notifications,
                   onChanged: (v) => setState(() => _notifications = v),
                 ),
 
                 const SizedBox(height: 24),
-                _SectionTitle('Data'),
+                _SectionTitle(l10n.data),
                 _ActionTile(
                   icon: Icons.delete_outline_rounded,
-                  title: 'Clear history',
+                  title: l10n.clearHistory,
                   onTap: () => _showClearDialog(context),
                 ),
                 _ActionTile(
                   icon: Icons.download_outlined,
-                  title: 'Export data',
+                  title: l10n.exportData,
                   onTap: () {},
                 ),
 
                 const SizedBox(height: 24),
-                _SectionTitle('About'),
+                _SectionTitle(l10n.about),
                 _ActionTile(
                   icon: Icons.info_outline_rounded,
-                  title: 'About Anchor',
+                  title: l10n.aboutAnchor,
                   onTap: () => _showAbout(context),
                 ),
                 _ActionTile(
                   icon: Icons.privacy_tip_outlined,
-                  title: 'Privacy policy',
+                  title: l10n.privacyPolicy,
                   onTap: () {},
                 ),
                 _ActionTile(
                   icon: Icons.help_outline_rounded,
-                  title: 'Help & support',
+                  title: l10n.helpAndSupport,
                   onTap: () {},
                 ),
 
                 const SizedBox(height: 32),
                 Center(
                   child: Text(
-                    'Version 1.0.0',
+                    l10n.version('1.0.0'),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -140,6 +149,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _onAiProviderChanged(bool useCloud) async {
+    final l10n = AppLocalizations.of(context)!;
     if (useCloud) {
       // Show privacy warning dialog before switching to cloud
       final confirmed = await showDialog<bool>(
@@ -150,12 +160,12 @@ class _SettingsPageState extends State<SettingsPage> {
             size: 48,
             color: Theme.of(context).colorScheme.primary,
           ),
-          title: const Text('Use Cloud AI?'),
+          title: Text(l10n.useCloudAi),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'You are about to switch to a cloud AI provider (Gemini).',
+                l10n.aboutToSwitchToCloud,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
@@ -179,7 +189,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Your conversations will be sent to Google servers. We cannot guarantee data privacy when using cloud AI.',
+                        l10n.cloudPrivacyWarning,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.error,
                         ),
@@ -190,7 +200,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'For maximum privacy, use the on-device AI option.',
+                l10n.forMaxPrivacy,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -200,11 +210,11 @@ class _SettingsPageState extends State<SettingsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('I Understand'),
+              child: Text(l10n.iUnderstand),
             ),
           ],
         ),
@@ -214,9 +224,9 @@ class _SettingsPageState extends State<SettingsPage> {
         await _aiSettings.setAiProvider(AiProvider.cloud);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Switched to Cloud AI (Gemini)'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text(l10n.switchedToCloudAi),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -226,39 +236,164 @@ class _SettingsPageState extends State<SettingsPage> {
       await _aiSettings.setAiProvider(AiProvider.onDevice);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Switched to On-Device AI'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(l10n.switchedToOnDeviceAi),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
     }
   }
 
+  void _onAppLockTap() async {
+    if (appLockService.isLockEnabled) {
+      // Show app lock settings bottom sheet
+      _showAppLockSettings();
+    } else {
+      // Set up new app lock
+      final result = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(builder: (_) => const AppLockSetupPage()),
+      );
+      if (result == true && mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  void _showAppLockSettings() {
+    final l10n = AppLocalizations.of(context)!;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.appLockSettings,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 24),
+
+              // Biometric toggle
+              if (appLockService.canUseBiometrics)
+                _ToggleTile(
+                  icon: appLockService.getBiometricTypeName().contains('Face')
+                      ? Icons.face_rounded
+                      : Icons.fingerprint_rounded,
+                  title: l10n.useBiometrics(
+                    appLockService.getBiometricTypeName(),
+                  ),
+                  value: appLockService.isBiometricEnabled,
+                  onChanged: (v) {
+                    appLockService.setBiometricEnabled(v);
+                    Navigator.pop(context);
+                    setState(() {});
+                  },
+                ),
+
+              // Lock on background toggle
+              _ToggleTile(
+                icon: Icons.exit_to_app_rounded,
+                title: l10n.lockWhenLeaving,
+                value: appLockService.lockOnBackground,
+                onChanged: (v) {
+                  appLockService.setLockOnBackground(v);
+                  Navigator.pop(context);
+                  setState(() {});
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              // Change PIN button
+              _ActionTile(
+                icon: Icons.pin_rounded,
+                title: l10n.changePinCode,
+                onTap: () async {
+                  Navigator.pop(context);
+                  final result = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const AppLockSetupPage(isChangingPin: true),
+                    ),
+                  );
+                  if (result == true && mounted) setState(() {});
+                },
+              ),
+
+              // Remove app lock button
+              _ActionTile(
+                icon: Icons.lock_open_rounded,
+                title: l10n.removeAppLock,
+                onTap: () async {
+                  Navigator.pop(context);
+                  final result = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AppLockSetupPage(isDisabling: true),
+                    ),
+                  );
+                  if (result == true && mounted) setState(() {});
+                },
+              ),
+
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onLanguageChanged(Locale locale) async {
+    final l10n = AppLocalizations.of(context)!;
+    await localeService.setLocale(locale);
+    localeNotifier.value = locale;
+    if (mounted) {
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.languageChangedTo(LocaleService.getDisplayName(locale)),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   void _showClearDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear history?'),
-        content: const Text(
-          'This will delete all your data. This cannot be undone.',
-        ),
+        title: Text(l10n.clearHistoryQuestion),
+        content: Text(l10n.clearHistoryWarning),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('History cleared')));
+              ).showSnackBar(SnackBar(content: Text(l10n.historyCleared)));
             },
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Clear'),
+            child: Text(l10n.clear),
           ),
         ],
       ),
@@ -266,9 +401,10 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showAbout(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showAboutDialog(
       context: context,
-      applicationName: 'Anchor',
+      applicationName: l10n.appName,
       applicationVersion: '1.0.0',
       applicationIcon: Container(
         padding: const EdgeInsets.all(8),
@@ -282,7 +418,7 @@ class _SettingsPageState extends State<SettingsPage> {
           color: Theme.of(context).colorScheme.primary,
         ),
       ),
-      children: const [Text('Your mental wellness companion.')],
+      children: [Text(l10n.yourWellnessCompanion)],
     );
   }
 }
@@ -292,6 +428,7 @@ class _ThemeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeNotifier,
       builder: (context, themeMode, child) {
@@ -305,21 +442,21 @@ class _ThemeSelector extends StatelessWidget {
             children: [
               _ThemeOption(
                 icon: Icons.brightness_auto_rounded,
-                title: 'System',
+                title: l10n.system,
                 isSelected: themeMode == ThemeMode.system,
                 onTap: () => saveTheme(ThemeMode.system),
                 showDivider: true,
               ),
               _ThemeOption(
                 icon: Icons.light_mode_rounded,
-                title: 'Light',
+                title: l10n.light,
                 isSelected: themeMode == ThemeMode.light,
                 onTap: () => saveTheme(ThemeMode.light),
                 showDivider: true,
               ),
               _ThemeOption(
                 icon: Icons.dark_mode_rounded,
-                title: 'Dark',
+                title: l10n.dark,
                 isSelected: themeMode == ThemeMode.dark,
                 onTap: () => saveTheme(ThemeMode.dark),
                 showDivider: false,
@@ -493,6 +630,7 @@ class _AiProviderSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -503,18 +641,18 @@ class _AiProviderSelector extends StatelessWidget {
         children: [
           _AiProviderOption(
             icon: Icons.memory_rounded,
-            title: 'On-Device',
-            subtitle: 'Private, runs locally',
+            title: l10n.onDeviceProvider,
+            subtitle: l10n.privateRunsLocally,
             isSelected: !isCloudProvider,
             onTap: () => onChanged(false),
             showDivider: true,
           ),
           _AiProviderOption(
             icon: Icons.cloud_rounded,
-            title: 'Cloud (Gemini)',
+            title: l10n.cloudGemini,
             subtitle: isGeminiConfigured
-                ? 'Faster, requires internet'
-                : 'API key not configured',
+                ? l10n.fasterRequiresInternet
+                : l10n.apiKeyNotConfigured,
             isSelected: isCloudProvider,
             onTap: isGeminiConfigured ? () => onChanged(true) : null,
             showDivider: false,
@@ -597,6 +735,192 @@ class _AiProviderOption extends StatelessWidget {
             color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
           ),
       ],
+    );
+  }
+}
+
+class _LanguageSelector extends StatelessWidget {
+  final Locale currentLocale;
+  final ValueChanged<Locale> onChanged;
+
+  const _LanguageSelector({
+    required this.currentLocale,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Card(
+      child: ListTile(
+        leading: Icon(
+          Icons.language_rounded,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        title: Text(l10n.language),
+        subtitle: Text(LocaleService.getDisplayName(currentLocale)),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => _showLanguageDialog(context),
+      ),
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                l10n.selectLanguage,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ),
+            const Divider(height: 1),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: LocaleService.supportedLocales.length,
+                itemBuilder: (context, index) {
+                  final locale = LocaleService.supportedLocales[index];
+                  final isSelected = locale == currentLocale;
+
+                  return ListTile(
+                    leading: Text(
+                      _getLanguageEmoji(locale),
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                    title: Text(LocaleService.getDisplayName(locale)),
+                    subtitle: locale.languageCode != 'en'
+                        ? Text(LocaleService.getEnglishName(locale))
+                        : null,
+                    trailing: isSelected
+                        ? Icon(
+                            Icons.check_rounded,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : null,
+                    onTap: () {
+                      Navigator.pop(context);
+                      onChanged(locale);
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getLanguageEmoji(Locale locale) {
+    switch (locale.languageCode) {
+      case 'en':
+        return '🇬🇧';
+      case 'th':
+        return '🇹🇭';
+      case 'de':
+        return '🇩🇪';
+      case 'fr':
+        return '🇫🇷';
+      case 'it':
+        return '🇮🇹';
+      case 'pt':
+        return '🇧🇷';
+      case 'hi':
+        return '🇮🇳';
+      case 'es':
+        return '🇪🇸';
+      default:
+        return '🌐';
+    }
+  }
+}
+
+class _AppLockTile extends StatelessWidget {
+  final bool isEnabled;
+  final VoidCallback onTap;
+
+  const _AppLockTile({required this.isEnabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isEnabled
+                ? Theme.of(context).colorScheme.primaryContainer
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            isEnabled ? Icons.lock_rounded : Icons.lock_open_rounded,
+            color: isEnabled
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          l10n.appLock,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+        subtitle: Text(
+          isEnabled
+              ? appLockService.isBiometricEnabled
+                    ? '${appLockService.getBiometricTypeName()} enabled'
+                    : 'PIN enabled'
+              : l10n.protectYourPrivacy,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isEnabled)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'ON',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.green,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

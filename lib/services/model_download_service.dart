@@ -17,6 +17,12 @@ enum ModelDownloadStatus {
   error,
 }
 
+/// Model type options
+enum ModelType {
+  advanced, // Qwen3-4B (~2.66GB) - for devices with more RAM
+  compact, // Llama 3.2 1B (~1.1GB) - for devices with less RAM
+}
+
 /// Service for downloading and managing the LLM model files
 class ModelDownloadService extends ChangeNotifier {
   static final ModelDownloadService _instance =
@@ -43,10 +49,15 @@ class ModelDownloadService extends ChangeNotifier {
   static const String _modelFileName = 'model.pte';
   static const String _tokenizerFileName = 'tokenizer.model';
   static const String _prefsKeyModelDownloaded = 'model_downloaded_v2';
+  static const String _prefsKeySelectedModelType = 'selected_model_type';
+  static const String _prefsKeyDownloadedModelType = 'downloaded_model_type';
 
   // Selected model type
   bool _useAdvancedModel = false;
   int _deviceRamBytes = 0;
+  bool _canUseAdvancedModel = false;
+  ModelType? _userSelectedModelType; // User's explicit choice
+  ModelType? _downloadedModelType; // Type of the currently downloaded model
 
   ModelDownloadStatus _status = ModelDownloadStatus.notDownloaded;
   double _downloadProgress = 0.0;
@@ -66,9 +77,42 @@ class ModelDownloadService extends ChangeNotifier {
   @Deprecated('Use useAdvancedModel instead')
   bool get useAdvanceModel => _useAdvancedModel;
   int get deviceRamBytes => _deviceRamBytes;
+
+  /// Whether the device can handle the advanced model (has enough RAM)
+  bool get canUseAdvancedModel => _canUseAdvancedModel;
+
+  /// User's explicitly selected model type (if any)
+  ModelType? get userSelectedModelType => _userSelectedModelType;
+
+  /// The type of the currently downloaded model (if any)
+  ModelType? get downloadedModelType => _downloadedModelType;
+
+  /// Current model type being used/selected
+  ModelType get currentModelType =>
+      _useAdvancedModel ? ModelType.advanced : ModelType.compact;
+
+  /// Whether the user needs to switch models (downloaded model differs from selected)
+  bool get needsModelSwitch =>
+      _downloadedModelType != null &&
+      _downloadedModelType != currentModelType &&
+      _status == ModelDownloadStatus.downloaded;
+
   String get selectedModelName =>
       _useAdvancedModel ? 'Advanced AI' : 'Compact AI';
   String get selectedModelSize => _useAdvancedModel ? '2.66 GB' : '1.1 GB';
+
+  /// Get model name for a specific type
+  String getModelName(ModelType type) =>
+      type == ModelType.advanced ? 'Advanced AI' : 'Compact AI';
+
+  /// Get model size for a specific type
+  String getModelSize(ModelType type) =>
+      type == ModelType.advanced ? '2.66 GB' : '1.1 GB';
+
+  /// Get model description for a specific type
+  String getModelDescription(ModelType type) => type == ModelType.advanced
+      ? 'More capable • Better responses'
+      : 'Lightweight • Fast responses';
 
   /// Get the current model and tokenizer URLs based on RAM selection
   String get _modelUrl =>
@@ -101,11 +145,30 @@ class ModelDownloadService extends ChangeNotifier {
       final advancedModelBytes = (_advancedModelSizeGb * 1024 * 1024 * 1024)
           .toInt();
 
-      _useAdvancedModel = availableRam >= advancedModelBytes;
-      // _useAdvancedModel = false;
+      _canUseAdvancedModel = availableRam >= advancedModelBytes;
+
+      // Load user's saved preference
+      final prefs = await SharedPreferences.getInstance();
+      final savedModelType = prefs.getInt(_prefsKeySelectedModelType);
+      final downloadedType = prefs.getInt(_prefsKeyDownloadedModelType);
+
+      if (downloadedType != null) {
+        _downloadedModelType = ModelType.values[downloadedType];
+      }
+
+      if (savedModelType != null) {
+        _userSelectedModelType = ModelType.values[savedModelType];
+        _useAdvancedModel = _userSelectedModelType == ModelType.advanced;
+      } else {
+        // Default to advanced if device can handle it
+        _useAdvancedModel = _canUseAdvancedModel;
+      }
 
       debugPrint('Device RAM: ${getFormattedSize(_deviceRamBytes)}');
       debugPrint('40% of RAM: ${getFormattedSize(availableRam.toInt())}');
+      debugPrint('Can use advanced model: $_canUseAdvancedModel');
+      debugPrint('User selected model type: $_userSelectedModelType');
+      debugPrint('Downloaded model type: $_downloadedModelType');
       debugPrint(
         'Selected model: ${_useAdvancedModel ? "Advanced AI" : "Compact AI"}',
       );
@@ -222,11 +285,42 @@ class ModelDownloadService extends ChangeNotifier {
     final downloaded = await isModelDownloaded();
 
     if (downloaded) {
+      // Model files exist - mark as downloaded
+      // If there's a downloaded model type recorded, use it
+      if (_downloadedModelType != null) {
+        // Sync the current selection to match what's actually downloaded
+        // This ensures we use the downloaded model rather than requiring re-download
+        _useAdvancedModel = _downloadedModelType == ModelType.advanced;
+        _userSelectedModelType = _downloadedModelType;
+      }
       _status = ModelDownloadStatus.downloaded;
       debugPrint('Model already downloaded: $selectedModelName');
     } else {
       _status = ModelDownloadStatus.notDownloaded;
       debugPrint('Model not downloaded, will use: $selectedModelName');
+    }
+
+    notifyListeners();
+  }
+
+  /// Set the user's preferred model type
+  Future<void> setModelType(ModelType type) async {
+    if (!_canUseAdvancedModel && type == ModelType.advanced) {
+      debugPrint('Cannot select advanced model - insufficient RAM');
+      return;
+    }
+
+    _userSelectedModelType = type;
+    _useAdvancedModel = type == ModelType.advanced;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_prefsKeySelectedModelType, type.index);
+
+    debugPrint('Model type set to: ${type.name}');
+
+    // Check if we need to mark for re-download
+    if (_downloadedModelType != null && _downloadedModelType != type) {
+      _status = ModelDownloadStatus.notDownloaded;
     }
 
     notifyListeners();
@@ -316,9 +410,11 @@ class ModelDownloadService extends ChangeNotifier {
         throw Exception('Downloaded files are incomplete or corrupted');
       }
 
-      // Save download status
+      // Save download status and model type
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_prefsKeyModelDownloaded, true);
+      await prefs.setInt(_prefsKeyDownloadedModelType, currentModelType.index);
+      _downloadedModelType = currentModelType;
 
       _status = ModelDownloadStatus.downloaded;
       _downloadProgress = 1.0;
@@ -471,6 +567,8 @@ class ModelDownloadService extends ChangeNotifier {
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_prefsKeyModelDownloaded, false);
+      await prefs.remove(_prefsKeyDownloadedModelType);
+      _downloadedModelType = null;
 
       _status = ModelDownloadStatus.notDownloaded;
       _downloadProgress = 0.0;

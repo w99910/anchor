@@ -272,6 +272,38 @@ $userPrompt<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 ''';
   }
 
+  /// Format prompt using Llama chat template with conversation history
+  String _formatLlamaPromptWithHistory(
+    String systemPrompt,
+    List<Map<String, String>>? chatHistory,
+    String userPrompt,
+  ) {
+    final buffer = StringBuffer();
+    buffer.write(
+      '<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n',
+    );
+    buffer.write('$systemPrompt<|eot_id|>');
+
+    // Add conversation history
+    if (chatHistory != null && chatHistory.isNotEmpty) {
+      for (final message in chatHistory) {
+        final role = message['role'] == 'user' ? 'user' : 'assistant';
+        final content = message['content'] ?? '';
+        buffer.write(
+          '<|start_header_id|>$role<|end_header_id|>\n\n$content<|eot_id|>',
+        );
+      }
+    }
+
+    // Add current user message
+    buffer.write(
+      '<|start_header_id|>user<|end_header_id|>\n\n$userPrompt<|eot_id|>',
+    );
+    buffer.write('<|start_header_id|>assistant<|end_header_id|>\n\n');
+
+    return buffer.toString();
+  }
+
   /// Format prompt using Qwen chat template (ChatML format)
   /// Works with Qwen 2.5, Qwen3, and other ChatML-compatible models
   String _formatQwenPrompt(String systemPrompt, String userPrompt) {
@@ -291,6 +323,8 @@ $userPrompt<|im_end|>
   Future<String> generateResponse({
     required String prompt,
     required String mode, // 'friend' or 'therapist'
+    List<Map<String, String>>?
+    chatHistory, // Previous messages in format [{"role": "user"/"assistant", "content": "..."}]
     int maxTokens = 256,
     double temperature = 0.7,
     StreamController<String>? streamController,
@@ -301,6 +335,7 @@ $userPrompt<|im_end|>
       return _geminiService.generateResponse(
         prompt: prompt,
         mode: mode,
+        chatHistory: chatHistory,
         maxTokens: maxTokens,
         temperature: temperature,
         streamController: streamController,
@@ -319,7 +354,9 @@ Normalize: Remind the user that their struggles (like burnout or missing deadlin
 
 Conversational Tone: Speak naturally. Use phrases like 'I get it,' 'That is so heavy,' or 'I'm here for you.'
 
-Less Asking, More Sharing: Do not end every message with a question. Sometimes, just sitting with the emotion is enough. If you do ask a question, make it casual.'''
+Less Asking, More Sharing: Do not end every message with a question. Sometimes, just sitting with the emotion is enough. If you do ask a question, make it casual.
+
+When speaking in other language, do not translate English idioms literally.'''
         : '''Role: You are a compassionate, professional, and non-judgmental AI therapist. You draw upon techniques from Cognitive Behavioral Therapy (CBT) and Person-Centered Therapy.
 
 Core Objective: Your goal is not to "fix" the user or give direct advice, but to help them explore their emotions, identify cognitive distortions (negative thought patterns), and find their own clarity.
@@ -336,10 +373,16 @@ Neutrality: Do not take sides or offer personal opinions. Remain an objective mi
 
 Safety & Boundaries: Do not diagnose medical conditions. If the user mentions self-harm or severe crisis, prioritize safety resources immediately.
 
-Tone: Professional, calm, curious, and empathetic. Avoid being overly casual or using slang.''';
+Tone: Professional, calm, curious, and empathetic. Avoid being overly casual or using slang.
 
-    // Format prompt based on model type
-    final fullPrompt = _formatLlamaPrompt(systemPrompt, prompt);
+Lanaguage: When speaking in other language, do not translate English idioms literally.''';
+
+    // Format prompt based on model type, including chat history
+    final fullPrompt = _formatLlamaPromptWithHistory(
+      systemPrompt,
+      chatHistory,
+      prompt,
+    );
 
     // Use native runner if available
     if (_activeBackend == LlmBackend.nativeRunner) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 import '../../services/appointment_service.dart';
 import '../../main.dart' show appointmentService;
@@ -41,6 +42,7 @@ class _HelpPageState extends State<HelpPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final padding = Responsive.pagePadding(context);
 
     return Scaffold(
@@ -54,14 +56,14 @@ class _HelpPageState extends State<HelpPage> {
               children: [
                 const SizedBox(height: 8),
                 Text(
-                  'Get help',
+                  l10n.getHelp,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Connect with licensed professionals',
+                  l10n.connectWithProfessionals,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -69,7 +71,7 @@ class _HelpPageState extends State<HelpPage> {
                 const SizedBox(height: 24),
 
                 // Upcoming appointments section
-                _buildAppointmentsSection(context),
+                _buildAppointmentsSection(context, l10n),
 
                 // Emergency card
                 Container(
@@ -92,7 +94,7 @@ class _HelpPageState extends State<HelpPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'In crisis?',
+                              l10n.inCrisis,
                               style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -100,7 +102,7 @@ class _HelpPageState extends State<HelpPage> {
                                   ),
                             ),
                             Text(
-                              'Call emergency services immediately',
+                              l10n.callEmergencyServices,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: Colors.red[700]),
                             ),
@@ -112,7 +114,7 @@ class _HelpPageState extends State<HelpPage> {
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.red[700],
                         ),
-                        child: const Text('Call'),
+                        child: Text(l10n.call),
                       ),
                     ],
                   ),
@@ -120,7 +122,7 @@ class _HelpPageState extends State<HelpPage> {
 
                 const SizedBox(height: 32),
                 Text(
-                  'Services',
+                  l10n.services,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -130,9 +132,9 @@ class _HelpPageState extends State<HelpPage> {
 
                 _ServiceCard(
                   emoji: '🧠',
-                  title: 'Therapist session',
-                  subtitle: 'One-on-one with a licensed therapist',
-                  price: 'From \$80',
+                  title: l10n.therapistSession,
+                  subtitle: l10n.oneOnOneWithTherapist,
+                  price: '${l10n.from} \$80',
                   onTap: () {
                     Navigator.push(
                       context,
@@ -145,9 +147,9 @@ class _HelpPageState extends State<HelpPage> {
                 const SizedBox(height: 10),
                 _ServiceCard(
                   emoji: '💬',
-                  title: 'Mental health consultation',
-                  subtitle: 'General wellness guidance',
-                  price: 'From \$50',
+                  title: l10n.mentalHealthConsultation,
+                  subtitle: l10n.generalWellnessGuidance,
+                  price: '${l10n.from} \$50',
                   onTap: () {
                     Navigator.push(
                       context,
@@ -160,7 +162,7 @@ class _HelpPageState extends State<HelpPage> {
 
                 const SizedBox(height: 32),
                 Text(
-                  'Resources',
+                  l10n.resources,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -170,17 +172,17 @@ class _HelpPageState extends State<HelpPage> {
 
                 _ResourceTile(
                   icon: Icons.article_outlined,
-                  title: 'Articles',
+                  title: l10n.articles,
                   onTap: () {},
                 ),
                 _ResourceTile(
                   icon: Icons.headphones_outlined,
-                  title: 'Guided meditations',
+                  title: l10n.guidedMeditations,
                   onTap: () {},
                 ),
                 _ResourceTile(
                   icon: Icons.phone_outlined,
-                  title: 'Crisis hotlines',
+                  title: l10n.crisisHotlines,
                   onTap: () {},
                 ),
               ],
@@ -201,19 +203,22 @@ class _HelpPageState extends State<HelpPage> {
     );
   }
 
-  Widget _buildAppointmentsSection(BuildContext context) {
+  Widget _buildAppointmentsSection(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
     if (_upcomingAppointments.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(context, 'Your Appointments'),
+        _buildSectionTitle(context, l10n.yourAppointments),
         const SizedBox(height: 12),
-        ..._upcomingAppointments.map((appointment) => 
-          _AppointmentCard(appointment: appointment)
-        ).toList(),
+        ..._upcomingAppointments
+            .map((appointment) => _AppointmentCard(appointment: appointment))
+            .toList(),
         const SizedBox(height: 24),
       ],
     );
@@ -225,23 +230,37 @@ class _AppointmentCard extends StatelessWidget {
 
   const _AppointmentCard({required this.appointment});
 
-  String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  String _formatDate(BuildContext context, DateTime date) {
+    final l10n = AppLocalizations.of(context)!;
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final now = DateTime.now();
     final tomorrow = DateTime(now.year, now.month, now.day + 1);
     final appointmentDate = DateTime(date.year, date.month, date.day);
-    
+
     if (appointmentDate == DateTime(now.year, now.month, now.day)) {
-      return 'Today';
+      return l10n.today;
     } else if (appointmentDate == tomorrow) {
-      return 'Tomorrow';
+      return l10n.tomorrow;
     }
     return '${months[date.month - 1]} ${date.day}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -273,9 +292,9 @@ class _AppointmentCard extends StatelessWidget {
               children: [
                 Text(
                   appointment.therapistName,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -287,7 +306,7 @@ class _AppointmentCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _formatDate(appointment.date),
+                      _formatDate(context, appointment.date),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -314,9 +333,12 @@ class _AppointmentCard extends StatelessWidget {
             onPressed: () {},
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              minimumSize: const Size(0, 36), // Override the infinite width default
+              minimumSize: const Size(
+                0,
+                36,
+              ), // Override the infinite width default
             ),
-            child: const Text('Join'),
+            child: Text(l10n.join),
           ),
         ],
       ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../utils/responsive.dart';
 import '../../services/web3_service.dart';
 import '../../config/web3_config.dart';
-import '../../main.dart' show savePendingPayment, clearPendingPayment, appointmentService;
+import '../../main.dart'
+    show savePendingPayment, clearPendingPayment, appointmentService;
 
 class PaymentPage extends StatefulWidget {
   final int amount;
@@ -79,7 +81,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
     try {
       String? txHash;
-      
+
       if (_method == 'crypto') {
         // Real crypto payment
         txHash = await _web3Service.sendPayment(
@@ -111,18 +113,48 @@ class _PaymentPageState extends State<PaymentPage> {
         _complete = true;
       });
     } catch (e) {
+      debugPrint('Payment error: $e');
       setState(() {
         _processing = false;
       });
 
       if (mounted) {
+        final errorMessage = e.toString();
+        final isNetworkError =
+            errorMessage.contains('Sepolia') ||
+            errorMessage.contains('switch') ||
+            errorMessage.contains('network') ||
+            errorMessage.contains('Chain');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Payment failed: ${e.toString()}'),
+            content: Text(
+              isNetworkError
+                  ? AppLocalizations.of(context)!.pleaseSelectSepoliaNetwork
+                  : AppLocalizations.of(context)!.paymentFailed(errorMessage),
+            ),
             backgroundColor: Colors.red,
+            action: isNetworkError
+                ? SnackBarAction(
+                    label: AppLocalizations.of(context)!.switchNetwork,
+                    textColor: Colors.white,
+                    onPressed: _switchNetwork,
+                  )
+                : null,
+            duration: isNetworkError
+                ? const Duration(seconds: 6)
+                : const Duration(seconds: 4),
           ),
         );
       }
+    }
+  }
+
+  void _switchNetwork() async {
+    try {
+      await _web3Service.switchChain();
+    } catch (e) {
+      debugPrint('Switch network error: $e');
     }
   }
 
@@ -135,14 +167,16 @@ class _PaymentPageState extends State<PaymentPage> {
         date: widget.date ?? DateTime.now().add(const Duration(days: 1)),
         time: widget.time ?? '10:00 AM',
       );
-      
+
       // Open the AppKit modal - this shows a beautiful wallet selection UI
       await _web3Service.openModal();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to connect wallet: ${e.toString()}'),
+            content: Text(
+              AppLocalizations.of(context)!.failedToConnectWallet(e.toString()),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -187,7 +221,7 @@ class _PaymentPageState extends State<PaymentPage> {
           },
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: const Text('Payment'),
+        title: Text(AppLocalizations.of(context)!.payment),
       ),
       body: SingleChildScrollView(
         padding: Responsive.pagePadding(context),
@@ -207,7 +241,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 child: Column(
                   children: [
                     Text(
-                      'Total',
+                      AppLocalizations.of(context)!.total,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Text(
@@ -235,7 +269,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
               const SizedBox(height: 24),
               Text(
-                'Payment method',
+                AppLocalizations.of(context)!.paymentMethod,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -246,8 +280,8 @@ class _PaymentPageState extends State<PaymentPage> {
               // Card payment
               _PaymentOption(
                 icon: Icons.credit_card_rounded,
-                title: 'Credit / Debit Card',
-                subtitle: 'Visa, Mastercard, Amex',
+                title: AppLocalizations.of(context)!.creditDebitCard,
+                subtitle: AppLocalizations.of(context)!.visaMastercardAmex,
                 isSelected: _method == 'card',
                 onTap: () => setState(() => _method = 'card'),
               ),
@@ -256,7 +290,7 @@ class _PaymentPageState extends State<PaymentPage> {
               _PaymentOption(
                 icon: Icons.account_balance_wallet_rounded,
                 title: 'PayPal',
-                subtitle: 'Pay with your PayPal account',
+                subtitle: AppLocalizations.of(context)!.payWithPaypal,
                 isSelected: _method == 'paypal',
                 onTap: () => setState(() => _method = 'paypal'),
               ),
@@ -275,9 +309,9 @@ class _PaymentPageState extends State<PaymentPage> {
               if (_method == 'card') ...[
                 const SizedBox(height: 24),
                 TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Card number',
-                    prefixIcon: Icon(Icons.credit_card_rounded),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.cardNumber,
+                    prefixIcon: const Icon(Icons.credit_card_rounded),
                   ),
                   keyboardType: TextInputType.number,
                 ),
@@ -303,7 +337,9 @@ class _PaymentPageState extends State<PaymentPage> {
               ],
 
               // Crypto info
-              if (_method == 'crypto' && _walletConnected && _walletAddress != null) ...[
+              if (_method == 'crypto' &&
+                  _walletConnected &&
+                  _walletAddress != null) ...[
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -325,7 +361,7 @@ class _PaymentPageState extends State<PaymentPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Wallet connected',
+                              AppLocalizations.of(context)!.walletConnected,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -359,8 +395,8 @@ class _PaymentPageState extends State<PaymentPage> {
                   const SizedBox(width: 6),
                   Text(
                     _method == 'crypto'
-                        ? 'Secured by blockchain'
-                        : 'Secure payment',
+                        ? AppLocalizations.of(context)!.securedByBlockchain
+                        : AppLocalizations.of(context)!.securePayment,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -382,8 +418,10 @@ class _PaymentPageState extends State<PaymentPage> {
                       )
                     : Text(
                         _method == 'crypto' && !_walletConnected
-                            ? 'Connect wallet to pay'
-                            : 'Pay \$${widget.amount}',
+                            ? AppLocalizations.of(context)!.connectWalletToPay
+                            : AppLocalizations.of(
+                                context,
+                              )!.payAmount(widget.amount),
                       ),
               ),
             ],
@@ -578,7 +616,7 @@ class _CryptoPaymentOption extends StatelessWidget {
                       Icons.account_balance_wallet_outlined,
                       size: 18,
                     ),
-                    label: const Text('Connect wallet'),
+                    label: Text(AppLocalizations.of(context)!.connectWallet),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(0, 40),
                     ),
@@ -621,7 +659,7 @@ class _CryptoPaymentOption extends StatelessWidget {
                     const Spacer(),
                     TextButton(
                       onPressed: onDisconnect,
-                      child: const Text('Disconnect'),
+                      child: Text(AppLocalizations.of(context)!.disconnect),
                     ),
                   ],
                 ),
@@ -650,8 +688,20 @@ class _SuccessScreen extends StatelessWidget {
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'TBD';
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
@@ -679,14 +729,14 @@ class _SuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               Text(
-                'Booked!',
+                AppLocalizations.of(context)!.booked,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Your session with $therapistName is confirmed.',
+                AppLocalizations.of(context)!.sessionConfirmed(therapistName),
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -705,19 +755,19 @@ class _SuccessScreen extends StatelessWidget {
                   children: [
                     _DetailRow(
                       icon: Icons.calendar_today_rounded,
-                      label: 'Date',
+                      label: AppLocalizations.of(context)!.date,
                       value: _formatDate(date),
                     ),
                     const SizedBox(height: 12),
                     _DetailRow(
                       icon: Icons.access_time_rounded,
-                      label: 'Time',
-                      value: time ?? 'TBD',
+                      label: AppLocalizations.of(context)!.time,
+                      value: time ?? AppLocalizations.of(context)!.tbd,
                     ),
                     const SizedBox(height: 12),
                     _DetailRow(
                       icon: Icons.person_rounded,
-                      label: 'Therapist',
+                      label: AppLocalizations.of(context)!.therapist,
                       value: therapistName,
                     ),
                   ],
@@ -756,7 +806,7 @@ class _SuccessScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Paid with Digital Wallet',
+                        AppLocalizations.of(context)!.paidWithDigitalWallet,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -782,7 +832,7 @@ class _SuccessScreen extends StatelessWidget {
                     Navigator.popUntil(context, (route) => route.isFirst);
                   }
                 },
-                child: const Text('Done'),
+                child: Text(AppLocalizations.of(context)!.done),
               ),
               const SizedBox(height: 12),
               TextButton(
@@ -792,7 +842,7 @@ class _SuccessScreen extends StatelessWidget {
                     Navigator.popUntil(context, (route) => route.isFirst);
                   }
                 },
-                child: const Text('View my appointments'),
+                child: Text(AppLocalizations.of(context)!.viewMyAppointments),
               ),
             ],
           ),
@@ -828,9 +878,9 @@ class _DetailRow extends StatelessWidget {
         const Spacer(),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
       ],
     );

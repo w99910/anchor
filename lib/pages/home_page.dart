@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../utils/responsive.dart';
 import '../services/appointment_service.dart';
 import '../services/database_service.dart';
+import '../services/nft_service.dart';
 import '../main.dart' show appointmentService;
+import 'rewards_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -206,8 +209,8 @@ class _HomePageState extends State<HomePage> {
     return '😢';
   }
 
-  String _formatMoodTrend() {
-    if (_prevWeekAvgMood == 0) return 'New';
+  String _formatMoodTrend(BuildContext context) {
+    if (_prevWeekAvgMood == 0) return AppLocalizations.of(context)!.trendNew;
     final diff = _avgMood - _prevWeekAvgMood;
     if (diff > 0) return '+${diff.toStringAsFixed(1)}';
     if (diff < 0) return diff.toStringAsFixed(1);
@@ -240,6 +243,37 @@ class _HomePageState extends State<HomePage> {
     return 'Worsened';
   }
 
+  String _getLocalizedStressLevel(BuildContext context, String level) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (level) {
+      case 'Low':
+        return l10n.stressLow;
+      case 'Medium':
+        return l10n.stressMedium;
+      case 'High':
+        return l10n.stressHigh;
+      default:
+        return l10n.stressUnknown;
+    }
+  }
+
+  String _getLocalizedStressTrend(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final trend = _formatStressTrend();
+    switch (trend) {
+      case 'New':
+        return l10n.trendNew;
+      case 'Stable':
+        return l10n.trendStable;
+      case 'Improved':
+        return l10n.trendImproved;
+      case 'Worsened':
+        return l10n.trendWorsened;
+      default:
+        return trend;
+    }
+  }
+
   bool _isStressTrendPositive() {
     final trend = _formatStressTrend();
     return trend == 'Improved' || trend == 'Stable' || trend == 'New';
@@ -247,6 +281,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final padding = Responsive.pagePadding(context);
 
     return Scaffold(
@@ -259,19 +294,19 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
-                _buildGreeting(context),
+                _buildGreeting(context, l10n),
                 const SizedBox(height: 32),
-                _buildQuickMood(context),
+                _buildQuickMood(context, l10n),
+                const SizedBox(height: 24),
+                _buildStreakCard(context, l10n),
 
                 // Upcoming appointments section
-                _buildAppointmentsSection(context),
+                _buildAppointmentsSection(context, l10n),
 
                 const SizedBox(height: 32),
-                _buildSectionTitle(context, 'This Week'),
+                _buildSectionTitle(context, l10n.thisWeek),
                 const SizedBox(height: 16),
-                _buildStats(context),
-                const SizedBox(height: 32),
-                _buildStreakCard(context),
+                _buildStats(context, l10n),
                 const SizedBox(height: 24),
               ],
             ),
@@ -281,7 +316,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildAppointmentsSection(BuildContext context) {
+  Widget _buildAppointmentsSection(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
     if (_upcomingAppointments.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -290,7 +328,7 @@ class _HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 32),
-        _buildSectionTitle(context, 'Upcoming Appointments'),
+        _buildSectionTitle(context, l10n.upcomingAppointments),
         const SizedBox(height: 16),
         ..._upcomingAppointments.take(3).map((appointment) {
           return _AppointmentCard(appointment: appointment);
@@ -299,15 +337,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildGreeting(BuildContext context) {
+  Widget _buildGreeting(BuildContext context, AppLocalizations l10n) {
     final hour = DateTime.now().hour;
     String greeting;
     if (hour < 12) {
-      greeting = 'Good morning';
+      greeting = l10n.goodMorning;
     } else if (hour < 17) {
-      greeting = 'Good afternoon';
+      greeting = l10n.goodAfternoon;
     } else {
-      greeting = 'Good evening';
+      greeting = l10n.goodEvening;
     }
 
     return Column(
@@ -321,7 +359,7 @@ class _HomePageState extends State<HomePage> {
         ),
         const SizedBox(height: 4),
         Text(
-          'How are you today?',
+          l10n.howAreYouToday,
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -330,13 +368,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildQuickMood(BuildContext context) {
+  Widget _buildQuickMood(BuildContext context, AppLocalizations l10n) {
     final moods = [
-      ('😊', 'Great'),
-      ('🙂', 'Good'),
-      ('😐', 'Okay'),
-      ('😔', 'Low'),
-      ('😢', 'Sad'),
+      ('😊', l10n.moodGreat),
+      ('🙂', l10n.moodGood),
+      ('😐', l10n.moodOkay),
+      ('😔', l10n.moodLow),
+      ('😢', l10n.moodSad),
     ];
 
     return Row(
@@ -358,7 +396,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildStats(BuildContext context) {
+  Widget _buildStats(BuildContext context, AppLocalizations l10n) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Wrap(
@@ -369,8 +407,8 @@ class _HomePageState extends State<HomePage> {
               width: (constraints.maxWidth - 12) / 2,
               child: _StatTile(
                 value: _avgMood > 0 ? _numberToMoodEmoji(_avgMood) : '--',
-                label: 'Avg. Mood',
-                trend: _formatMoodTrend(),
+                label: l10n.avgMood,
+                trend: _formatMoodTrend(context),
                 isPositive: _avgMood >= _prevWeekAvgMood,
                 isEmoji: _avgMood > 0,
               ),
@@ -379,7 +417,7 @@ class _HomePageState extends State<HomePage> {
               width: (constraints.maxWidth - 12) / 2,
               child: _StatTile(
                 value: '$_journalEntriesThisWeek',
-                label: 'Journal Entries',
+                label: l10n.journalEntries,
                 trend: _formatJournalTrend(),
                 isPositive: _journalEntriesThisWeek >= _prevWeekJournalEntries,
               ),
@@ -388,7 +426,7 @@ class _HomePageState extends State<HomePage> {
               width: (constraints.maxWidth - 12) / 2,
               child: _StatTile(
                 value: '$_chatSessionsThisWeek',
-                label: 'Chat Sessions',
+                label: l10n.chatSessions,
                 trend: _formatChatTrend(),
                 isPositive: _chatSessionsThisWeek >= _prevWeekChatSessions,
               ),
@@ -396,9 +434,9 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               width: (constraints.maxWidth - 12) / 2,
               child: _StatTile(
-                value: _stressLevel,
-                label: 'Stress Level',
-                trend: _formatStressTrend(),
+                value: _getLocalizedStressLevel(context, _stressLevel),
+                label: l10n.stressLevel,
+                trend: _getLocalizedStressTrend(context),
                 isPositive: _isStressTrendPositive(),
               ),
             ),
@@ -408,7 +446,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildStreakCard(BuildContext context) {
+  Widget _buildStreakCard(BuildContext context, AppLocalizations l10n) {
     if (_streak == 0) {
       return Container(
         padding: const EdgeInsets.all(20),
@@ -432,14 +470,14 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Start your streak!',
+                    l10n.startYourStreak,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Write a journal entry to begin',
+                    l10n.writeJournalToBegin,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -452,56 +490,103 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.primary.withOpacity(0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const RewardsPage()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
         ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text('🔥', style: TextStyle(fontSize: 28)),
             ),
-            child: const Text('🔥', style: TextStyle(fontSize: 28)),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$_streak day${_streak == 1 ? '' : ''} streak!',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.dayStreak(_streak),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _streak >= 7
-                      ? 'Amazing consistency! Keep it up!'
-                      : 'Keep the momentum going',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withOpacity(0.8),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _streak >= 7
+                              ? l10n.amazingConsistency
+                              : l10n.keepMomentumGoing,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.white.withOpacity(0.8)),
+                        ),
+                      ),
+                      if (_hasUnlockedReward())
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('🎁', style: TextStyle(fontSize: 12)),
+                              SizedBox(width: 4),
+                              Text(
+                                'Claim NFT',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right, color: Colors.white.withOpacity(0.8)),
+          ],
+        ),
       ),
     );
+  }
+
+  bool _hasUnlockedReward() {
+    final nftService = NFTService();
+    final unlockedMilestones = nftService.getUnlockedMilestones(_streak);
+    return unlockedMilestones.isNotEmpty;
   }
 }
 

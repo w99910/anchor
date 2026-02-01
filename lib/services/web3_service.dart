@@ -145,7 +145,9 @@ class Web3Service extends ChangeNotifier {
 
       if (kDebugMode) {
         print('Web3Service: Address = $_walletAddress');
-        print('Web3Service: Chain = $_chainId');
+        print('Web3Service: Chain ID = $_chainId');
+        print('Web3Service: Chain Name = ${_appKitModal!.selectedChain?.name}');
+        print('Web3Service: Expected Chain ID = ${Web3Config.defaultChainId}');
       }
     } else {
       _walletAddress = null;
@@ -214,12 +216,30 @@ class Web3Service extends ChangeNotifier {
     // SAFETY CHECK: Prevent accidental mainnet transactions in test mode
     if (Web3Config.useTestnet) {
       final currentChainId = _appKitModal!.selectedChain?.chainId;
-      if (currentChainId != 'eip155:${Web3Config.defaultChainId}') {
-        throw Exception(
-          'Please switch to Sepolia testnet in your wallet. '
-          'Currently connected to: ${_appKitModal!.selectedChain?.name ?? "Unknown"}. '
-          'Go to MetaMask Settings → Networks → Add Sepolia, then reconnect.',
-        );
+      final expectedChainId = Web3Config.defaultChainId.toString();
+
+      // Check if the chain ID matches (handle both formats: "11155111" and "eip155:11155111")
+      final isCorrectChain =
+          currentChainId == expectedChainId ||
+          currentChainId == 'eip155:$expectedChainId' ||
+          currentChainId?.replaceFirst('eip155:', '') == expectedChainId;
+
+      if (!isCorrectChain) {
+        if (kDebugMode) {
+          print(
+            'Web3Service: Chain mismatch - current: $currentChainId, expected: $expectedChainId',
+          );
+          print('Web3Service: Attempting to switch to Sepolia...');
+        }
+
+        // Try to switch to Sepolia automatically
+        final switched = await switchToSepolia();
+        if (!switched) {
+          throw Exception(
+            'Please switch to Sepolia testnet. '
+            'Tap "Change Network" below or disconnect and reconnect your wallet while on Sepolia.',
+          );
+        }
       }
     }
 
@@ -328,6 +348,84 @@ class Web3Service extends ChangeNotifier {
       }
       rethrow;
     }
+  }
+
+  /// Switch to Sepolia testnet programmatically
+  Future<bool> switchToSepolia() async {
+    if (_appKitModal == null || !isConnected) return false;
+
+    try {
+      const sepoliaChainId = '0xaa36a7'; // 11155111 in hex
+
+      // Request wallet to switch to Sepolia
+      await _appKitModal!.request(
+        topic: _appKitModal!.session!.topic,
+        chainId: _appKitModal!.selectedChain!.chainId,
+        request: SessionRequestParams(
+          method: 'wallet_switchEthereumChain',
+          params: [
+            {'chainId': sepoliaChainId},
+          ],
+        ),
+      );
+
+      // Wait for the chain switch to take effect
+      await Future.delayed(const Duration(milliseconds: 500));
+      _updateState();
+
+      // Verify the switch was successful
+      final currentChainId = _appKitModal!.selectedChain?.chainId;
+      final isCorrectChain =
+          currentChainId == '11155111' || currentChainId == 'eip155:11155111';
+
+      if (kDebugMode) {
+        print('Web3Service: After switch, chain is: $currentChainId');
+        print('Web3Service: Switch successful: $isCorrectChain');
+      }
+
+      return isCorrectChain;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Web3Service: Switch to Sepolia error: $e');
+      }
+
+      // If switch failed (maybe Sepolia not added), try to add it
+      try {
+        await _addSepoliaNetwork();
+        return await switchToSepolia();
+      } catch (addError) {
+        if (kDebugMode) {
+          print('Web3Service: Add Sepolia network error: $addError');
+        }
+        return false;
+      }
+    }
+  }
+
+  /// Add Sepolia network to wallet
+  Future<void> _addSepoliaNetwork() async {
+    if (_appKitModal == null || !isConnected) return;
+
+    await _appKitModal!.request(
+      topic: _appKitModal!.session!.topic,
+      chainId: _appKitModal!.selectedChain!.chainId,
+      request: SessionRequestParams(
+        method: 'wallet_addEthereumChain',
+        params: [
+          {
+            'chainId': '0xaa36a7', // 11155111 in hex
+            'chainName': 'Sepolia Testnet',
+            'nativeCurrency': {
+              'name': 'Sepolia ETH',
+              'symbol': 'ETH',
+              'decimals': 18,
+            },
+            'rpcUrls': ['https://ethereum-sepolia.publicnode.com'],
+            'blockExplorerUrls': ['https://sepolia.etherscan.io'],
+          },
+        ],
+      ),
+    );
   }
 
   @override
