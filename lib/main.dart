@@ -237,8 +237,8 @@ class _AnchorAppState extends State<AnchorApp> with WidgetsBindingObserver {
     // Primary: #56E016 (Bright Green), Secondary: #FFEB3B (Bright Yellow)
     // Use a darker shade for light mode to improve visibility
     final primaryColor = isDark
-        ? const Color(0xFF56E016)
-        : const Color(0xFF3DA60E); // Darker green for light mode
+        ? const Color.fromARGB(255, 151, 235, 113)
+        : const Color.fromARGB(255, 77, 206, 17); // Darker green for light mode
     const secondaryColor = Color(0xFFFFEB3B);
 
     final colorScheme = ColorScheme.fromSeed(
@@ -253,6 +253,10 @@ class _AnchorAppState extends State<AnchorApp> with WidgetsBindingObserver {
       onSurfaceVariant: isDark
           ? const Color(0xFF9CA3AF)
           : const Color(0xFF4B5563), // gray-600
+      // Dark greenish-gray for elevated surfaces in dark mode
+      surfaceContainerHighest: isDark
+          ? const Color.fromARGB(255, 22, 29, 37) // Dark greenish-gray
+          : null,
     );
 
     return ThemeData(
@@ -313,6 +317,16 @@ class _AnchorAppState extends State<AnchorApp> with WidgetsBindingObserver {
             borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          backgroundColor: isDark
+              ? const Color.fromARGB(255, 151, 235, 113)
+              : null,
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: isDark
+              ? const Color.fromARGB(255, 151, 235, 113)
+              : null,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -524,16 +538,12 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Icon(
-                        Icons.anchor_rounded,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.primary,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.asset(
+                        'assets/app_icon.png',
+                        width: 100,
+                        height: 100,
                       ),
                     ),
                     const SizedBox(height: 24),

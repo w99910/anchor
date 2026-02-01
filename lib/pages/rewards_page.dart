@@ -293,7 +293,17 @@ class _RewardsPageState extends State<RewardsPage> {
     final unlockedCount = rewards.where((r) => r.isEarned).length;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Streak Rewards'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Streak Rewards'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: Stack(
         children: [
           _isLoading
@@ -370,8 +380,8 @@ class _RewardsPageState extends State<RewardsPage> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.secondary,
+            Theme.of(context).colorScheme.primary.withOpacity(0.7),
+            Theme.of(context).colorScheme.secondary.withOpacity(0.5),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,

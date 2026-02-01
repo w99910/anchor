@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:reown_appkit/reown_appkit.dart';
 import 'web3_service.dart';
@@ -201,6 +202,69 @@ class NFTService extends ChangeNotifier {
     );
   }
 
+  /// Check if a milestone has already been claimed on-chain for the connected wallet
+  Future<bool> isMilestoneClaimedOnChain(StreakMilestone milestone) async {
+    if (!_web3Service.isConnected || _web3Service.walletAddress == null) {
+      return false;
+    }
+
+    try {
+      // ABI for hasClaimedMilestone view function
+      final contractAbi = ContractAbi.fromJson('''[
+          {
+            "inputs": [
+              {"internalType": "address", "name": "user", "type": "address"},
+              {"internalType": "uint256", "name": "milestoneId", "type": "uint256"}
+            ],
+            "name": "hasClaimedMilestone",
+            "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+            "stateMutability": "view",
+            "type": "function"
+          }
+        ]''', 'AnchorStreakNFT');
+
+      final contract = DeployedContract(
+        contractAbi,
+        EthereumAddress.fromHex(_contractAddress),
+      );
+
+      final hasClaimedFunction = contract.function('hasClaimedMilestone');
+
+      // Encode the call data
+      final data = hasClaimedFunction.encodeCall([
+        EthereumAddress.fromHex(_web3Service.walletAddress!),
+        BigInt.from(milestone.index),
+      ]);
+
+      // Call eth_call via the RPC
+      final result = await _web3Service.callContract(
+        contractAddress: _contractAddress,
+        data:
+            '0x${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+      );
+
+      if (result != null && result.isNotEmpty) {
+        // Decode the boolean result (last byte, 1 = true, 0 = false)
+        final resultBytes = result.startsWith('0x')
+            ? result.substring(2)
+            : result;
+        if (resultBytes.isNotEmpty) {
+          final lastByte = int.parse(
+            resultBytes.substring(resultBytes.length - 2),
+            radix: 16,
+          );
+          return lastByte == 1;
+        }
+      }
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('NFTService: Error checking claimed status: $e');
+      }
+      return false;
+    }
+  }
+
   /// Mint a streak reward NFT
   ///
   /// Returns the transaction hash if successful.
@@ -222,8 +286,23 @@ class NFTService extends ChangeNotifier {
     // Ensure we're on Sepolia testnet before minting
     await _ensureSepoliaNetwork();
 
+    // Check local cache first
     if (_claimedMilestones.contains(milestone)) {
-      throw Exception('NFT already minted for this milestone');
+      throw Exception(
+        'You have already minted the "${milestone.name}" NFT with this wallet.',
+      );
+    }
+
+    // Check on-chain if this milestone was already claimed
+    final alreadyClaimedOnChain = await isMilestoneClaimedOnChain(milestone);
+    if (alreadyClaimedOnChain) {
+      // Update local cache
+      _claimedMilestones.add(milestone);
+      notifyListeners();
+      throw Exception(
+        'You have already minted the "${milestone.name}" NFT with this wallet. '
+        'Each milestone can only be claimed once per wallet.',
+      );
     }
 
     try {
@@ -314,13 +393,15 @@ extension Web3ServiceNFT on Web3Service {
 
       // Force Sepolia testnet chain ID for safety
       const sepoliaChainId = 'eip155:11155111';
-      final chainIdToUse =
-          appKitModal!.selectedChain?.chainId ?? sepoliaChainId;
 
       // Verify we're on Sepolia in testnet mode
       if (kDebugMode) {
-        print('Web3Service: Sending transaction on chain: $chainIdToUse');
+        print('Web3Service: Sending transaction on chain: $sepoliaChainId');
       }
+
+      // Launch wallet before making the request to ensure it opens
+      // This is needed because the automatic redirect may not work on all devices
+      _launchWalletForTransaction();
 
       // Use Sepolia chain ID explicitly
       final result = await appKitModal!.request(
@@ -343,6 +424,94 @@ extension Web3ServiceNFT on Web3Service {
     } catch (e) {
       if (kDebugMode) {
         print('Web3Service: Transaction failed: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Launch the connected wallet app for transaction signing
+  void _launchWalletForTransaction() {
+    try {
+      // Get the redirect info from the connected wallet's session
+      final session = appKitModal!.session;
+      final peerRedirect = session?.peer?.metadata.redirect;
+
+      if (kDebugMode) {
+        print(
+          'Web3Service: Peer redirect info: native=${peerRedirect?.native}, universal=${peerRedirect?.universal}',
+        );
+      }
+
+      // Try to get the native deep link for the wallet
+      String? walletScheme = peerRedirect?.native;
+
+      // If no redirect info, try common wallet schemes
+      if (walletScheme == null || walletScheme.isEmpty) {
+        // Default to MetaMask deep link scheme
+        walletScheme = 'metamask://';
+      }
+
+      // Ensure the scheme ends with :// or /
+      if (!walletScheme.endsWith('://') && !walletScheme.endsWith('/')) {
+        if (walletScheme.contains('://')) {
+          // Already has scheme, add path separator if needed
+          if (!walletScheme.endsWith('/')) {
+            walletScheme = '$walletScheme/';
+          }
+        } else {
+          walletScheme = '$walletScheme://';
+        }
+      }
+
+      if (kDebugMode) {
+        print('Web3Service: Launching wallet with scheme: $walletScheme');
+      }
+
+      // Launch the wallet app using url_launcher
+      final uri = Uri.parse('${walletScheme}wc');
+      launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Web3Service: Failed to launch wallet: $e');
+      }
+      // Don't throw - the request might still work even if launch fails
+    }
+  }
+
+  /// Call a contract read function (eth_call)
+  Future<String?> callContract({
+    required String contractAddress,
+    required String data,
+  }) async {
+    if (!isConnected || appKitModal == null) {
+      throw Exception('Wallet not connected');
+    }
+
+    try {
+      final session = appKitModal!.session;
+      if (session == null) {
+        throw Exception('No active session');
+      }
+
+      // Force Sepolia testnet chain ID
+      const sepoliaChainId = 'eip155:11155111';
+
+      final result = await appKitModal!.request(
+        topic: session.topic ?? '',
+        chainId: sepoliaChainId,
+        request: SessionRequestParams(
+          method: 'eth_call',
+          params: [
+            {'to': contractAddress, 'data': data},
+            'latest',
+          ],
+        ),
+      );
+
+      return result?.toString();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Web3Service: Contract call failed: $e');
       }
       rethrow;
     }

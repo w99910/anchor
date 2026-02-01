@@ -28,7 +28,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   Future<void> _continue() async {
     await localeService.setLocale(_selectedLocale);
     localeNotifier.value = _selectedLocale;
-    
+
     if (mounted) {
       Navigator.pushReplacement(
         context,
@@ -40,7 +40,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Scaffold(
       body: SafeArea(
         child: ResponsiveCenter(
@@ -85,7 +85,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // Language list
               Expanded(
                 child: ListView.builder(
@@ -93,7 +93,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                   itemBuilder: (context, index) {
                     final locale = LocaleService.supportedLocales[index];
                     final isSelected = locale == _selectedLocale;
-                    
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: _LanguageOption(
@@ -105,9 +105,9 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                   },
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Continue button
               SizedBox(
                 width: double.infinity,
@@ -147,10 +147,10 @@ class _LanguageOption extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final nativeName = LocaleService.getDisplayName(locale);
     final englishName = LocaleService.getEnglishName(locale);
-    
+
     return Material(
-      color: isSelected 
-          ? colorScheme.primaryContainer 
+      color: isSelected
+          ? colorScheme.primaryContainer
           : colorScheme.surfaceContainerLow,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
@@ -161,8 +161,8 @@ class _LanguageOption extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected 
-                  ? colorScheme.primary 
+              color: isSelected
+                  ? colorScheme.primary
                   : colorScheme.outline.withOpacity(0.2),
               width: isSelected ? 2 : 1,
             ),
@@ -174,7 +174,7 @@ class _LanguageOption extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: isSelected 
+                  color: isSelected
                       ? colorScheme.primary.withOpacity(0.1)
                       : colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
@@ -195,8 +195,8 @@ class _LanguageOption extends StatelessWidget {
                       nativeName,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: isSelected 
-                            ? colorScheme.onPrimaryContainer 
+                        color: isSelected
+                            ? colorScheme.onPrimaryContainer
                             : colorScheme.onSurface,
                       ),
                     ),
@@ -204,7 +204,7 @@ class _LanguageOption extends StatelessWidget {
                       Text(
                         englishName,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isSelected 
+                          color: isSelected
                               ? colorScheme.onPrimaryContainer.withOpacity(0.7)
                               : colorScheme.onSurfaceVariant,
                         ),
@@ -213,10 +213,7 @@ class _LanguageOption extends StatelessWidget {
                 ),
               ),
               if (isSelected)
-                Icon(
-                  Icons.check_circle_rounded,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.check_circle_rounded, color: colorScheme.primary),
             ],
           ),
         ),

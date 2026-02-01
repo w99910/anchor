@@ -4,7 +4,6 @@ import '../utils/responsive.dart';
 import '../services/appointment_service.dart';
 import '../services/database_service.dart';
 import '../services/nft_service.dart';
-import '../services/user_info_service.dart';
 import '../main.dart' show appointmentService;
 import 'rewards_page.dart';
 
@@ -340,21 +339,13 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildGreeting(BuildContext context, AppLocalizations l10n) {
     final hour = DateTime.now().hour;
-    final userName = UserInfoService().userName;
-
     String greeting;
     if (hour < 12) {
-      greeting = userName != null && userName.isNotEmpty
-          ? l10n.goodMorningName(userName)
-          : l10n.goodMorning;
+      greeting = l10n.goodMorning;
     } else if (hour < 17) {
-      greeting = userName != null && userName.isNotEmpty
-          ? l10n.goodAfternoonName(userName)
-          : l10n.goodAfternoon;
+      greeting = l10n.goodAfternoon;
     } else {
-      greeting = userName != null && userName.isNotEmpty
-          ? l10n.goodEveningName(userName)
-          : l10n.goodEvening;
+      greeting = l10n.goodEvening;
     }
 
     return Column(
@@ -511,8 +502,8 @@ class _HomePageState extends State<HomePage> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              Theme.of(context).colorScheme.primary.withOpacity(0.6),
+              Theme.of(context).colorScheme.primary.withOpacity(0.4),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
