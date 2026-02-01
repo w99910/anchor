@@ -1,16 +1,16 @@
-# anchor
+# Anchor – ETH Hackathon Project
 
-A new Flutter project.
+**Anchor** is a Flutter-based decentralized application (dApp) built for the Ethereum ecosystem.  
+It demonstrates integration with Ethereum storage solutions, MetaMask wallet connection, NFT minting/deployment, and cross-platform UI (mobile + web/desktop).
 
-## Getting Started
+![Anchor Demo](anchor.png)  
+*(replace or add a real screenshot/GIF of the app in action — currently using anchor.png)*
 
-This project is a starting point for a Flutter application.
+## ✨ Features
 
-A few resources to get you started if this is your first Flutter project:
+- Connect to Ethereum via **MetaMask** (or other injected providers)
+- Interact with **Ethereum Storage** (likely EthStorage or similar decentralized storage)
+- Deploy / mint **NFTs** on Ethereum-compatible chains
+- Clean, responsive Flutter UI that works on iOS, Android, web, macOS, Windows, Linux
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Built during an Ethereum hackathon to showcase practical Web3 + Flutter integration.
