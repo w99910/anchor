@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -36,8 +37,14 @@ void main() async {
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
+  // Load environment variables (with fallback for release builds where .env may not exist)
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // .env file not found or failed to load - this is expected in release builds
+    // if .env is in .gitignore. The app will use default/empty values.
+    debugPrint('Warning: Could not load .env file: $e');
+  }
 
   // Load saved theme
   await _loadTheme();
@@ -226,18 +233,34 @@ class _AnchorAppState extends State<AnchorApp> with WidgetsBindingObserver {
 
   static ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
+
+    // Primary: #56E016 (Bright Green), Secondary: #FFEB3B (Bright Yellow)
+    const primaryColor = Color(0xFF56E016);
+    const secondaryColor = Color(0xFFFFEB3B);
+
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF6B9B8C),
+      seedColor: primaryColor,
+      primary: primaryColor,
+      secondary: secondaryColor,
       brightness: brightness,
+      // Font colors for light mode: gray-900 (headings), gray-700 (nav), gray-600 (body)
+      onSurface: isDark
+          ? const Color(0xFFE5E5E5)
+          : const Color(0xFF111827), // gray-900
+      onSurfaceVariant: isDark
+          ? const Color(0xFF9CA3AF)
+          : const Color(0xFF4B5563), // gray-600
     );
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
+      // Background gradient colors: indigo-50, purple-50, pink-50 (for light)
+      // Dark mode: gray-900 background
       scaffoldBackgroundColor: isDark
-          ? const Color(0xFF121212)
-          : const Color(0xFFFAFAFA),
+          ? const Color(0xFF111827) // gray-900 for dark mode
+          : const Color(0xFFEEF2FF), // indigo-50 base for light mode
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -253,11 +276,16 @@ class _AnchorAppState extends State<AnchorApp> with WidgetsBindingObserver {
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        // Features section: white main, gray-50 for cards
+        // Privacy section (dark): gray-900 background with gray-800 cards
+        color: isDark
+            ? const Color(0xFF1F2937)
+            : const Color(0xFFF9FAFB), // gray-800 dark, gray-50 light
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        // Privacy section dark mode uses gray-800 for inputs
+        fillColor: isDark ? const Color(0xFF1F2937) : Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -301,7 +329,8 @@ class _AnchorAppState extends State<AnchorApp> with WidgetsBindingObserver {
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
         height: 70,
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        // Privacy section: gray-900 dark, white light
+        backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
         indicatorColor: colorScheme.primaryContainer,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -309,10 +338,16 @@ class _AnchorAppState extends State<AnchorApp> with WidgetsBindingObserver {
             return TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: colorScheme.primary,
+              color: colorScheme.primary, // Primary green #56E016
             );
           }
-          return TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant);
+          // Navigation font color: gray-700 for light mode
+          return TextStyle(
+            fontSize: 11,
+            color: isDark
+                ? const Color(0xFF9CA3AF) // gray-400 for dark
+                : const Color(0xFF374151), // gray-700 for light
+          );
         }),
       ),
     );

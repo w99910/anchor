@@ -24,6 +24,8 @@ class _RewardsPageState extends State<RewardsPage> {
   bool _isLoading = true;
   bool _isMinting = false;
   StreakMilestone? _mintingMilestone;
+  StreakMilestone?
+  _pendingMintMilestone; // Track pending mint after wallet connection
 
   @override
   void initState() {
@@ -31,13 +33,27 @@ class _RewardsPageState extends State<RewardsPage> {
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
+    _web3Service.addListener(_onWeb3StateChange);
     _loadData();
   }
 
   @override
   void dispose() {
+    _web3Service.removeListener(_onWeb3StateChange);
     _confettiController.dispose();
     super.dispose();
+  }
+
+  void _onWeb3StateChange() {
+    // If we have a pending mint and wallet just connected, continue minting
+    if (_pendingMintMilestone != null && _web3Service.isConnected && mounted) {
+      final milestone = _pendingMintMilestone!;
+      _pendingMintMilestone = null;
+      _continueMinting(milestone);
+    }
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadData() async {
@@ -142,24 +158,28 @@ class _RewardsPageState extends State<RewardsPage> {
 
     // Auto-connect wallet if not connected
     if (!_web3Service.isConnected) {
-      try {
-        final address = await _web3Service.connectWallet();
+      // Store the milestone so we can continue after redirect
+      _pendingMintMilestone = milestone;
 
-        if (address == null || !_web3Service.isConnected) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Wallet connection required to mint NFT'),
-              ),
-            );
-            setState(() {
-              _isMinting = false;
-              _mintingMilestone = null;
-            });
-          }
-          return;
+      try {
+        // Open wallet modal - this will return when modal closes
+        // but connection may complete later via deep link
+        await _web3Service.openModal();
+
+        // Give it a moment to check connection state
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // If connected now, continue minting
+        if (_web3Service.isConnected) {
+          _pendingMintMilestone = null;
+          await _continueMinting(milestone);
+        } else {
+          // Connection will complete via deep link callback
+          // The _onWeb3StateChange listener will handle it
+          // Just keep showing loading state
         }
       } catch (e) {
+        _pendingMintMilestone = null;
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -172,9 +192,21 @@ class _RewardsPageState extends State<RewardsPage> {
             _mintingMilestone = null;
           });
         }
-        return;
       }
+      return;
     }
+
+    // Already connected, proceed with minting
+    await _continueMinting(milestone);
+  }
+
+  Future<void> _continueMinting(StreakMilestone milestone) async {
+    if (!mounted) return;
+
+    setState(() {
+      _isMinting = true;
+      _mintingMilestone = milestone;
+    });
 
     try {
       final txHash = await _nftService.mintStreakNFT(milestone);

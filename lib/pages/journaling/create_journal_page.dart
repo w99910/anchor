@@ -389,12 +389,17 @@ JSON format:
   }
 
   _AnalysisResult? _parseAnalysisResponse(String response) {
+    String? extractedSummary;
+    String extractedEmotion = 'Reflective';
+    String extractedRisk = 'low';
+    List<String> extractedActions = [];
+
     // Try to parse as JSON first
     try {
       // Extract JSON from response (model might include extra text)
-      // Use a more permissive regex that can handle nested arrays
+      // Use a more permissive regex that can handle nested arrays and objects
       final jsonMatch = RegExp(
-        r'\{[^{}]*(?:\[[^\]]*\][^{}]*)*\}',
+        r'\{[\s\S]*\}',
         dotAll: true,
       ).firstMatch(response);
       if (jsonMatch != null) {
@@ -410,23 +415,24 @@ JSON format:
         debugPrint('Normalized JSON: $jsonStr');
         final json = jsonDecode(jsonStr) as Map<String, dynamic>;
 
-        final summary = (json['summary'] as String?)?.trim() ?? '';
-        final emotion = (json['emotion'] as String?)?.trim() ?? 'Reflective';
-        final risk = (json['risk'] as String?)?.trim() ?? 'low';
+        extractedSummary = (json['summary'] as String?)?.trim();
+        extractedEmotion = (json['emotion'] as String?)?.trim() ?? 'Reflective';
+        extractedRisk = (json['risk'] as String?)?.trim() ?? 'low';
         final actionsRaw = json['actions'];
-        List<String> actions = [];
         if (actionsRaw is List) {
-          actions = actionsRaw.map((e) => e.toString().trim()).toList();
+          extractedActions = actionsRaw
+              .map((e) => e.toString().trim())
+              .toList();
         }
 
-        if (summary.isNotEmpty) {
+        if (extractedSummary != null && extractedSummary.isNotEmpty) {
           return _AnalysisResult(
-            summary: summary,
-            emotionStatus: emotion,
-            actionItems: actions.isEmpty
+            summary: extractedSummary,
+            emotionStatus: extractedEmotion,
+            actionItems: extractedActions.isEmpty
                 ? ['Reflect on your feelings', 'Practice self-care']
-                : actions,
-            riskStatus: _normalizeRiskStatus(risk),
+                : extractedActions,
+            riskStatus: _normalizeRiskStatus(extractedRisk),
           );
         }
       }
@@ -434,45 +440,71 @@ JSON format:
       debugPrint('JSON parsing failed, trying fallback: $e');
     }
 
-    // Fallback to text parsing
-    String summary = '';
-    String emotion = 'Reflective';
-    String risk = 'low';
-    List<String> actions = [];
-
-    final lines = response.split('\n');
-    bool inActions = false;
-
-    for (final line in lines) {
-      final trimmed = line.trim();
-
-      if (trimmed.startsWith('SUMMARY:')) {
-        summary = trimmed.substring(8).trim();
-      } else if (trimmed.startsWith('EMOTION:')) {
-        emotion = trimmed.substring(8).trim();
-      } else if (trimmed.startsWith('RISK:')) {
-        risk = trimmed.substring(5).trim();
-      } else if (trimmed.startsWith('ACTIONS:')) {
-        inActions = true;
-      } else if (inActions && trimmed.startsWith('-')) {
-        actions.add(trimmed.substring(1).trim());
+    // Try to extract summary directly using regex if JSON parsing failed
+    // This handles malformed JSON where we can still extract the summary value
+    if (extractedSummary == null || extractedSummary.isEmpty) {
+      // Handle cases like " summary" (space inside quotes) or "summary"
+      final summaryMatch = RegExp(
+        r'"\s*summary\s*"\s*:\s*"([^"]+)"',
+        caseSensitive: false,
+      ).firstMatch(response);
+      if (summaryMatch != null) {
+        extractedSummary = summaryMatch.group(1)?.trim();
       }
     }
 
-    // Fallback if parsing failed
-    if (summary.isEmpty) {
-      summary = response.length > 200
-          ? '${response.substring(0, 197)}...'
-          : response;
+    // Fallback to text parsing
+    if (extractedSummary == null || extractedSummary.isEmpty) {
+      final lines = response.split('\n');
+      bool inActions = false;
+
+      for (final line in lines) {
+        final trimmed = line.trim();
+
+        if (trimmed.startsWith('SUMMARY:')) {
+          extractedSummary = trimmed.substring(8).trim();
+        } else if (trimmed.startsWith('EMOTION:')) {
+          extractedEmotion = trimmed.substring(8).trim();
+        } else if (trimmed.startsWith('RISK:')) {
+          extractedRisk = trimmed.substring(5).trim();
+        } else if (trimmed.startsWith('ACTIONS:')) {
+          inActions = true;
+        } else if (inActions && trimmed.startsWith('-')) {
+          extractedActions.add(trimmed.substring(1).trim());
+        }
+      }
+    }
+
+    // Final fallback - but NEVER use raw JSON as summary
+    // Only use plain text that doesn't look like JSON
+    if (extractedSummary == null || extractedSummary.isEmpty) {
+      // Check if response looks like JSON (starts with { or contains "summary":)
+      final looksLikeJson =
+          response.trim().startsWith('{') ||
+          response.contains('"summary"') ||
+          response.contains("'summary'");
+
+      if (!looksLikeJson) {
+        // Use the response as summary only if it's plain text
+        extractedSummary = response.length > 200
+            ? '${response.substring(0, 197)}...'
+            : response;
+      } else {
+        // Return null if we couldn't extract a proper summary from JSON-like response
+        debugPrint(
+          'Could not extract summary from JSON-like response, returning null',
+        );
+        return null;
+      }
     }
 
     return _AnalysisResult(
-      summary: summary,
-      emotionStatus: emotion,
-      actionItems: actions.isEmpty
+      summary: extractedSummary,
+      emotionStatus: extractedEmotion,
+      actionItems: extractedActions.isEmpty
           ? ['Reflect on your feelings', 'Practice self-care']
-          : actions,
-      riskStatus: _normalizeRiskStatus(risk),
+          : extractedActions,
+      riskStatus: _normalizeRiskStatus(extractedRisk),
     );
   }
 
