@@ -1,4 +1,5 @@
 import 'package:confetti/confetti.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/nft_service.dart';
@@ -45,8 +46,17 @@ class _RewardsPageState extends State<RewardsPage> {
   }
 
   void _onWeb3StateChange() {
+    debugPrint('RewardsPage: _onWeb3StateChange called');
+    debugPrint('RewardsPage: _pendingMintMilestone = $_pendingMintMilestone');
+    debugPrint('RewardsPage: isConnected = ${_web3Service.isConnected}');
+    debugPrint('RewardsPage: walletAddress = ${_web3Service.walletAddress}');
+    debugPrint('RewardsPage: chainId = ${_web3Service.chainId}');
+
     // If we have a pending mint and wallet just connected, continue minting
     if (_pendingMintMilestone != null && _web3Service.isConnected && mounted) {
+      debugPrint(
+        'RewardsPage: Continuing pending mint for ${_pendingMintMilestone!.name}',
+      );
       final milestone = _pendingMintMilestone!;
       _pendingMintMilestone = null;
       _continueMinting(milestone);
@@ -135,11 +145,37 @@ class _RewardsPageState extends State<RewardsPage> {
       _mintingMilestone = milestone;
     });
 
+    // Check network connectivity first
+    final connectivityResult = await Connectivity().checkConnectivity();
+    final hasNetwork = connectivityResult.any(
+      (result) => result != ConnectivityResult.none,
+    );
+
+    if (!hasNetwork) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No internet connection. Please check your network and try again.',
+            ),
+          ),
+        );
+        setState(() {
+          _isMinting = false;
+          _mintingMilestone = null;
+        });
+      }
+      return;
+    }
+
     // Initialize web3 service if needed
     if (!_web3Service.isInitialized) {
       try {
+        debugPrint('RewardsPage: Initializing web3 service...');
         await _web3Service.initialize(context);
+        debugPrint('RewardsPage: Web3 service initialized');
       } catch (e) {
+        debugPrint('RewardsPage: Failed to initialize web3: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -162,18 +198,24 @@ class _RewardsPageState extends State<RewardsPage> {
       _pendingMintMilestone = milestone;
 
       try {
+        debugPrint('RewardsPage: Opening wallet modal...');
         // Open wallet modal - this will return when modal closes
         // but connection may complete later via deep link
         await _web3Service.openModal();
+        debugPrint('RewardsPage: Modal closed, checking connection...');
 
         // Give it a moment to check connection state
         await Future.delayed(const Duration(milliseconds: 500));
 
         // If connected now, continue minting
         if (_web3Service.isConnected) {
+          debugPrint('RewardsPage: Connected! Continuing to mint...');
           _pendingMintMilestone = null;
           await _continueMinting(milestone);
         } else {
+          debugPrint(
+            'RewardsPage: Not connected yet, waiting for deep link callback...',
+          );
           // Connection will complete via deep link callback
           // The _onWeb3StateChange listener will handle it
           // Just keep showing loading state
@@ -222,6 +264,7 @@ class _RewardsPageState extends State<RewardsPage> {
               },
             ),
             duration: const Duration(seconds: 5),
+            persist: false,
           ),
         );
       }

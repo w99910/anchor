@@ -207,6 +207,19 @@ class _Gad7ResultsPageState extends State<Gad7ResultsPage> {
 
                   const Spacer(flex: 2),
 
+                  // Disclaimer
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      'Disclaimer: This is a screening tool for symptoms of depression and anxiety and is not a diagnostic instrument.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
                   FilledButton(
                     onPressed: () =>
                         Navigator.popUntil(context, (route) => route.isFirst),

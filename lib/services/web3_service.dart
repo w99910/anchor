@@ -84,8 +84,24 @@ class Web3Service extends ChangeNotifier {
         },
       );
 
-      // Initialize the modal
-      await _appKitModal!.init();
+      if (kDebugMode) {
+        print('Web3Service: Created ReownAppKitModal, initializing...');
+      }
+
+      // Initialize the modal with timeout
+      await _appKitModal!.init().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          if (kDebugMode) {
+            print('Web3Service: init() timed out after 30 seconds');
+          }
+          throw Exception('Wallet service initialization timed out');
+        },
+      );
+
+      if (kDebugMode) {
+        print('Web3Service: Modal init() completed');
+      }
 
       // Set up event listeners
       _appKitModal!.onModalConnect.subscribe(_onModalConnect);
@@ -163,10 +179,19 @@ class Web3Service extends ChangeNotifier {
   /// Open the wallet connection modal
   Future<void> openModal() async {
     if (_appKitModal == null) {
+      if (kDebugMode) {
+        print('Web3Service: openModal() called but _appKitModal is null!');
+      }
       throw Exception('Web3Service not initialized. Call initialize() first.');
     }
 
+    if (kDebugMode) {
+      print('Web3Service: Opening modal view...');
+    }
     await _appKitModal!.openModalView();
+    if (kDebugMode) {
+      print('Web3Service: Modal view opened/closed');
+    }
   }
 
   /// Connect wallet (opens modal if not connected)
@@ -420,32 +445,67 @@ class Web3Service extends ChangeNotifier {
   Future<bool> switchToSepolia() async {
     if (_appKitModal == null || !isConnected) return false;
 
+    // Check if already on Sepolia - no need to switch
+    final currentChainId = _appKitModal!.selectedChain?.chainId;
+    final alreadyOnSepolia =
+        currentChainId == '11155111' || currentChainId == 'eip155:11155111';
+
+    if (kDebugMode) {
+      print(
+        'Web3Service: switchToSepolia called, current chain: $currentChainId',
+      );
+      print('Web3Service: Already on Sepolia: $alreadyOnSepolia');
+    }
+
+    if (alreadyOnSepolia) {
+      if (kDebugMode) {
+        print('Web3Service: Already on Sepolia, no switch needed');
+      }
+      return true;
+    }
+
     try {
       const sepoliaChainId = '0xaa36a7'; // 11155111 in hex
 
-      // Request wallet to switch to Sepolia
-      await _appKitModal!.request(
-        topic: _appKitModal!.session!.topic,
-        chainId: _appKitModal!.selectedChain!.chainId,
-        request: SessionRequestParams(
-          method: 'wallet_switchEthereumChain',
-          params: [
-            {'chainId': sepoliaChainId},
-          ],
-        ),
-      );
+      if (kDebugMode) {
+        print('Web3Service: Requesting wallet to switch to Sepolia...');
+      }
+
+      // Request wallet to switch to Sepolia with timeout
+      await _appKitModal!
+          .request(
+            topic: _appKitModal!.session!.topic,
+            chainId: _appKitModal!.selectedChain!.chainId,
+            request: SessionRequestParams(
+              method: 'wallet_switchEthereumChain',
+              params: [
+                {'chainId': sepoliaChainId},
+              ],
+            ),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              if (kDebugMode) {
+                print(
+                  'Web3Service: Switch request timed out, checking current chain...',
+                );
+              }
+              return null;
+            },
+          );
 
       // Wait for the chain switch to take effect
       await Future.delayed(const Duration(milliseconds: 500));
       _updateState();
 
       // Verify the switch was successful
-      final currentChainId = _appKitModal!.selectedChain?.chainId;
+      final newChainId = _appKitModal!.selectedChain?.chainId;
       final isCorrectChain =
-          currentChainId == '11155111' || currentChainId == 'eip155:11155111';
+          newChainId == '11155111' || newChainId == 'eip155:11155111';
 
       if (kDebugMode) {
-        print('Web3Service: After switch, chain is: $currentChainId');
+        print('Web3Service: After switch, chain is: $newChainId');
         print('Web3Service: Switch successful: $isCorrectChain');
       }
 

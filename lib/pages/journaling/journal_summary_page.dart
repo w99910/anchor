@@ -120,6 +120,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
           SnackBar(
             content: Text(AppLocalizations.of(context)!.successfullyUploaded),
             duration: const Duration(seconds: 5),
+            persist: false,
             action: SnackBarAction(
               label: AppLocalizations.of(context)!.view,
               onPressed: () => _openExplorer(result.explorerUrl),

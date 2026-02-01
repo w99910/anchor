@@ -135,6 +135,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   ? AppLocalizations.of(context)!.pleaseSelectSepoliaNetwork
                   : AppLocalizations.of(context)!.paymentFailed(errorMessage),
             ),
+            persist: false,
             backgroundColor: Colors.red,
             action: isNetworkError
                 ? SnackBarAction(

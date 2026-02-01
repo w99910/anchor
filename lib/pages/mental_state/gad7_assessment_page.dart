@@ -172,10 +172,10 @@ class _Gad7AssessmentPageState extends State<Gad7AssessmentPage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(
                             context,
-                          ).colorScheme.secondary,
+                          ).colorScheme.primary,
                           foregroundColor: Theme.of(
                             context,
-                          ).colorScheme.onSecondary,
+                          ).colorScheme.onPrimary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

@@ -148,33 +148,57 @@ class NFTService extends ChangeNotifier {
 
   /// Ensure the wallet is connected to Sepolia testnet
   Future<void> _ensureSepoliaNetwork() async {
-    final currentChainId = _web3Service.appKitModal?.selectedChain?.chainId;
-    final isOnSepolia =
-        currentChainId == '11155111' || currentChainId == 'eip155:11155111';
+    // Poll for up to 10 seconds to allow the user to switch networks
+    const maxAttempts = 20;
+    const pollInterval = Duration(milliseconds: 500);
 
-    if (kDebugMode) {
-      print(
-        'NFTService: Current chain: $currentChainId, isOnSepolia: $isOnSepolia',
-      );
-    }
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+      final currentChainId = _web3Service.appKitModal?.selectedChain?.chainId;
+      final isOnSepolia =
+          currentChainId == '11155111' || currentChainId == 'eip155:11155111';
 
-    if (!isOnSepolia) {
       if (kDebugMode) {
-        print('NFTService: Not on Sepolia, attempting to switch...');
-      }
-
-      final switched = await _web3Service.switchToSepolia();
-      if (!switched) {
-        throw Exception(
-          'Please switch to Sepolia testnet in your wallet to mint NFTs. '
-          'The NFT contract is deployed on Sepolia.',
+        print(
+          'NFTService: Attempt ${attempt + 1}/$maxAttempts - Current chain: $currentChainId, isOnSepolia: $isOnSepolia',
         );
       }
 
-      if (kDebugMode) {
-        print('NFTService: Successfully switched to Sepolia');
+      if (isOnSepolia) {
+        if (kDebugMode) {
+          print('NFTService: Already on Sepolia, proceeding with mint');
+        }
+        return;
       }
+
+      // On first attempt, try to request a network switch
+      if (attempt == 0) {
+        if (kDebugMode) {
+          print('NFTService: Not on Sepolia, attempting to switch...');
+        }
+        // Don't await - let the switch happen asynchronously while we poll
+        _web3Service
+            .switchToSepolia()
+            .then((switched) {
+              if (kDebugMode) {
+                print('NFTService: switchToSepolia returned: $switched');
+              }
+            })
+            .catchError((e) {
+              if (kDebugMode) {
+                print('NFTService: switchToSepolia error: $e');
+              }
+            });
+      }
+
+      // Wait before checking again
+      await Future.delayed(pollInterval);
     }
+
+    // If we get here, the network switch didn't happen in time
+    throw Exception(
+      'Please switch to Sepolia testnet in your wallet to mint NFTs. '
+      'The NFT contract is deployed on Sepolia.',
+    );
   }
 
   /// Mint a streak reward NFT

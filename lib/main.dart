@@ -235,7 +235,10 @@ class _AnchorAppState extends State<AnchorApp> with WidgetsBindingObserver {
     final isDark = brightness == Brightness.dark;
 
     // Primary: #56E016 (Bright Green), Secondary: #FFEB3B (Bright Yellow)
-    const primaryColor = Color(0xFF56E016);
+    // Use a darker shade for light mode to improve visibility
+    final primaryColor = isDark
+        ? const Color(0xFF56E016)
+        : const Color(0xFF3DA60E); // Darker green for light mode
     const secondaryColor = Color(0xFFFFEB3B);
 
     final colorScheme = ColorScheme.fromSeed(
@@ -331,14 +334,27 @@ class _AnchorAppState extends State<AnchorApp> with WidgetsBindingObserver {
         height: 70,
         // Privacy section: gray-900 dark, white light
         backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
-        indicatorColor: colorScheme.primaryContainer,
+        // Remove the box behind icons
+        indicatorColor: Colors.transparent,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        // Fill active icons with primary color
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return IconThemeData(color: primaryColor, size: 24);
+          }
+          return IconThemeData(
+            color: isDark
+                ? const Color(0xFF9CA3AF) // gray-400 for dark
+                : const Color(0xFF6B7280), // gray-500 for light
+            size: 24,
+          );
+        }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: colorScheme.primary, // Primary green #56E016
+              color: primaryColor,
             );
           }
           // Navigation font color: gray-700 for light mode
