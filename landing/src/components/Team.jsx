@@ -43,7 +43,7 @@ const Team = () => {
         {/* Team Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {teamMembers.map((member, index) => (
-            <div key={index} className="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div key={index} className="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-default">
               {/* Profile Image */}
               <div className="aspect-square mb-6 overflow-hidden rounded-2xl">
                 <img 

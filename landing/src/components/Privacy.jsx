@@ -65,7 +65,7 @@ const Privacy = () => {
   const canGoNext = currentSlide < allSlides.length - 2
   const canGoPrev = currentSlide > 2
   return (
-    <div className="bg-gray-900 py-20 px-8">
+    <div id="privacy" className="bg-gray-900 py-20 px-8">
       <div className="max-w-7xl mx-auto">
         {/* Privacy First Badge */}
         <div className="flex justify-center mb-8">

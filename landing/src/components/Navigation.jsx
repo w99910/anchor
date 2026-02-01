@@ -2,10 +2,10 @@ import React from 'react'
 
 const Navigation = () => {
   return (
-    <nav className="w-full px-8 py-6 opacity-0 animate-fadeIn" style={{animationDelay: '0.1s', animationFillMode: 'forwards'}}>
+    <nav className="fixed top-0 left-0 w-full px-8 py-6 bg-white/90 backdrop-blur-md border-b border-gray-100 z-50 opacity-0 animate-fadeIn" style={{animationDelay: '0.1s', animationFillMode: 'forwards'}}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-brand-green to-brand-yellow flex items-center justify-center">
             <span className="text-white font-bold text-xl">A</span>
           </div>
@@ -20,12 +20,22 @@ const Navigation = () => {
             </svg>
             Privacy First
           </div>
-          <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Features</a>
-          <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Privacy</a>
+          <button 
+            onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+            className="text-gray-600 hover:text-brand-green active:text-brand-green transition-colors cursor-pointer bg-transparent border-none"
+          >
+            Features
+          </button>
+          <button 
+            onClick={() => document.getElementById('privacy')?.scrollIntoView({ behavior: 'smooth' })}
+            className="text-gray-600 hover:text-brand-green active:text-brand-green transition-colors cursor-pointer bg-transparent border-none"
+          >
+            Privacy
+          </button>
         </div>
 
         {/* Contact Us Button */}
-        <button className="bg-gray-900 hover:bg-gray-800 text-white font-poppins font-medium px-6 py-3 rounded-full transition-colors">
+        <button className="bg-gray-900 hover:bg-gray-800 hover:scale-105 text-white font-poppins font-medium px-6 py-3 rounded-full transition-all duration-300">
           Contact Us
         </button>
       </div>
