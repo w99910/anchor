@@ -11,6 +11,6 @@ It demonstrates integration with Ethereum storage solutions, MetaMask wallet con
 - Connect to Ethereum via **MetaMask** (or other injected providers)
 - Interact with **Ethereum Storage** (likely EthStorage or similar decentralized storage)
 - Deploy / mint **NFTs** on Ethereum-compatible chains
-- Clean, responsive Flutter UI that works on iOS, Android, web, macOS, Windows, Linux
+- Clean, responsive Flutter UI that works currently on Android
 
 Built during an Ethereum hackathon to showcase practical Web3 + Flutter integration.
