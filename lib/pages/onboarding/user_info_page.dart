@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../services/user_info_service.dart';
 import '../../utils/responsive.dart';
 import 'personalized_questions_page.dart';
 
@@ -31,8 +32,16 @@ class _UserInfoPageState extends State<UserInfoPage> {
       _selectedGenderKey != null &&
       _selectedYear != null;
 
-  void _continue() {
+  Future<void> _continue() async {
     if (_canContinue) {
+      // Save user info
+      await UserInfoService().saveUserInfo(
+        name: _nameController.text.trim(),
+        gender: _selectedGenderKey!,
+        birthYear: _selectedYear!,
+      );
+
+      if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const PersonalizedQuestionsPage()),

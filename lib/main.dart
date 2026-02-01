@@ -14,6 +14,7 @@ import 'services/ai_settings_service.dart';
 import 'services/app_lock_service.dart';
 import 'services/appointment_service.dart';
 import 'services/locale_service.dart';
+import 'services/user_info_service.dart';
 
 // Keys for shared preferences
 const String _keyOnboardingComplete = 'onboarding_complete';
@@ -53,6 +54,9 @@ void main() async {
 
   // Initialize app lock service
   await appLockService.initialize();
+
+  // Initialize user info service
+  await UserInfoService().load();
 
   runApp(const AnchorApp());
 }

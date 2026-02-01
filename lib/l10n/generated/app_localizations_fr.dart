@@ -482,10 +482,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get goodMorning => 'Bonjour';
 
   @override
+  String goodMorningName(String name) {
+    return 'Bonjour, $name';
+  }
+
+  @override
   String get goodAfternoon => 'Bon après-midi';
 
   @override
+  String goodAfternoonName(String name) {
+    return 'Bon après-midi, $name';
+  }
+
+  @override
   String get goodEvening => 'Bonsoir';
+
+  @override
+  String goodEveningName(String name) {
+    return 'Bonsoir, $name';
+  }
 
   @override
   String get howAreYouToday => 'Comment allez-vous aujourd\'hui?';
@@ -1247,4 +1262,189 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get protectYourPrivacy => 'Protégez votre vie privée avec un code PIN';
+
+  @override
+  String get gad7Assessment => 'Évaluation GAD-7';
+
+  @override
+  String get phq9Assessment => 'Évaluation PHQ-9';
+
+  @override
+  String get assessmentIntroText =>
+      'Au cours des deux dernières semaines, à quelle fréquence avez-vous été gêné(e) par les problèmes suivants?';
+
+  @override
+  String get answerNotAtAll => 'Pas du tout';
+
+  @override
+  String get answerSeveralDays => 'Plusieurs jours';
+
+  @override
+  String get answerMoreThanHalfDays => 'Plus de la moitié des jours';
+
+  @override
+  String get answerNearlyEveryDay => 'Presque tous les jours';
+
+  @override
+  String get seeResult => 'Voir le résultat';
+
+  @override
+  String get gad7Question1 =>
+      'Sentiment de nervosité, d\'anxiété ou de tension';
+
+  @override
+  String get gad7Question2 =>
+      'Incapacité d\'arrêter de s\'inquiéter ou de contrôler ses inquiétudes';
+
+  @override
+  String get gad7Question3 =>
+      'Inquiétude excessive à propos de différentes choses';
+
+  @override
+  String get gad7Question4 => 'Difficulté à se détendre';
+
+  @override
+  String get gad7Question5 =>
+      'Agitation telle qu\'il est difficile de rester assis';
+
+  @override
+  String get gad7Question6 =>
+      'Tendance à s\'énerver ou à s\'irriter facilement';
+
+  @override
+  String get gad7Question7 =>
+      'Peur que quelque chose de terrible puisse arriver';
+
+  @override
+  String get phq9Question1 => 'Peu d\'intérêt ou de plaisir à faire les choses';
+
+  @override
+  String get phq9Question2 => 'Se sentir triste, déprimé(e) ou désespéré(e)';
+
+  @override
+  String get phq9Question3 =>
+      'Difficultés à s\'endormir ou à rester endormi(e), ou trop dormir';
+
+  @override
+  String get phq9Question4 => 'Se sentir fatigué(e) ou avoir peu d\'énergie';
+
+  @override
+  String get phq9Question5 => 'Peu d\'appétit ou manger trop';
+
+  @override
+  String get phq9Question6 =>
+      'Mauvaise opinion de soi-même — ou sentiment d\'être un(e) raté(e) ou d\'avoir déçu sa famille';
+
+  @override
+  String get phq9Question7 =>
+      'Difficultés à se concentrer, par exemple pour lire le journal ou regarder la télévision';
+
+  @override
+  String get phq9Question8 =>
+      'Bouger ou parler si lentement que les autres l\'ont remarqué? Ou au contraire — être si agité(e) que vous bougez beaucoup plus que d\'habitude';
+
+  @override
+  String get phq9Question9 =>
+      'Pensées que vous seriez mieux mort(e) ou idées de vous faire du mal';
+
+  @override
+  String get gad7ResultsTitle => 'Évaluation de l\'anxiété GAD-7';
+
+  @override
+  String get phq9ResultsTitle => 'Évaluation de la dépression PHQ-9';
+
+  @override
+  String get minimalAnxiety => 'Anxiété minimale';
+
+  @override
+  String get mildAnxiety => 'Anxiété légère';
+
+  @override
+  String get moderateAnxiety => 'Anxiété modérée';
+
+  @override
+  String get severeAnxiety => 'Anxiété sévère';
+
+  @override
+  String get minimalDepression => 'Dépression minimale';
+
+  @override
+  String get mildDepression => 'Dépression légère';
+
+  @override
+  String get moderateDepression => 'Dépression modérée';
+
+  @override
+  String get moderatelySevereDepression => 'Dépression modérément sévère';
+
+  @override
+  String get severeDepression => 'Dépression sévère';
+
+  @override
+  String get gad7DescMinimal => 'Anxiété minimale. Continuez ainsi!';
+
+  @override
+  String get gad7DescMild =>
+      'Anxiété légère. Envisagez d\'intégrer des techniques de relaxation.';
+
+  @override
+  String get gad7DescModerate =>
+      'Anxiété modérée. Soyez attentif(ve) à votre santé mentale.';
+
+  @override
+  String get gad7DescSevere =>
+      'Anxiété sévère. Il est recommandé de consulter un professionnel.';
+
+  @override
+  String get phq9DescMinimal =>
+      'Les symptômes suggèrent une dépression minimale. Continuez à surveiller votre humeur.';
+
+  @override
+  String get phq9DescMild =>
+      'Les symptômes suggèrent une dépression légère. Il pourrait être utile de parler à un conseiller.';
+
+  @override
+  String get phq9DescModerate =>
+      'Les symptômes suggèrent une dépression modérée. Envisagez une consultation avec un professionnel de santé.';
+
+  @override
+  String get phq9DescModeratelySevere =>
+      'Les symptômes suggèrent une dépression modérément sévère. Veuillez consulter un professionnel.';
+
+  @override
+  String get phq9DescSevere =>
+      'Les symptômes suggèrent une dépression sévère. Nous recommandons fortement de chercher une aide professionnelle immédiate.';
+
+  @override
+  String get nextSteps => 'Prochaines étapes';
+
+  @override
+  String get recPracticeMindfulness =>
+      'Pratiquer la pleine conscience et la méditation';
+
+  @override
+  String get recPhysicalActivity => 'Pratiquer une activité physique régulière';
+
+  @override
+  String get recHealthySleep => 'Maintenir un rythme de sommeil sain';
+
+  @override
+  String get recTalkToFriends =>
+      'Parler à des amis ou des membres de la famille de confiance';
+
+  @override
+  String get recMaintainRoutine =>
+      'Maintenir une routine pour le sommeil et les repas';
+
+  @override
+  String get recSetGoals =>
+      'Se fixer de petits objectifs quotidiens réalisables';
+
+  @override
+  String get recStayConnected =>
+      'Rester en contact avec votre réseau de soutien';
+
+  @override
+  String get recContactCrisisHotline =>
+      'Contacter une ligne d\'aide en cas de crise';
 }

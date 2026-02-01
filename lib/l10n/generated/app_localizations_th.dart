@@ -474,10 +474,25 @@ class AppLocalizationsTh extends AppLocalizations {
   String get goodMorning => 'สวัสดีตอนเช้า';
 
   @override
+  String goodMorningName(String name) {
+    return 'สวัสดีตอนเช้า, $name';
+  }
+
+  @override
   String get goodAfternoon => 'สวัสดีตอนบ่าย';
 
   @override
+  String goodAfternoonName(String name) {
+    return 'สวัสดีตอนบ่าย, $name';
+  }
+
+  @override
   String get goodEvening => 'สวัสดีตอนเย็น';
+
+  @override
+  String goodEveningName(String name) {
+    return 'สวัสดีตอนเย็น, $name';
+  }
 
   @override
   String get howAreYouToday => 'วันนี้คุณเป็นอย่างไรบ้าง?';
@@ -1225,4 +1240,174 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get protectYourPrivacy => 'ปกป้องความเป็นส่วนตัวด้วยรหัส PIN';
+
+  @override
+  String get gad7Assessment => 'แบบประเมิน GAD-7';
+
+  @override
+  String get phq9Assessment => 'แบบประเมิน PHQ-9';
+
+  @override
+  String get assessmentIntroText =>
+      'ในช่วงสองสัปดาห์ที่ผ่านมา คุณมีปัญหาเหล่านี้บ่อยแค่ไหน?';
+
+  @override
+  String get answerNotAtAll => 'ไม่เลย';
+
+  @override
+  String get answerSeveralDays => 'หลายวัน';
+
+  @override
+  String get answerMoreThanHalfDays => 'มากกว่าครึ่งหนึ่งของวัน';
+
+  @override
+  String get answerNearlyEveryDay => 'เกือบทุกวัน';
+
+  @override
+  String get seeResult => 'ดูผลลัพธ์';
+
+  @override
+  String get gad7Question1 => 'รู้สึกกระวนกระวาย วิตกกังวล หรือตึงเครียด';
+
+  @override
+  String get gad7Question2 => 'ไม่สามารถหยุดหรือควบคุมความกังวลได้';
+
+  @override
+  String get gad7Question3 => 'กังวลมากเกินไปเกี่ยวกับเรื่องต่างๆ';
+
+  @override
+  String get gad7Question4 => 'มีปัญหาในการผ่อนคลาย';
+
+  @override
+  String get gad7Question5 => 'กระสับกระส่ายจนนั่งนิ่งไม่ได้';
+
+  @override
+  String get gad7Question6 => 'หงุดหงิดหรือรำคาญง่าย';
+
+  @override
+  String get gad7Question7 => 'รู้สึกกลัวว่าจะมีเรื่องร้ายแรงเกิดขึ้น';
+
+  @override
+  String get phq9Question1 => 'แทบไม่มีความสนใจหรือความสุขในการทำสิ่งต่างๆ';
+
+  @override
+  String get phq9Question2 => 'รู้สึกหดหู่ ซึมเศร้า หรือหมดหวัง';
+
+  @override
+  String get phq9Question3 => 'นอนหลับยาก หลับไม่สนิท หรือนอนมากเกินไป';
+
+  @override
+  String get phq9Question4 => 'รู้สึกเหนื่อยหรือไม่มีพลังงาน';
+
+  @override
+  String get phq9Question5 => 'เบื่ออาหารหรือกินมากเกินไป';
+
+  @override
+  String get phq9Question6 =>
+      'รู้สึกไม่ดีกับตัวเอง — หรือรู้สึกว่าตัวเองล้มเหลว หรือทำให้ตัวเองหรือครอบครัวผิดหวัง';
+
+  @override
+  String get phq9Question7 =>
+      'มีปัญหาในการมีสมาธิกับสิ่งต่างๆ เช่น อ่านหนังสือพิมพ์หรือดูโทรทัศน์';
+
+  @override
+  String get phq9Question8 =>
+      'เคลื่อนไหวหรือพูดช้าจนคนอื่นสังเกตเห็น? หรือตรงกันข้าม — กระสับกระส่ายจนเคลื่อนไหวมากกว่าปกติ';
+
+  @override
+  String get phq9Question9 =>
+      'คิดว่าตายไปจะดีกว่า หรือคิดทำร้ายตัวเองในทางใดทางหนึ่ง';
+
+  @override
+  String get gad7ResultsTitle => 'ผลประเมินความวิตกกังวล GAD-7';
+
+  @override
+  String get phq9ResultsTitle => 'ผลประเมินภาวะซึมเศร้า PHQ-9';
+
+  @override
+  String get minimalAnxiety => 'วิตกกังวลน้อยมาก';
+
+  @override
+  String get mildAnxiety => 'วิตกกังวลเล็กน้อย';
+
+  @override
+  String get moderateAnxiety => 'วิตกกังวลปานกลาง';
+
+  @override
+  String get severeAnxiety => 'วิตกกังวลรุนแรง';
+
+  @override
+  String get minimalDepression => 'ซึมเศร้าน้อยมาก';
+
+  @override
+  String get mildDepression => 'ซึมเศร้าเล็กน้อย';
+
+  @override
+  String get moderateDepression => 'ซึมเศร้าปานกลาง';
+
+  @override
+  String get moderatelySevereDepression => 'ซึมเศร้าปานกลางถึงรุนแรง';
+
+  @override
+  String get severeDepression => 'ซึมเศร้ารุนแรง';
+
+  @override
+  String get gad7DescMinimal => 'วิตกกังวลน้อยมาก ทำดีต่อไปนะ!';
+
+  @override
+  String get gad7DescMild => 'วิตกกังวลเล็กน้อย ลองใช้เทคนิคผ่อนคลาย';
+
+  @override
+  String get gad7DescModerate => 'วิตกกังวลปานกลาง ใส่ใจสุขภาพจิตของคุณ';
+
+  @override
+  String get gad7DescSevere => 'วิตกกังวลรุนแรง แนะนำให้ปรึกษาผู้เชี่ยวชาญ';
+
+  @override
+  String get phq9DescMinimal =>
+      'อาการบ่งชี้ว่าซึมเศร้าน้อยมาก ติดตามอารมณ์ของคุณต่อไป';
+
+  @override
+  String get phq9DescMild =>
+      'อาการบ่งชี้ว่าซึมเศร้าเล็กน้อย การพูดคุยกับที่ปรึกษาอาจช่วยได้';
+
+  @override
+  String get phq9DescModerate =>
+      'อาการบ่งชี้ว่าซึมเศร้าปานกลาง ควรปรึกษาผู้เชี่ยวชาญด้านสุขภาพ';
+
+  @override
+  String get phq9DescModeratelySevere =>
+      'อาการบ่งชี้ว่าซึมเศร้าปานกลางถึงรุนแรง กรุณาขอความช่วยเหลือจากผู้เชี่ยวชาญ';
+
+  @override
+  String get phq9DescSevere =>
+      'อาการบ่งชี้ว่าซึมเศร้ารุนแรง เราแนะนำอย่างยิ่งให้ขอความช่วยเหลือจากผู้เชี่ยวชาญทันที';
+
+  @override
+  String get nextSteps => 'ขั้นตอนถัดไป';
+
+  @override
+  String get recPracticeMindfulness => 'ฝึกสติและการทำสมาธิ';
+
+  @override
+  String get recPhysicalActivity => 'ออกกำลังกายสม่ำเสมอ';
+
+  @override
+  String get recHealthySleep => 'รักษาตารางการนอนที่ดีต่อสุขภาพ';
+
+  @override
+  String get recTalkToFriends =>
+      'พูดคุยกับเพื่อนหรือสมาชิกในครอบครัวที่ไว้ใจได้';
+
+  @override
+  String get recMaintainRoutine => 'รักษากิจวัตรการนอนและมื้ออาหาร';
+
+  @override
+  String get recSetGoals => 'ตั้งเป้าหมายเล็กๆ ที่ทำได้ในแต่ละวัน';
+
+  @override
+  String get recStayConnected => 'รักษาการติดต่อกับเครือข่ายสนับสนุนของคุณ';
+
+  @override
+  String get recContactCrisisHotline => 'ติดต่อสายด่วนสุขภาพจิต';
 }

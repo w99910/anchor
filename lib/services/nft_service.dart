@@ -146,6 +146,37 @@ class NFTService extends ChangeNotifier {
     return _claimedMilestones.contains(milestone);
   }
 
+  /// Ensure the wallet is connected to Sepolia testnet
+  Future<void> _ensureSepoliaNetwork() async {
+    final currentChainId = _web3Service.appKitModal?.selectedChain?.chainId;
+    final isOnSepolia =
+        currentChainId == '11155111' || currentChainId == 'eip155:11155111';
+
+    if (kDebugMode) {
+      print(
+        'NFTService: Current chain: $currentChainId, isOnSepolia: $isOnSepolia',
+      );
+    }
+
+    if (!isOnSepolia) {
+      if (kDebugMode) {
+        print('NFTService: Not on Sepolia, attempting to switch...');
+      }
+
+      final switched = await _web3Service.switchToSepolia();
+      if (!switched) {
+        throw Exception(
+          'Please switch to Sepolia testnet in your wallet to mint NFTs. '
+          'The NFT contract is deployed on Sepolia.',
+        );
+      }
+
+      if (kDebugMode) {
+        print('NFTService: Successfully switched to Sepolia');
+      }
+    }
+  }
+
   /// Mint a streak reward NFT
   ///
   /// Returns the transaction hash if successful.
@@ -163,6 +194,9 @@ class NFTService extends ChangeNotifier {
         throw Exception('Wallet connection required to mint NFT');
       }
     }
+
+    // Ensure we're on Sepolia testnet before minting
+    await _ensureSepoliaNetwork();
 
     if (_claimedMilestones.contains(milestone)) {
       throw Exception('NFT already minted for this milestone');
@@ -254,9 +288,20 @@ extension Web3ServiceNFT on Web3Service {
         throw Exception('No active session');
       }
 
+      // Force Sepolia testnet chain ID for safety
+      const sepoliaChainId = 'eip155:11155111';
+      final chainIdToUse =
+          appKitModal!.selectedChain?.chainId ?? sepoliaChainId;
+
+      // Verify we're on Sepolia in testnet mode
+      if (kDebugMode) {
+        print('Web3Service: Sending transaction on chain: $chainIdToUse');
+      }
+
+      // Use Sepolia chain ID explicitly
       final result = await appKitModal!.request(
         topic: session.topic ?? '',
-        chainId: appKitModal!.selectedChain!.chainId,
+        chainId: sepoliaChainId,
         request: SessionRequestParams(
           method: 'eth_sendTransaction',
           params: [

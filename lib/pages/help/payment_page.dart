@@ -1,5 +1,7 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../utils/confetti_overlay.dart';
 import '../../utils/responsive.dart';
 import '../../services/web3_service.dart';
 import '../../config/web3_config.dart';
@@ -671,7 +673,7 @@ class _CryptoPaymentOption extends StatelessWidget {
   }
 }
 
-class _SuccessScreen extends StatelessWidget {
+class _SuccessScreen extends StatefulWidget {
   final String therapistName;
   final String paymentMethod;
   final String? transactionHash;
@@ -685,6 +687,31 @@ class _SuccessScreen extends StatelessWidget {
     this.date,
     this.time,
   });
+
+  @override
+  State<_SuccessScreen> createState() => _SuccessScreenState();
+}
+
+class _SuccessScreenState extends State<_SuccessScreen> {
+  late final ConfettiController _confettiController;
+
+  @override
+  void initState() {
+    super.initState();
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 2),
+    );
+    // Celebrate successful booking
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _confettiController.play();
+    });
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
+  }
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'TBD';
@@ -708,145 +735,155 @@ class _SuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: ResponsiveCenter(
-          maxWidth: 500,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  size: 48,
-                  color: Colors.green,
-                ),
-              ),
-              const SizedBox(height: 32),
-              Text(
-                AppLocalizations.of(context)!.booked,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                AppLocalizations.of(context)!.sessionConfirmed(therapistName),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              // Appointment details
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardTheme.color,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    _DetailRow(
-                      icon: Icons.calendar_today_rounded,
-                      label: AppLocalizations.of(context)!.date,
-                      value: _formatDate(date),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: ResponsiveCenter(
+              maxWidth: 500,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    const SizedBox(height: 12),
-                    _DetailRow(
-                      icon: Icons.access_time_rounded,
-                      label: AppLocalizations.of(context)!.time,
-                      value: time ?? AppLocalizations.of(context)!.tbd,
+                    child: const Icon(
+                      Icons.check_rounded,
+                      size: 48,
+                      color: Colors.green,
                     ),
-                    const SizedBox(height: 12),
-                    _DetailRow(
-                      icon: Icons.person_rounded,
-                      label: AppLocalizations.of(context)!.therapist,
-                      value: therapistName,
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    AppLocalizations.of(context)!.booked,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                ),
-              ),
-
-              if (paymentMethod == 'crypto') ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
                   ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF627EEA), Color(0xFF8B5CF6)],
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Icon(
-                          Icons.diamond_rounded,
-                          size: 12,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        AppLocalizations.of(context)!.paidWithDigitalWallet,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-                if (transactionHash != null) ...[
                   const SizedBox(height: 8),
                   Text(
-                    'Tx: ${transactionHash!.substring(0, 10)}...${transactionHash!.substring(transactionHash!.length - 8)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
+                    AppLocalizations.of(
+                      context,
+                    )!.sessionConfirmed(widget.therapistName),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  // Appointment details
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        _DetailRow(
+                          icon: Icons.calendar_today_rounded,
+                          label: AppLocalizations.of(context)!.date,
+                          value: _formatDate(widget.date),
+                        ),
+                        const SizedBox(height: 12),
+                        _DetailRow(
+                          icon: Icons.access_time_rounded,
+                          label: AppLocalizations.of(context)!.time,
+                          value:
+                              widget.time ?? AppLocalizations.of(context)!.tbd,
+                        ),
+                        const SizedBox(height: 12),
+                        _DetailRow(
+                          icon: Icons.person_rounded,
+                          label: AppLocalizations.of(context)!.therapist,
+                          value: widget.therapistName,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  if (widget.paymentMethod == 'crypto') ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF627EEA), Color(0xFF8B5CF6)],
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Icon(
+                              Icons.diamond_rounded,
+                              size: 12,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            AppLocalizations.of(context)!.paidWithDigitalWallet,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (widget.transactionHash != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Tx: ${widget.transactionHash!.substring(0, 10)}...${widget.transactionHash!.substring(widget.transactionHash!.length - 8)}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontFamily: 'monospace',
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+
+                  const SizedBox(height: 48),
+                  FilledButton(
+                    onPressed: () async {
+                      await appointmentService.clearLastCompletedPayment();
+                      if (context.mounted) {
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                      }
+                    },
+                    child: Text(AppLocalizations.of(context)!.done),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () async {
+                      await appointmentService.clearLastCompletedPayment();
+                      if (context.mounted) {
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                      }
+                    },
+                    child: Text(
+                      AppLocalizations.of(context)!.viewMyAppointments,
                     ),
                   ),
                 ],
-              ],
-
-              const SizedBox(height: 48),
-              FilledButton(
-                onPressed: () async {
-                  await appointmentService.clearLastCompletedPayment();
-                  if (context.mounted) {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                  }
-                },
-                child: Text(AppLocalizations.of(context)!.done),
               ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () async {
-                  await appointmentService.clearLastCompletedPayment();
-                  if (context.mounted) {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                  }
-                },
-                child: Text(AppLocalizations.of(context)!.viewMyAppointments),
-              ),
-            ],
+            ),
           ),
-        ),
+          CelebrationConfetti(controller: _confettiController),
+        ],
       ),
     );
   }

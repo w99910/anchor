@@ -1,22 +1,39 @@
+import 'package:anchor/pages/help/help_page.dart';
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
+import '../../services/database_service.dart';
 import '../../utils/responsive.dart';
 
-class Phq9ResultsPage extends StatelessWidget {
+class Phq9ResultsPage extends StatefulWidget {
   final Map<int, int> answers;
 
-  const Phq9ResultsPage({
-    super.key,
-    required this.answers,
-  });
+  const Phq9ResultsPage({super.key, required this.answers});
+
+  @override
+  State<Phq9ResultsPage> createState() => _Phq9ResultsPageState();
+}
+
+class _Phq9ResultsPageState extends State<Phq9ResultsPage> {
+  final _databaseService = DatabaseService();
+  bool _saved = false;
 
   int get _score {
-    if (answers.isEmpty) return 0;
-    final total = answers.values.reduce((a, b) => a + b);
+    if (widget.answers.isEmpty) return 0;
+    final total = widget.answers.values.reduce((a, b) => a + b);
     return total;
   }
 
   // PHQ-9 Specific Thresholds
-  String get _status {
+  String _getStatus(AppLocalizations l10n) {
+    if (_score <= 4) return l10n.minimalDepression;
+    if (_score <= 9) return l10n.mildDepression;
+    if (_score <= 14) return l10n.moderateDepression;
+    if (_score <= 19) return l10n.moderatelySevereDepression;
+    return l10n.severeDepression;
+  }
+
+  // For database storage (English only)
+  String get _statusForDb {
     if (_score <= 4) return 'Minimal depression';
     if (_score <= 9) return 'Mild depression';
     if (_score <= 14) return 'Moderate depression';
@@ -33,7 +50,26 @@ class Phq9ResultsPage extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _saveResult();
+  }
+
+  Future<void> _saveResult() async {
+    if (_saved) return;
+    final result = AssessmentResult(
+      type: 'phq9',
+      score: _score,
+      status: _statusForDb,
+      answers: widget.answers,
+    );
+    await _databaseService.insertAssessmentResult(result);
+    _saved = true;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: ResponsiveCenter(
@@ -63,7 +99,7 @@ class Phq9ResultsPage extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      _status,
+                      _getStatus(l10n),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: _statusColor,
@@ -77,14 +113,14 @@ class Phq9ResultsPage extends StatelessWidget {
               const SizedBox(height: 32),
 
               Text(
-                'PHQ-9 Depression Assessment',
+                l10n.phq9ResultsTitle,
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               Text(
-                _getDescription(),
+                _getDescription(l10n),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   height: 1.5,
@@ -118,14 +154,14 @@ class Phq9ResultsPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Next Steps',
+                          l10n.nextSteps,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    ..._getRecommendations().map(
+                    ..._getRecommendations(l10n).map(
                       (rec) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Row(
@@ -158,12 +194,17 @@ class Phq9ResultsPage extends StatelessWidget {
               FilledButton(
                 onPressed: () =>
                     Navigator.popUntil(context, (route) => route.isFirst),
-                child: const Text('Done'),
+                child: Text(l10n.done),
               ),
               const SizedBox(height: 12),
               TextButton(
-                onPressed: () {},
-                child: const Text('Talk to a professional'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HelpPage()),
+                  );
+                },
+                child: Text(l10n.talkToProfessional),
               ),
               const SizedBox(height: 16),
             ],
@@ -173,34 +214,34 @@ class Phq9ResultsPage extends StatelessWidget {
     );
   }
 
-  String _getDescription() {
+  String _getDescription(AppLocalizations l10n) {
     if (_score <= 4) {
-      return 'Symptoms suggest minimal depression. Continue monitoring your mood.';
+      return l10n.phq9DescMinimal;
     }
     if (_score <= 9) {
-      return 'Symptoms suggest mild depression. It may be helpful to talk with a counselor.';
+      return l10n.phq9DescMild;
     }
     if (_score <= 14) {
-      return 'Symptoms suggest moderate depression. Consider a consultation with a healthcare professional.';
+      return l10n.phq9DescModerate;
     }
     if (_score <= 19) {
-      return 'Symptoms suggest moderately severe depression. Please reach out to a professional for support.';
+      return l10n.phq9DescModeratelySevere;
     }
-    return 'Symptoms suggest severe depression. We strongly recommend seeking immediate professional help.';
+    return l10n.phq9DescSevere;
   }
 
-  List<String> _getRecommendations() {
+  List<String> _getRecommendations(AppLocalizations l10n) {
     List<String> recs = [
-      'Maintain a routine for sleep and meals',
-      'Set small, achievable daily goals',
-      'Stay connected with your support network',
+      l10n.recMaintainRoutine,
+      l10n.recSetGoals,
+      l10n.recStayConnected,
     ];
 
     // If score is high or Q9 (Suicidal ideation) is marked, add urgent advice
-    if (_score >= 15 || (answers[8] ?? 0) > 0) {
-      recs.insert(0, 'Contact a mental health crisis hotline');
+    if (_score >= 15 || (widget.answers[8] ?? 0) > 0) {
+      recs.insert(0, l10n.recContactCrisisHotline);
     }
-    
+
     return recs;
   }
 }

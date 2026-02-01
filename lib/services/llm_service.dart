@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'ai_settings_service.dart';
 import 'gemini_service.dart';
 import 'model_download_service.dart';
+import 'user_info_service.dart';
 
 /// Data class to pass to isolate
 class _InferenceRequest {
@@ -342,6 +343,9 @@ $userPrompt<|im_end|>
       );
     }
 
+    // Get user context for personalization
+    final userContext = UserInfoService().getUserContext();
+
     // Build the chat prompt with system message for on-device model
     final systemPrompt = mode == 'friend'
         ? '''You are a warm, genuine, and supportive friend. You are NOT a clinical therapist.
@@ -356,7 +360,7 @@ Conversational Tone: Speak naturally. Use phrases like 'I get it,' 'That is so h
 
 Less Asking, More Sharing: Do not end every message with a question. Sometimes, just sitting with the emotion is enough. If you do ask a question, make it casual.
 
-When speaking in other language, do not translate English idioms literally.'''
+When speaking in other language, do not translate English idioms literally.$userContext'''
         : '''Role: You are a compassionate, professional, and non-judgmental AI therapist. You draw upon techniques from Cognitive Behavioral Therapy (CBT) and Person-Centered Therapy.
 
 Core Objective: Your goal is not to "fix" the user or give direct advice, but to help them explore their emotions, identify cognitive distortions (negative thought patterns), and find their own clarity.
@@ -375,7 +379,7 @@ Safety & Boundaries: Do not diagnose medical conditions. If the user mentions se
 
 Tone: Professional, calm, curious, and empathetic. Avoid being overly casual or using slang.
 
-Lanaguage: When speaking in other language, do not translate English idioms literally.''';
+Lanaguage: When speaking in other language, do not translate English idioms literally.$userContext''';
 
     // Format prompt based on model type, including chat history
     final fullPrompt = _formatLlamaPromptWithHistory(

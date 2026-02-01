@@ -1,5 +1,9 @@
 package com.example.anchor
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -15,13 +19,58 @@ import kotlin.concurrent.thread
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.anchor/llm"
     private val STREAM_CHANNEL = "com.example.anchor/llm_stream"
+    private val DEEPLINK_EVENTS_CHANNEL = "com.example.anchor/deeplink_events"
     private val TAG = "LlamaRunner"
     private var llamaProcess: Process? = null
     private var eventSink: EventChannel.EventSink? = null
+    private var deeplinkEventSink: EventChannel.EventSink? = null
+    private var linksReceiver: BroadcastReceiver? = null
     private val mainHandler = Handler(Looper.getMainLooper())
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Handle initial deep link if app was launched via deep link
+        handleDeepLink(intent)
+    }
+    
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Handle deep link when app is already running
+        handleDeepLink(intent)
+    }
+    
+    private fun handleDeepLink(intent: Intent?) {
+        if (intent?.action == Intent.ACTION_VIEW) {
+            val dataString = intent.dataString
+            if (dataString != null) {
+                Log.d(TAG, "Received deep link: $dataString")
+                // Send to Flutter via EventChannel
+                mainHandler.post {
+                    deeplinkEventSink?.success(dataString)
+                }
+            }
+        }
+    }
     
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        
+        // EventChannel for deep link events (for WalletConnect/Reown)
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, DEEPLINK_EVENTS_CHANNEL).setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    deeplinkEventSink = events
+                    linksReceiver = createDeepLinkReceiver(events)
+                    Log.d(TAG, "Deep link listener attached")
+                }
+                
+                override fun onCancel(arguments: Any?) {
+                    deeplinkEventSink = null
+                    linksReceiver = null
+                    Log.d(TAG, "Deep link listener cancelled")
+                }
+            }
+        )
         
         // EventChannel for streaming output
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, STREAM_CHANNEL).setStreamHandler(
@@ -344,6 +393,19 @@ class MainActivity : FlutterActivity() {
                 Log.e(TAG, "Exception running Llama: ${e.message}", e)
                 mainHandler.post {
                     result.error("EXCEPTION", e.message, e.stackTraceToString())
+                }
+            }
+        }
+    }
+    
+    private fun createDeepLinkReceiver(events: EventChannel.EventSink?): BroadcastReceiver {
+        return object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                val dataString = intent.dataString
+                if (dataString != null) {
+                    events?.success(dataString)
+                } else {
+                    events?.error("UNAVAILABLE", "Link unavailable", null)
                 }
             }
         }

@@ -1,8 +1,10 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/nft_service.dart';
 import '../services/web3_service.dart';
 import '../services/database_service.dart';
+import '../utils/confetti_overlay.dart';
 
 /// Page displaying streak NFT rewards
 class RewardsPage extends StatefulWidget {
@@ -16,6 +18,7 @@ class _RewardsPageState extends State<RewardsPage> {
   final NFTService _nftService = NFTService();
   final Web3Service _web3Service = Web3Service();
   final DatabaseService _databaseService = DatabaseService();
+  late final ConfettiController _confettiController;
 
   int _currentStreak = 0;
   bool _isLoading = true;
@@ -25,7 +28,16 @@ class _RewardsPageState extends State<RewardsPage> {
   @override
   void initState() {
     super.initState();
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 2),
+    );
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -75,6 +87,32 @@ class _RewardsPageState extends State<RewardsPage> {
     _currentStreak = streak;
   }
 
+  Future<void> _disconnectWallet() async {
+    try {
+      await _web3Service.disconnect();
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Wallet disconnected. Please reconnect while on Sepolia testnet.',
+            ),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to disconnect: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _mintNFT(StreakMilestone milestone) async {
     setState(() {
       _isMinting = true;
@@ -105,11 +143,9 @@ class _RewardsPageState extends State<RewardsPage> {
     // Auto-connect wallet if not connected
     if (!_web3Service.isConnected) {
       try {
-        await _web3Service.connectWallet();
-        // Wait a bit for connection to complete
-        await Future.delayed(const Duration(milliseconds: 500));
+        final address = await _web3Service.connectWallet();
 
-        if (!_web3Service.isConnected) {
+        if (address == null || !_web3Service.isConnected) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -143,6 +179,7 @@ class _RewardsPageState extends State<RewardsPage> {
     try {
       final txHash = await _nftService.mintStreakNFT(milestone);
       if (txHash != null && mounted) {
+        _confettiController.play();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('🎉 ${milestone.name} NFT minted successfully!'),
@@ -182,62 +219,72 @@ class _RewardsPageState extends State<RewardsPage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Streak Rewards'), centerTitle: true),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadData,
-              child: CustomScrollView(
-                slivers: [
-                  // Header with current streak
-                  SliverToBoxAdapter(child: _buildStreakHeader(context)),
+      body: Stack(
+        children: [
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                  onRefresh: _loadData,
+                  child: CustomScrollView(
+                    slivers: [
+                      // Header with current streak
+                      SliverToBoxAdapter(child: _buildStreakHeader(context)),
 
-                  // Progress indicator
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'NFT Rewards',
-                            style: Theme.of(context).textTheme.titleLarge,
+                      // Progress indicator
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'NFT Rewards',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$unlockedCount of ${rewards.length} unlocked',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '$unlockedCount of ${rewards.length} unlocked',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // NFT reward cards
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildRewardCard(context, rewards[index]),
                         ),
-                        childCount: rewards.length,
                       ),
-                    ),
+
+                      // NFT reward cards
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildRewardCard(context, rewards[index]),
+                            ),
+                            childCount: rewards.length,
+                          ),
+                        ),
+                      ),
+
+                      // Wallet status section
+                      SliverToBoxAdapter(
+                        child: _buildWalletStatusSection(context),
+                      ),
+
+                      // Info section
+                      SliverToBoxAdapter(child: _buildInfoSection(context)),
+
+                      const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                    ],
                   ),
-
-                  // Info section
-                  SliverToBoxAdapter(child: _buildInfoSection(context)),
-
-                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                ],
-              ),
-            ),
+                ),
+          CelebrationConfetti(controller: _confettiController),
+        ],
+      ),
     );
   }
 
@@ -473,6 +520,155 @@ class _RewardsPageState extends State<RewardsPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildWalletStatusSection(BuildContext context) {
+    final isConnected = _web3Service.isConnected;
+    final address = _web3Service.walletAddress;
+    final chainId = _web3Service.chainId;
+    final isSepoliaNetwork =
+        chainId == 'eip155:11155111' || chainId == '11155111';
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isConnected
+              ? (isSepoliaNetwork
+                    ? Colors.green.withOpacity(0.3)
+                    : Colors.orange.withOpacity(0.3))
+              : Colors.grey.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isConnected
+                    ? Icons.account_balance_wallet
+                    : Icons.account_balance_wallet_outlined,
+                size: 20,
+                color: isConnected
+                    ? (isSepoliaNetwork ? Colors.green : Colors.orange)
+                    : Colors.grey,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Wallet Status',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isConnected
+                      ? (isSepoliaNetwork
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.orange.withOpacity(0.1))
+                      : Colors.grey.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  isConnected
+                      ? (isSepoliaNetwork ? 'Sepolia' : 'Wrong Network')
+                      : 'Not Connected',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: isConnected
+                        ? (isSepoliaNetwork ? Colors.green : Colors.orange)
+                        : Colors.grey,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (isConnected) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Address',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${address?.substring(0, 6)}...${address?.substring(address.length - 4)}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: _disconnectWallet,
+                  icon: const Icon(Icons.logout, size: 16),
+                  label: const Text('Disconnect'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (!isSepoliaNetwork) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      size: 16,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Please disconnect and reconnect while MetaMask is on Sepolia testnet',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.orange.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ] else ...[
+            const SizedBox(height: 8),
+            Text(
+              'Connect your wallet to mint NFT rewards',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

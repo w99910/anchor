@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'phq9_results_page.dart';
 
 class Phq9AssessmentPage extends StatefulWidget {
@@ -11,30 +12,38 @@ class Phq9AssessmentPage extends StatefulWidget {
 class _Phq9AssessmentPageState extends State<Phq9AssessmentPage> {
   final ScrollController _scrollController = ScrollController();
 
-  final List<String> _questions = [
-    'Little interest or pleasure in doing things',
-    'Feeling down, depressed, or hopeless',
-    'Trouble falling or staying asleep, or sleeping too much',
-    'Feeling tired or having little energy',
-    'Poor appetite or overeating',
-    'Feeling bad about yourself — or that you are a failure or have let yourself or your family down',
-    'Trouble concentrating on things, such as reading the newspaper or watching television',
-    'Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual',
-    'Thoughts that you would be better off dead or of hurting yourself in some way',
+  List<String> _getQuestions(AppLocalizations l10n) => [
+    l10n.phq9Question1,
+    l10n.phq9Question2,
+    l10n.phq9Question3,
+    l10n.phq9Question4,
+    l10n.phq9Question5,
+    l10n.phq9Question6,
+    l10n.phq9Question7,
+    l10n.phq9Question8,
+    l10n.phq9Question9,
+  ];
+
+  List<String> _getAnswerOptions(AppLocalizations l10n) => [
+    l10n.answerNotAtAll,
+    l10n.answerSeveralDays,
+    l10n.answerMoreThanHalfDays,
+    l10n.answerNearlyEveryDay,
   ];
 
   final List<Map<String, dynamic>> _chat = [];
   final Map<int, int> _answers = {};
   int _currentQuestionIndex = 0;
   bool _isFinished = false;
+  bool _initialized = false;
 
-  @override
-  void initState() {
-    super.initState();
-    // Initialize the chat with the very first question
+  void _initializeChat(AppLocalizations l10n) {
+    if (_initialized) return;
+    _initialized = true;
+    final questions = _getQuestions(l10n);
     _chat.add({
       'isUser': false,
-      'text': _questions[_currentQuestionIndex],
+      'text': questions[_currentQuestionIndex],
     });
   }
 
@@ -47,7 +56,10 @@ class _Phq9AssessmentPageState extends State<Phq9AssessmentPage> {
     );
   }
 
-  void _handleAnswer(int answerIndex) {
+  void _handleAnswer(int answerIndex, AppLocalizations l10n) {
+    final questions = _getQuestions(l10n);
+    final answerOptions = _getAnswerOptions(l10n);
+    
     setState(() {
       // 1. Record the answer for the current question
       _answers[_currentQuestionIndex] = answerIndex;
@@ -55,16 +67,16 @@ class _Phq9AssessmentPageState extends State<Phq9AssessmentPage> {
       // 2. Add User's response to the chat
       _chat.add({
         'isUser': true,
-        'text': ['Not at all', 'Several days', 'More than half the days', 'Nearly every day'][answerIndex],
+        'text': answerOptions[answerIndex],
       });
 
       // 3. Check if there are more questions
-      if (_currentQuestionIndex < _questions.length - 1) {
+      if (_currentQuestionIndex < questions.length - 1) {
         _currentQuestionIndex++;
         // Add the next bot question to the chat
         _chat.add({
           'isUser': false,
-          'text': _questions[_currentQuestionIndex],
+          'text': questions[_currentQuestionIndex],
         });
       } else {
         _isFinished = true;
@@ -85,18 +97,26 @@ class _Phq9AssessmentPageState extends State<Phq9AssessmentPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final answerOptions = _getAnswerOptions(l10n);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Initialize chat with localized question
+    _initializeChat(l10n);
+    
     return Scaffold(
-      appBar: AppBar(title: const Text('PHQ-9 Assessment')),
+      appBar: AppBar(title: Text(l10n.phq9Assessment)),
       body: Column(
         children: [
           // Static Instruction Header
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Over the last two weeks, how often have you been bothered by the following problems?',
+              l10n.assessmentIntroText,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     height: 1.5,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
               textAlign: TextAlign.center,
             ),
@@ -110,7 +130,7 @@ class _Phq9AssessmentPageState extends State<Phq9AssessmentPage> {
               itemCount: _chat.length,
               itemBuilder: (context, index) {
                 final message = _chat[index];
-                final isUser = message['isUser'];
+                final isUser = message['isUser'] as bool;
                 return Align(
                   alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
@@ -119,13 +139,19 @@ class _Phq9AssessmentPageState extends State<Phq9AssessmentPage> {
                     decoration: BoxDecoration(
                       color: isUser 
                           ? Theme.of(context).colorScheme.primary 
-                          : Colors.green.shade100,
+                          : isDark
+                              ? Theme.of(context).colorScheme.surfaceContainerHighest
+                              : Theme.of(context).colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       message['text'],
-                      style: TextStyle(
-                        color: isUser ? Colors.white : Colors.black87,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isUser 
+                            ? Theme.of(context).colorScheme.onPrimary 
+                            : isDark
+                                ? Theme.of(context).colorScheme.onSurface
+                                : Theme.of(context).colorScheme.onSecondaryContainer,
                       ),
                     ),
                   ),
@@ -143,37 +169,32 @@ class _Phq9AssessmentPageState extends State<Phq9AssessmentPage> {
                     child: ElevatedButton.icon(
                       onPressed: _submitAssessment,
                       icon: const Icon(Icons.analytics_outlined),
-                      label: const Text('See Result'),
+                      label: Text(l10n.seeResult),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.all(16),
-                        backgroundColor: Colors.green.shade700,
-                        foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                   )
                 : Align(
-                    alignment: Alignment.centerRight, // Aligns the whole column to the right
+                    alignment: Alignment.centerRight,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end, // Aligns buttons within the column
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: List.generate(4, (index) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8.0),
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).colorScheme.secondary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: Theme.of(context).colorScheme.onSecondary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                             ),
-                            onPressed: () => _handleAnswer(index),
-                            child: Text([
-                              'Not at all',
-                              'Several days',
-                              'More than half the days',
-                              'Nearly every day'
-                            ][index]),
+                            onPressed: () => _handleAnswer(index, l10n),
+                            child: Text(answerOptions[index]),
                           ),
                         );
                       }),

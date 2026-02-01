@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:reown_appkit/reown_appkit.dart';
 import '../config/web3_config.dart';
+import 'deep_link_handler.dart';
 
 /// Web3 Service using Reown AppKit
 ///
@@ -54,7 +55,8 @@ class Web3Service extends ChangeNotifier {
           ),
         ),
         // Configure supported chains - only Sepolia in testnet mode for safety
-        optionalNamespaces: {
+        // Using requiredNamespaces to FORCE the specific chain
+        requiredNamespaces: {
           'eip155': RequiredNamespace(
             chains: Web3Config.useTestnet
                 ? [
@@ -62,8 +64,6 @@ class Web3Service extends ChangeNotifier {
                   ]
                 : [
                     'eip155:1', // Ethereum Mainnet
-                    'eip155:137', // Polygon
-                    'eip155:42161', // Arbitrum
                   ],
             methods: [
               'eth_sendTransaction',
@@ -91,6 +91,9 @@ class Web3Service extends ChangeNotifier {
       _appKitModal!.onModalConnect.subscribe(_onModalConnect);
       _appKitModal!.onModalDisconnect.subscribe(_onModalDisconnect);
       _appKitModal!.onModalUpdate.subscribe(_onModalUpdate);
+
+      // Initialize deep link handler for wallet redirects
+      DeepLinkHandler.init(_appKitModal!);
 
       _initialized = true;
       _updateState();
@@ -167,6 +170,7 @@ class Web3Service extends ChangeNotifier {
   }
 
   /// Connect wallet (opens modal if not connected)
+  /// Returns the wallet address when connected, or null if user cancelled/timeout
   Future<String?> connectWallet() async {
     if (_appKitModal == null) {
       throw Exception('Web3Service not initialized. Call initialize() first.');
@@ -176,13 +180,75 @@ class Web3Service extends ChangeNotifier {
       return _walletAddress;
     }
 
+    // Create a completer to wait for connection
+    final completer = Completer<String?>();
+
+    // Set up a one-time listener for connection
+    void onConnect(ModalConnect? event) {
+      if (kDebugMode) {
+        print('Web3Service: onConnect event received');
+        print('Web3Service: event topic = ${event?.session.topic}');
+      }
+      if (!completer.isCompleted) {
+        _updateState();
+        if (kDebugMode) {
+          print('Web3Service: Completing with address = $_walletAddress');
+        }
+        completer.complete(_walletAddress);
+      }
+    }
+
+    void onDisconnect(ModalDisconnect? event) {
+      if (kDebugMode) {
+        print('Web3Service: onDisconnect event received');
+      }
+      if (!completer.isCompleted) {
+        completer.complete(null);
+      }
+    }
+
+    // Subscribe to events
+    _appKitModal!.onModalConnect.subscribe(onConnect);
+    _appKitModal!.onModalDisconnect.subscribe(onDisconnect);
+
+    if (kDebugMode) {
+      print('Web3Service: Opening modal for wallet connection...');
+    }
+
     // Open the modal to let user select and connect a wallet
     await _appKitModal!.openModalView();
 
-    // Wait a bit for connection to complete
-    await Future.delayed(const Duration(milliseconds: 500));
+    if (kDebugMode) {
+      print('Web3Service: Modal closed/returned');
+      print('Web3Service: isConnected = $isConnected');
+    }
 
-    return _walletAddress;
+    // Check if already connected after modal closed (direct connection)
+    if (isConnected && !completer.isCompleted) {
+      _appKitModal!.onModalConnect.unsubscribe(onConnect);
+      _appKitModal!.onModalDisconnect.unsubscribe(onDisconnect);
+      return _walletAddress;
+    }
+
+    // Wait for connection with timeout (90 seconds for user to complete connection in external wallet)
+    try {
+      final result = await completer.future.timeout(
+        const Duration(seconds: 90),
+        onTimeout: () {
+          if (kDebugMode) {
+            print('Web3Service: Connection timeout');
+          }
+          // Check one more time if connected
+          _updateState();
+          return _walletAddress;
+        },
+      );
+      return result;
+    } finally {
+      // Clean up listeners
+      _appKitModal!.onModalConnect.unsubscribe(onConnect);
+      _appKitModal!.onModalDisconnect.unsubscribe(onDisconnect);
+    }
   }
 
   /// Disconnect wallet

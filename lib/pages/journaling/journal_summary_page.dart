@@ -1,9 +1,12 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/ethstorage_config.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../services/database_service.dart';
 import '../../services/ethstorage_service.dart';
+import '../../services/journal_notifier.dart';
+import '../../utils/confetti_overlay.dart';
 import '../../utils/responsive.dart';
 
 class JournalSummaryPage extends StatefulWidget {
@@ -36,6 +39,7 @@ class JournalSummaryPage extends StatefulWidget {
 class _JournalSummaryPageState extends State<JournalSummaryPage> {
   final EthStorageService _ethStorageService = EthStorageService();
   final DatabaseService _databaseService = DatabaseService();
+  late final ConfettiController _confettiController;
 
   bool _isUploadingToEthStorage = false;
   String? _ethStorageTxHash;
@@ -45,6 +49,26 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
       widget.summary != null ||
       widget.emotionStatus != null ||
       widget.actionItems != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 2),
+    );
+    // Celebrate when entry is saved with AI analysis
+    if (_hasAiAnalysis) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _confettiController.play();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
+  }
 
   Future<void> _uploadToEthStorage() async {
     if (widget.entryId == null || !_hasAiAnalysis) return;
@@ -95,6 +119,7 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.successfullyUploaded),
+            duration: const Duration(seconds: 5),
             action: SnackBarAction(
               label: AppLocalizations.of(context)!.view,
               onPressed: () => _openExplorer(result.explorerUrl),
@@ -149,267 +174,293 @@ class _JournalSummaryPageState extends State<JournalSummaryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: ResponsiveCenter(
-          maxWidth: 500,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 24),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: ResponsiveCenter(
+              maxWidth: 500,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 24),
 
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: const Icon(
-                          Icons.check_rounded,
-                          size: 48,
-                          color: Colors.green,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: const Icon(
+                              Icons.check_rounded,
+                              size: 48,
+                              color: Colors.green,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
 
-                      Text(
-                        _hasAiAnalysis
-                            ? AppLocalizations.of(context)!.entryFinalized
-                            : AppLocalizations.of(context)!.entrySaved,
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _hasAiAnalysis
-                            ? AppLocalizations.of(context)!.entryAnalyzed
-                            : AppLocalizations.of(context)!.draftSaved,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // AI Analysis Results
-                      if (_hasAiAnalysis) ...[
-                        // Risk Status
-                        if (widget.riskStatus != null)
-                          _AnalysisCard(
-                            icon: _getRiskIcon(widget.riskStatus!),
-                            iconColor: _getRiskColor(widget.riskStatus!),
-                            title: AppLocalizations.of(context)!.riskAssessment,
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _getRiskColor(
-                                      widget.riskStatus!,
-                                    ).withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    widget.riskStatus!.toUpperCase(),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelLarge
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: _getRiskColor(
-                                            widget.riskStatus!,
-                                          ),
-                                          letterSpacing: 0.5,
-                                        ),
-                                  ),
+                          Text(
+                            _hasAiAnalysis
+                                ? AppLocalizations.of(context)!.entryFinalized
+                                : AppLocalizations.of(context)!.entrySaved,
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _hasAiAnalysis
+                                ? AppLocalizations.of(context)!.entryAnalyzed
+                                : AppLocalizations.of(context)!.draftSaved,
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    _getRiskDescription(
-                                      context,
-                                      widget.riskStatus!,
+                          ),
+
+                          const SizedBox(height: 32),
+
+                          // AI Analysis Results
+                          if (_hasAiAnalysis) ...[
+                            // Risk Status
+                            if (widget.riskStatus != null)
+                              _AnalysisCard(
+                                icon: _getRiskIcon(widget.riskStatus!),
+                                iconColor: _getRiskColor(widget.riskStatus!),
+                                title: AppLocalizations.of(
+                                  context,
+                                )!.riskAssessment,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _getRiskColor(
+                                          widget.riskStatus!,
+                                        ).withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        widget.riskStatus!.toUpperCase(),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              color: _getRiskColor(
+                                                widget.riskStatus!,
+                                              ),
+                                              letterSpacing: 0.5,
+                                            ),
+                                      ),
                                     ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        _getRiskDescription(
+                                          context,
+                                          widget.riskStatus!,
+                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                            if (widget.riskStatus != null)
+                              const SizedBox(height: 12),
+
+                            // Emotion Status
+                            if (widget.emotionStatus != null)
+                              _AnalysisCard(
+                                icon: Icons.mood_rounded,
+                                iconColor: _getEmotionColor(
+                                  widget.emotionStatus!,
+                                ),
+                                title: AppLocalizations.of(
+                                  context,
+                                )!.emotionalState,
+                                child: Text(
+                                  widget.emotionStatus!,
+                                  style: Theme.of(context).textTheme.titleLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: _getEmotionColor(
+                                          widget.emotionStatus!,
+                                        ),
+                                      ),
+                                ),
+                              ),
+
+                            if (widget.emotionStatus != null)
+                              const SizedBox(height: 12),
+
+                            // Summary
+                            if (widget.summary != null)
+                              _AnalysisCard(
+                                icon: Icons.summarize_rounded,
+                                iconColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
+                                title: AppLocalizations.of(context)!.aiSummary,
+                                child: Text(
+                                  widget.summary!,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.copyWith(height: 1.5),
+                                ),
+                              ),
+
+                            if (widget.summary != null)
+                              const SizedBox(height: 12),
+
+                            // Action Items
+                            if (widget.actionItems != null &&
+                                widget.actionItems!.isNotEmpty)
+                              _AnalysisCard(
+                                icon: Icons.lightbulb_outline_rounded,
+                                iconColor: Colors.amber,
+                                title: AppLocalizations.of(
+                                  context,
+                                )!.suggestedActions,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: widget.actionItems!
+                                      .map(
+                                        (item) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Icon(
+                                                Icons.arrow_right_rounded,
+                                                size: 20,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  item,
+                                                  style: Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyMedium,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                              ),
+                          ] else ...[
+                            // Draft saved info
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardTheme.color,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outline.withOpacity(0.1),
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.edit_note_rounded,
+                                        size: 20,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        AppLocalizations.of(context)!.draftMode,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.draftModeDescription,
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: Theme.of(
                                             context,
                                           ).colorScheme.onSurfaceVariant,
+                                          height: 1.5,
                                         ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                        if (widget.riskStatus != null)
-                          const SizedBox(height: 12),
-
-                        // Emotion Status
-                        if (widget.emotionStatus != null)
-                          _AnalysisCard(
-                            icon: Icons.mood_rounded,
-                            iconColor: _getEmotionColor(widget.emotionStatus!),
-                            title: AppLocalizations.of(context)!.emotionalState,
-                            child: Text(
-                              widget.emotionStatus!,
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: _getEmotionColor(
-                                      widget.emotionStatus!,
-                                    ),
-                                  ),
-                            ),
-                          ),
-
-                        if (widget.emotionStatus != null)
-                          const SizedBox(height: 12),
-
-                        // Summary
-                        if (widget.summary != null)
-                          _AnalysisCard(
-                            icon: Icons.summarize_rounded,
-                            iconColor: Theme.of(context).colorScheme.primary,
-                            title: AppLocalizations.of(context)!.aiSummary,
-                            child: Text(
-                              widget.summary!,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.copyWith(height: 1.5),
-                            ),
-                          ),
-
-                        if (widget.summary != null) const SizedBox(height: 12),
-
-                        // Action Items
-                        if (widget.actionItems != null &&
-                            widget.actionItems!.isNotEmpty)
-                          _AnalysisCard(
-                            icon: Icons.lightbulb_outline_rounded,
-                            iconColor: Colors.amber,
-                            title: AppLocalizations.of(
-                              context,
-                            )!.suggestedActions,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: widget.actionItems!
-                                  .map(
-                                    (item) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            Icons.arrow_right_rounded,
-                                            size: 20,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Expanded(
-                                            child: Text(
-                                              item,
-                                              style: Theme.of(
-                                                context,
-                                              ).textTheme.bodyMedium,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                          ),
-                      ] else ...[
-                        // Draft saved info
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardTheme.color,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outline.withOpacity(0.1),
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.edit_note_rounded,
-                                    size: 20,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    AppLocalizations.of(context)!.draftMode,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.draftModeDescription,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                      height: 1.5,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                            ),
+                          ],
 
-                      const SizedBox(height: 24),
-                    ],
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
 
-              // EthStorage Upload Section
-              if (_hasAiAnalysis && widget.entryId != null) ...[
-                _buildEthStorageSection(context),
-                const SizedBox(height: 12),
-              ],
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    if (widget.returnResult) {
-                      Navigator.pop(context, true);
-                    } else {
-                      Navigator.popUntil(context, (route) => route.isFirst);
-                    }
-                  },
-                  child: Text(AppLocalizations.of(context)!.done),
-                ),
+                  // EthStorage Upload Section
+                  if (_hasAiAnalysis && widget.entryId != null) ...[
+                    _buildEthStorageSection(context),
+                    const SizedBox(height: 12),
+                  ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        // Notify journal page to refresh
+                        journalNotifier.notifyJournalUpdated();
+
+                        if (widget.returnResult) {
+                          Navigator.pop(context, true);
+                        } else {
+                          Navigator.popUntil(context, (route) => route.isFirst);
+                        }
+                      },
+                      child: Text(AppLocalizations.of(context)!.done),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
-              const SizedBox(height: 16),
-            ],
+            ),
           ),
-        ),
+          CelebrationConfetti(controller: _confettiController),
+        ],
       ),
     );
   }

@@ -67,6 +67,9 @@ dependencies:
   local_auth: ^3.0.0
   flutter_secure_storage: ^9.2.4
 
+  # Celebration effects
+  confetti: ^0.8.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

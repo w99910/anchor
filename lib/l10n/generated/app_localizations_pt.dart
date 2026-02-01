@@ -481,10 +481,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get goodMorning => 'Bom dia';
 
   @override
+  String goodMorningName(String name) {
+    return 'Bom dia, $name';
+  }
+
+  @override
   String get goodAfternoon => 'Boa tarde';
 
   @override
+  String goodAfternoonName(String name) {
+    return 'Boa tarde, $name';
+  }
+
+  @override
   String get goodEvening => 'Boa noite';
+
+  @override
+  String goodEveningName(String name) {
+    return 'Boa noite, $name';
+  }
 
   @override
   String get howAreYouToday => 'Como você está hoje?';
@@ -1242,4 +1257,183 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get protectYourPrivacy => 'Proteja sua privacidade com um código PIN';
+
+  @override
+  String get gad7Assessment => 'Avaliação GAD-7';
+
+  @override
+  String get phq9Assessment => 'Avaliação PHQ-9';
+
+  @override
+  String get assessmentIntroText =>
+      'Nas últimas duas semanas, com que frequência você foi incomodado pelos seguintes problemas?';
+
+  @override
+  String get answerNotAtAll => 'Nenhuma vez';
+
+  @override
+  String get answerSeveralDays => 'Vários dias';
+
+  @override
+  String get answerMoreThanHalfDays => 'Mais da metade dos dias';
+
+  @override
+  String get answerNearlyEveryDay => 'Quase todos os dias';
+
+  @override
+  String get seeResult => 'Ver resultado';
+
+  @override
+  String get gad7Question1 => 'Sentir-se nervoso, ansioso ou no limite';
+
+  @override
+  String get gad7Question2 =>
+      'Não conseguir parar ou controlar as preocupações';
+
+  @override
+  String get gad7Question3 => 'Preocupar-se demais com diferentes coisas';
+
+  @override
+  String get gad7Question4 => 'Dificuldade em relaxar';
+
+  @override
+  String get gad7Question5 =>
+      'Ficar tão inquieto que é difícil permanecer sentado';
+
+  @override
+  String get gad7Question6 => 'Ficar facilmente irritado ou aborrecido';
+
+  @override
+  String get gad7Question7 =>
+      'Sentir medo como se algo terrível pudesse acontecer';
+
+  @override
+  String get phq9Question1 => 'Pouco interesse ou prazer em fazer as coisas';
+
+  @override
+  String get phq9Question2 =>
+      'Sentir-se para baixo, deprimido ou sem esperança';
+
+  @override
+  String get phq9Question3 =>
+      'Dificuldade para pegar no sono ou continuar dormindo, ou dormir demais';
+
+  @override
+  String get phq9Question4 => 'Sentir-se cansado ou com pouca energia';
+
+  @override
+  String get phq9Question5 => 'Pouco apetite ou comer demais';
+
+  @override
+  String get phq9Question6 =>
+      'Sentir-se mal consigo mesmo — ou que você é um fracasso ou decepcionou a si mesmo ou sua família';
+
+  @override
+  String get phq9Question7 =>
+      'Dificuldade para se concentrar em coisas como ler o jornal ou assistir televisão';
+
+  @override
+  String get phq9Question8 =>
+      'Mover-se ou falar tão devagar que outras pessoas perceberam? Ou o oposto — ficar tão inquieto que você se movimentou muito mais que o normal';
+
+  @override
+  String get phq9Question9 =>
+      'Pensamentos de que seria melhor estar morto ou de se machucar de alguma forma';
+
+  @override
+  String get gad7ResultsTitle => 'Avaliação de ansiedade GAD-7';
+
+  @override
+  String get phq9ResultsTitle => 'Avaliação de depressão PHQ-9';
+
+  @override
+  String get minimalAnxiety => 'Ansiedade mínima';
+
+  @override
+  String get mildAnxiety => 'Ansiedade leve';
+
+  @override
+  String get moderateAnxiety => 'Ansiedade moderada';
+
+  @override
+  String get severeAnxiety => 'Ansiedade severa';
+
+  @override
+  String get minimalDepression => 'Depressão mínima';
+
+  @override
+  String get mildDepression => 'Depressão leve';
+
+  @override
+  String get moderateDepression => 'Depressão moderada';
+
+  @override
+  String get moderatelySevereDepression => 'Depressão moderadamente severa';
+
+  @override
+  String get severeDepression => 'Depressão severa';
+
+  @override
+  String get gad7DescMinimal => 'Ansiedade mínima. Continue assim!';
+
+  @override
+  String get gad7DescMild =>
+      'Ansiedade leve. Considere incorporar técnicas de relaxamento.';
+
+  @override
+  String get gad7DescModerate =>
+      'Ansiedade moderada. Preste atenção à sua saúde mental.';
+
+  @override
+  String get gad7DescSevere =>
+      'Ansiedade severa. É recomendado buscar ajuda profissional.';
+
+  @override
+  String get phq9DescMinimal =>
+      'Os sintomas sugerem depressão mínima. Continue monitorando seu humor.';
+
+  @override
+  String get phq9DescMild =>
+      'Os sintomas sugerem depressão leve. Pode ser útil conversar com um conselheiro.';
+
+  @override
+  String get phq9DescModerate =>
+      'Os sintomas sugerem depressão moderada. Considere uma consulta com um profissional de saúde.';
+
+  @override
+  String get phq9DescModeratelySevere =>
+      'Os sintomas sugerem depressão moderadamente severa. Por favor, procure apoio profissional.';
+
+  @override
+  String get phq9DescSevere =>
+      'Os sintomas sugerem depressão severa. Recomendamos fortemente buscar ajuda profissional imediata.';
+
+  @override
+  String get nextSteps => 'Próximos passos';
+
+  @override
+  String get recPracticeMindfulness => 'Praticar mindfulness e meditação';
+
+  @override
+  String get recPhysicalActivity => 'Praticar atividade física regular';
+
+  @override
+  String get recHealthySleep => 'Manter um horário de sono saudável';
+
+  @override
+  String get recTalkToFriends =>
+      'Conversar com amigos ou familiares de confiança';
+
+  @override
+  String get recMaintainRoutine => 'Manter uma rotina de sono e refeições';
+
+  @override
+  String get recSetGoals => 'Definir pequenas metas diárias alcançáveis';
+
+  @override
+  String get recStayConnected => 'Manter contato com sua rede de apoio';
+
+  @override
+  String get recContactCrisisHotline =>
+      'Entrar em contato com uma linha de crise de saúde mental';
 }

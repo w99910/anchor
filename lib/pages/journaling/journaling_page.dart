@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../config/ethstorage_config.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../services/database_service.dart';
+import '../../services/journal_notifier.dart';
 import '../../utils/responsive.dart';
 import 'create_journal_page.dart';
 
@@ -21,6 +22,18 @@ class _JournalingPageState extends State<JournalingPage> {
   @override
   void initState() {
     super.initState();
+    _loadEntries();
+    // Listen for journal updates from other pages
+    journalNotifier.addListener(_onJournalUpdated);
+  }
+
+  @override
+  void dispose() {
+    journalNotifier.removeListener(_onJournalUpdated);
+    super.dispose();
+  }
+
+  void _onJournalUpdated() {
     _loadEntries();
   }
 

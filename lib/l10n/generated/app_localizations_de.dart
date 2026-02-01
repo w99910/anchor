@@ -479,10 +479,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get goodMorning => 'Guten Morgen';
 
   @override
+  String goodMorningName(String name) {
+    return 'Guten Morgen, $name';
+  }
+
+  @override
   String get goodAfternoon => 'Guten Tag';
 
   @override
+  String goodAfternoonName(String name) {
+    return 'Guten Tag, $name';
+  }
+
+  @override
   String get goodEvening => 'Guten Abend';
+
+  @override
+  String goodEveningName(String name) {
+    return 'Guten Abend, $name';
+  }
 
   @override
   String get howAreYouToday => 'Wie geht es dir heute?';
@@ -1247,4 +1262,187 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get protectYourPrivacy =>
       'Schütze deine Privatsphäre mit einem PIN-Code';
+
+  @override
+  String get gad7Assessment => 'GAD-7 Bewertung';
+
+  @override
+  String get phq9Assessment => 'PHQ-9 Bewertung';
+
+  @override
+  String get assessmentIntroText =>
+      'Wie oft haben Sie in den letzten zwei Wochen unter den folgenden Problemen gelitten?';
+
+  @override
+  String get answerNotAtAll => 'Überhaupt nicht';
+
+  @override
+  String get answerSeveralDays => 'An mehreren Tagen';
+
+  @override
+  String get answerMoreThanHalfDays => 'An mehr als der Hälfte der Tage';
+
+  @override
+  String get answerNearlyEveryDay => 'Beinahe jeden Tag';
+
+  @override
+  String get seeResult => 'Ergebnis anzeigen';
+
+  @override
+  String get gad7Question1 => 'Nervosität, Ängstlichkeit oder Anspannung';
+
+  @override
+  String get gad7Question2 =>
+      'Nicht in der Lage sein, Sorgen zu stoppen oder zu kontrollieren';
+
+  @override
+  String get gad7Question3 => 'Übermäßige Sorgen bezüglich verschiedener Dinge';
+
+  @override
+  String get gad7Question4 => 'Schwierigkeiten, sich zu entspannen';
+
+  @override
+  String get gad7Question5 =>
+      'So unruhig sein, dass es schwer fällt, still zu sitzen';
+
+  @override
+  String get gad7Question6 => 'Leicht reizbar oder verärgert werden';
+
+  @override
+  String get gad7Question7 =>
+      'Angst haben, als ob etwas Schreckliches passieren könnte';
+
+  @override
+  String get phq9Question1 =>
+      'Wenig Interesse oder Freude an Ihren Tätigkeiten';
+
+  @override
+  String get phq9Question2 =>
+      'Niedergeschlagenheit, Schwermut oder Hoffnungslosigkeit';
+
+  @override
+  String get phq9Question3 =>
+      'Schwierigkeiten, ein- oder durchzuschlafen, oder übermäßig viel zu schlafen';
+
+  @override
+  String get phq9Question4 => 'Müdigkeit oder wenig Energie';
+
+  @override
+  String get phq9Question5 => 'Verminderter Appetit oder übermäßiges Essen';
+
+  @override
+  String get phq9Question6 =>
+      'Schlechte Meinung von sich selbst — oder das Gefühl, ein Versager zu sein oder die Familie enttäuscht zu haben';
+
+  @override
+  String get phq9Question7 =>
+      'Schwierigkeiten, sich auf etwas zu konzentrieren, wie z.B. Zeitunglesen oder Fernsehen';
+
+  @override
+  String get phq9Question8 =>
+      'So langsame Bewegungen oder Sprache, dass andere es bemerken könnten? Oder das Gegenteil — so zappelig oder unruhig, dass Sie sich mehr als üblich bewegt haben';
+
+  @override
+  String get phq9Question9 =>
+      'Gedanken, dass Sie besser tot wären oder sich selbst verletzen könnten';
+
+  @override
+  String get gad7ResultsTitle => 'GAD-7 Angstbewertung';
+
+  @override
+  String get phq9ResultsTitle => 'PHQ-9 Depressionsbewertung';
+
+  @override
+  String get minimalAnxiety => 'Minimale Angst';
+
+  @override
+  String get mildAnxiety => 'Leichte Angst';
+
+  @override
+  String get moderateAnxiety => 'Mittlere Angst';
+
+  @override
+  String get severeAnxiety => 'Schwere Angst';
+
+  @override
+  String get minimalDepression => 'Minimale Depression';
+
+  @override
+  String get mildDepression => 'Leichte Depression';
+
+  @override
+  String get moderateDepression => 'Mittlere Depression';
+
+  @override
+  String get moderatelySevereDepression => 'Mittelschwere Depression';
+
+  @override
+  String get severeDepression => 'Schwere Depression';
+
+  @override
+  String get gad7DescMinimal => 'Minimale Angst. Weiter so!';
+
+  @override
+  String get gad7DescMild =>
+      'Leichte Angst. Erwägen Sie Entspannungstechniken.';
+
+  @override
+  String get gad7DescModerate =>
+      'Mittlere Angst. Achten Sie auf Ihre psychische Gesundheit.';
+
+  @override
+  String get gad7DescSevere =>
+      'Schwere Angst. Professionelle Hilfe wird empfohlen.';
+
+  @override
+  String get phq9DescMinimal =>
+      'Symptome deuten auf minimale Depression hin. Beobachten Sie Ihre Stimmung weiterhin.';
+
+  @override
+  String get phq9DescMild =>
+      'Symptome deuten auf leichte Depression hin. Es könnte hilfreich sein, mit einem Berater zu sprechen.';
+
+  @override
+  String get phq9DescModerate =>
+      'Symptome deuten auf mittlere Depression hin. Erwägen Sie eine Konsultation bei einem Facharzt.';
+
+  @override
+  String get phq9DescModeratelySevere =>
+      'Symptome deuten auf mittelschwere Depression hin. Bitte wenden Sie sich an einen Fachmann.';
+
+  @override
+  String get phq9DescSevere =>
+      'Symptome deuten auf schwere Depression hin. Wir empfehlen dringend, sofort professionelle Hilfe zu suchen.';
+
+  @override
+  String get nextSteps => 'Nächste Schritte';
+
+  @override
+  String get recPracticeMindfulness =>
+      'Achtsamkeit und Meditation praktizieren';
+
+  @override
+  String get recPhysicalActivity => 'Regelmäßige körperliche Aktivität';
+
+  @override
+  String get recHealthySleep => 'Einen gesunden Schlafrhythmus einhalten';
+
+  @override
+  String get recTalkToFriends =>
+      'Mit vertrauten Freunden oder Familienmitgliedern sprechen';
+
+  @override
+  String get recMaintainRoutine =>
+      'Eine Routine für Schlaf und Mahlzeiten einhalten';
+
+  @override
+  String get recSetGoals => 'Kleine, erreichbare tägliche Ziele setzen';
+
+  @override
+  String get recStayConnected =>
+      'Mit Ihrem Unterstützungsnetzwerk verbunden bleiben';
+
+  @override
+  String get recContactCrisisHotline =>
+      'Eine psychische Krisenhotline kontaktieren';
 }

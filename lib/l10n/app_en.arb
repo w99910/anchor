@@ -777,14 +777,47 @@
     "description": "Morning greeting"
   },
   
+  "goodMorningName": "Good morning, {name}",
+  "@goodMorningName": {
+    "description": "Morning greeting with name",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Tom"
+      }
+    }
+  },
+  
   "goodAfternoon": "Good afternoon",
   "@goodAfternoon": {
     "description": "Afternoon greeting"
   },
   
+  "goodAfternoonName": "Good afternoon, {name}",
+  "@goodAfternoonName": {
+    "description": "Afternoon greeting with name",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Tom"
+      }
+    }
+  },
+  
   "goodEvening": "Good evening",
   "@goodEvening": {
     "description": "Evening greeting"
+  },
+  
+  "goodEveningName": "Good evening, {name}",
+  "@goodEveningName": {
+    "description": "Evening greeting with name",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Tom"
+      }
+    }
   },
   
   "howAreYouToday": "How are you today?",
@@ -2101,5 +2134,270 @@
   "protectYourPrivacy": "Protect your privacy with a PIN code",
   "@protectYourPrivacy": {
     "description": "App lock promo text"
+  },
+
+  "gad7Assessment": "GAD-7 Assessment",
+  "@gad7Assessment": {
+    "description": "GAD-7 assessment page title"
+  },
+
+  "phq9Assessment": "PHQ-9 Assessment",
+  "@phq9Assessment": {
+    "description": "PHQ-9 assessment page title"
+  },
+
+  "assessmentIntroText": "Over the last two weeks, how often have you been bothered by the following problems?",
+  "@assessmentIntroText": {
+    "description": "Assessment introduction text"
+  },
+
+  "answerNotAtAll": "Not at all",
+  "@answerNotAtAll": {
+    "description": "Assessment answer option"
+  },
+
+  "answerSeveralDays": "Several days",
+  "@answerSeveralDays": {
+    "description": "Assessment answer option"
+  },
+
+  "answerMoreThanHalfDays": "More than half the days",
+  "@answerMoreThanHalfDays": {
+    "description": "Assessment answer option"
+  },
+
+  "answerNearlyEveryDay": "Nearly every day",
+  "@answerNearlyEveryDay": {
+    "description": "Assessment answer option"
+  },
+
+  "seeResult": "See Result",
+  "@seeResult": {
+    "description": "See result button"
+  },
+
+  "gad7Question1": "Feeling nervous, anxious, or on edge",
+  "@gad7Question1": {
+    "description": "GAD-7 question 1"
+  },
+
+  "gad7Question2": "Not being able to stop or control worrying",
+  "@gad7Question2": {
+    "description": "GAD-7 question 2"
+  },
+
+  "gad7Question3": "Worrying too much about different things",
+  "@gad7Question3": {
+    "description": "GAD-7 question 3"
+  },
+
+  "gad7Question4": "Trouble relaxing",
+  "@gad7Question4": {
+    "description": "GAD-7 question 4"
+  },
+
+  "gad7Question5": "Being so restless that it is hard to sit still",
+  "@gad7Question5": {
+    "description": "GAD-7 question 5"
+  },
+
+  "gad7Question6": "Becoming easily annoyed or irritable",
+  "@gad7Question6": {
+    "description": "GAD-7 question 6"
+  },
+
+  "gad7Question7": "Feeling afraid as if something awful might happen",
+  "@gad7Question7": {
+    "description": "GAD-7 question 7"
+  },
+
+  "phq9Question1": "Little interest or pleasure in doing things",
+  "@phq9Question1": {
+    "description": "PHQ-9 question 1"
+  },
+
+  "phq9Question2": "Feeling down, depressed, or hopeless",
+  "@phq9Question2": {
+    "description": "PHQ-9 question 2"
+  },
+
+  "phq9Question3": "Trouble falling or staying asleep, or sleeping too much",
+  "@phq9Question3": {
+    "description": "PHQ-9 question 3"
+  },
+
+  "phq9Question4": "Feeling tired or having little energy",
+  "@phq9Question4": {
+    "description": "PHQ-9 question 4"
+  },
+
+  "phq9Question5": "Poor appetite or overeating",
+  "@phq9Question5": {
+    "description": "PHQ-9 question 5"
+  },
+
+  "phq9Question6": "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+  "@phq9Question6": {
+    "description": "PHQ-9 question 6"
+  },
+
+  "phq9Question7": "Trouble concentrating on things, such as reading the newspaper or watching television",
+  "@phq9Question7": {
+    "description": "PHQ-9 question 7"
+  },
+
+  "phq9Question8": "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual",
+  "@phq9Question8": {
+    "description": "PHQ-9 question 8"
+  },
+
+  "phq9Question9": "Thoughts that you would be better off dead or of hurting yourself in some way",
+  "@phq9Question9": {
+    "description": "PHQ-9 question 9"
+  },
+
+  "gad7ResultsTitle": "GAD-7 Anxiety Assessment",
+  "@gad7ResultsTitle": {
+    "description": "GAD-7 results page title"
+  },
+
+  "phq9ResultsTitle": "PHQ-9 Depression Assessment",
+  "@phq9ResultsTitle": {
+    "description": "PHQ-9 results page title"
+  },
+
+  "minimalAnxiety": "Minimal anxiety",
+  "@minimalAnxiety": {
+    "description": "GAD-7 minimal anxiety status"
+  },
+
+  "mildAnxiety": "Mild anxiety",
+  "@mildAnxiety": {
+    "description": "GAD-7 mild anxiety status"
+  },
+
+  "moderateAnxiety": "Moderate anxiety",
+  "@moderateAnxiety": {
+    "description": "GAD-7 moderate anxiety status"
+  },
+
+  "severeAnxiety": "Severe anxiety",
+  "@severeAnxiety": {
+    "description": "GAD-7 severe anxiety status"
+  },
+
+  "minimalDepression": "Minimal depression",
+  "@minimalDepression": {
+    "description": "PHQ-9 minimal depression status"
+  },
+
+  "mildDepression": "Mild depression",
+  "@mildDepression": {
+    "description": "PHQ-9 mild depression status"
+  },
+
+  "moderateDepression": "Moderate depression",
+  "@moderateDepression": {
+    "description": "PHQ-9 moderate depression status"
+  },
+
+  "moderatelySevereDepression": "Moderately severe",
+  "@moderatelySevereDepression": {
+    "description": "PHQ-9 moderately severe depression status"
+  },
+
+  "severeDepression": "Severe depression",
+  "@severeDepression": {
+    "description": "PHQ-9 severe depression status"
+  },
+
+  "gad7DescMinimal": "Minimal anxiety. Keep up the good work!",
+  "@gad7DescMinimal": {
+    "description": "GAD-7 minimal anxiety description"
+  },
+
+  "gad7DescMild": "Mild anxiety. Consider incorporating relaxation techniques.",
+  "@gad7DescMild": {
+    "description": "GAD-7 mild anxiety description"
+  },
+
+  "gad7DescModerate": "Moderate anxiety. Pay attention to your mental health.",
+  "@gad7DescModerate": {
+    "description": "GAD-7 moderate anxiety description"
+  },
+
+  "gad7DescSevere": "Severe anxiety. Seeking professional help is recommended.",
+  "@gad7DescSevere": {
+    "description": "GAD-7 severe anxiety description"
+  },
+
+  "phq9DescMinimal": "Symptoms suggest minimal depression. Continue monitoring your mood.",
+  "@phq9DescMinimal": {
+    "description": "PHQ-9 minimal depression description"
+  },
+
+  "phq9DescMild": "Symptoms suggest mild depression. It may be helpful to talk with a counselor.",
+  "@phq9DescMild": {
+    "description": "PHQ-9 mild depression description"
+  },
+
+  "phq9DescModerate": "Symptoms suggest moderate depression. Consider a consultation with a healthcare professional.",
+  "@phq9DescModerate": {
+    "description": "PHQ-9 moderate depression description"
+  },
+
+  "phq9DescModeratelySevere": "Symptoms suggest moderately severe depression. Please reach out to a professional for support.",
+  "@phq9DescModeratelySevere": {
+    "description": "PHQ-9 moderately severe depression description"
+  },
+
+  "phq9DescSevere": "Symptoms suggest severe depression. We strongly recommend seeking immediate professional help.",
+  "@phq9DescSevere": {
+    "description": "PHQ-9 severe depression description"
+  },
+
+  "nextSteps": "Next Steps",
+  "@nextSteps": {
+    "description": "Next steps section title"
+  },
+
+  "recPracticeMindfulness": "Practice mindfulness and meditation",
+  "@recPracticeMindfulness": {
+    "description": "Recommendation"
+  },
+
+  "recPhysicalActivity": "Engage in regular physical activity",
+  "@recPhysicalActivity": {
+    "description": "Recommendation"
+  },
+
+  "recHealthySleep": "Maintain a healthy sleep schedule",
+  "@recHealthySleep": {
+    "description": "Recommendation"
+  },
+
+  "recTalkToFriends": "Talk to trusted friends or family members",
+  "@recTalkToFriends": {
+    "description": "Recommendation"
+  },
+
+  "recMaintainRoutine": "Maintain a routine for sleep and meals",
+  "@recMaintainRoutine": {
+    "description": "Recommendation"
+  },
+
+  "recSetGoals": "Set small, achievable daily goals",
+  "@recSetGoals": {
+    "description": "Recommendation"
+  },
+
+  "recStayConnected": "Stay connected with your support network",
+  "@recStayConnected": {
+    "description": "Recommendation"
+  },
+
+  "recContactCrisisHotline": "Contact a mental health crisis hotline",
+  "@recContactCrisisHotline": {
+    "description": "Urgent recommendation for crisis"
   }
 }

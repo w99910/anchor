@@ -476,10 +476,25 @@ class AppLocalizationsHi extends AppLocalizations {
   String get goodMorning => 'सुप्रभात';
 
   @override
+  String goodMorningName(String name) {
+    return 'सुप्रभात, $name';
+  }
+
+  @override
   String get goodAfternoon => 'नमस्कार';
 
   @override
+  String goodAfternoonName(String name) {
+    return 'नमस्कार, $name';
+  }
+
+  @override
   String get goodEvening => 'शुभ संध्या';
+
+  @override
+  String goodEveningName(String name) {
+    return 'शुभ संध्या, $name';
+  }
 
   @override
   String get howAreYouToday => 'आज आप कैसा महसूस कर रहे हैं?';
@@ -1234,4 +1249,180 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get protectYourPrivacy => 'PIN कोड से अपनी गोपनीयता सुरक्षित करें';
+
+  @override
+  String get gad7Assessment => 'GAD-7 मूल्यांकन';
+
+  @override
+  String get phq9Assessment => 'PHQ-9 मूल्यांकन';
+
+  @override
+  String get assessmentIntroText =>
+      'पिछले दो हफ्तों में, निम्नलिखित समस्याओं से आप कितनी बार परेशान हुए हैं?';
+
+  @override
+  String get answerNotAtAll => 'बिल्कुल नहीं';
+
+  @override
+  String get answerSeveralDays => 'कई दिन';
+
+  @override
+  String get answerMoreThanHalfDays => 'आधे से अधिक दिन';
+
+  @override
+  String get answerNearlyEveryDay => 'लगभग हर दिन';
+
+  @override
+  String get seeResult => 'परिणाम देखें';
+
+  @override
+  String get gad7Question1 => 'घबराहट, चिंता या तनाव महसूस करना';
+
+  @override
+  String get gad7Question2 => 'चिंता को रोक या नियंत्रित नहीं कर पाना';
+
+  @override
+  String get gad7Question3 => 'विभिन्न चीजों के बारे में अत्यधिक चिंता करना';
+
+  @override
+  String get gad7Question4 => 'आराम करने में कठिनाई';
+
+  @override
+  String get gad7Question5 => 'इतना बेचैन होना कि बैठना मुश्किल हो';
+
+  @override
+  String get gad7Question6 => 'आसानी से चिढ़ जाना या झुंझलाहट होना';
+
+  @override
+  String get gad7Question7 => 'डर लगना कि कुछ भयानक हो सकता है';
+
+  @override
+  String get phq9Question1 => 'कुछ करने में बहुत कम रुचि या आनंद';
+
+  @override
+  String get phq9Question2 => 'उदास, निराश या निराशाजनक महसूस करना';
+
+  @override
+  String get phq9Question3 =>
+      'सोने में या सोते रहने में कठिनाई, या बहुत अधिक सोना';
+
+  @override
+  String get phq9Question4 => 'थकान या ऊर्जा की कमी महसूस करना';
+
+  @override
+  String get phq9Question5 => 'भूख कम लगना या अधिक खाना';
+
+  @override
+  String get phq9Question6 =>
+      'अपने बारे में बुरा महसूस करना — या खुद को असफल या अपने परिवार को निराश करने वाला मानना';
+
+  @override
+  String get phq9Question7 =>
+      'किसी चीज़ पर ध्यान केंद्रित करने में कठिनाई, जैसे अखबार पढ़ना या टीवी देखना';
+
+  @override
+  String get phq9Question8 =>
+      'इतना धीमा चलना या बोलना कि दूसरों ने नोटिस किया हो? या इसके विपरीत — इतना बेचैन होना कि सामान्य से बहुत अधिक हिल-डुल रहे हों';
+
+  @override
+  String get phq9Question9 =>
+      'यह विचार कि आप मर जाएं तो बेहतर होगा या किसी तरह खुद को नुकसान पहुंचाने के विचार';
+
+  @override
+  String get gad7ResultsTitle => 'GAD-7 चिंता मूल्यांकन';
+
+  @override
+  String get phq9ResultsTitle => 'PHQ-9 अवसाद मूल्यांकन';
+
+  @override
+  String get minimalAnxiety => 'न्यूनतम चिंता';
+
+  @override
+  String get mildAnxiety => 'हल्की चिंता';
+
+  @override
+  String get moderateAnxiety => 'मध्यम चिंता';
+
+  @override
+  String get severeAnxiety => 'गंभीर चिंता';
+
+  @override
+  String get minimalDepression => 'न्यूनतम अवसाद';
+
+  @override
+  String get mildDepression => 'हल्का अवसाद';
+
+  @override
+  String get moderateDepression => 'मध्यम अवसाद';
+
+  @override
+  String get moderatelySevereDepression => 'मध्यम से गंभीर अवसाद';
+
+  @override
+  String get severeDepression => 'गंभीर अवसाद';
+
+  @override
+  String get gad7DescMinimal => 'न्यूनतम चिंता। ऐसे ही बने रहें!';
+
+  @override
+  String get gad7DescMild =>
+      'हल्की चिंता। विश्राम तकनीकें अपनाने पर विचार करें।';
+
+  @override
+  String get gad7DescModerate =>
+      'मध्यम चिंता। अपने मानसिक स्वास्थ्य पर ध्यान दें।';
+
+  @override
+  String get gad7DescSevere =>
+      'गंभीर चिंता। पेशेवर मदद लेने की सलाह दी जाती है।';
+
+  @override
+  String get phq9DescMinimal =>
+      'लक्षण न्यूनतम अवसाद का संकेत देते हैं। अपने मूड पर नज़र रखना जारी रखें।';
+
+  @override
+  String get phq9DescMild =>
+      'लक्षण हल्के अवसाद का संकेत देते हैं। किसी परामर्शदाता से बात करना मददगार हो सकता है।';
+
+  @override
+  String get phq9DescModerate =>
+      'लक्षण मध्यम अवसाद का संकेत देते हैं। स्वास्थ्य पेशेवर से परामर्श लेने पर विचार करें।';
+
+  @override
+  String get phq9DescModeratelySevere =>
+      'लक्षण मध्यम से गंभीर अवसाद का संकेत देते हैं। कृपया पेशेवर सहायता प्राप्त करें।';
+
+  @override
+  String get phq9DescSevere =>
+      'लक्षण गंभीर अवसाद का संकेत देते हैं। हम दृढ़ता से तत्काल पेशेवर मदद लेने की सलाह देते हैं।';
+
+  @override
+  String get nextSteps => 'अगले कदम';
+
+  @override
+  String get recPracticeMindfulness => 'माइंडफुलनेस और ध्यान का अभ्यास करें';
+
+  @override
+  String get recPhysicalActivity => 'नियमित शारीरिक गतिविधि करें';
+
+  @override
+  String get recHealthySleep => 'स्वस्थ नींद की दिनचर्या बनाए रखें';
+
+  @override
+  String get recTalkToFriends =>
+      'विश्वसनीय दोस्तों या परिवार के सदस्यों से बात करें';
+
+  @override
+  String get recMaintainRoutine => 'नींद और भोजन के लिए एक दिनचर्या बनाए रखें';
+
+  @override
+  String get recSetGoals =>
+      'छोटे, प्राप्त करने योग्य दैनिक लक्ष्य निर्धारित करें';
+
+  @override
+  String get recStayConnected => 'अपने सहायता नेटवर्क से जुड़े रहें';
+
+  @override
+  String get recContactCrisisHotline =>
+      'मानसिक स्वास्थ्य संकट हेल्पलाइन से संपर्क करें';
 }

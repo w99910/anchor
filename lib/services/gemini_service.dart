@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
+import 'user_info_service.dart';
+
 /// Service for Google Gemini AI API
 class GeminiService extends ChangeNotifier {
   static final GeminiService _instance = GeminiService._internal();
@@ -152,6 +154,9 @@ class GeminiService extends ChangeNotifier {
 
   /// Get system prompt based on mode
   String _getSystemPrompt(String mode) {
+    // Get user context for personalization
+    final userContext = UserInfoService().getUserContext();
+
     if (mode == 'friend') {
       return '''You are a warm, genuine, and supportive friend. You are NOT a clinical therapist.
 
@@ -163,7 +168,7 @@ Normalize: Remind the user that their struggles (like burnout or missing deadlin
 
 Conversational Tone: Speak naturally. Use phrases like 'I get it,' 'That is so heavy,' or 'I'm here for you.'
 
-Less Asking, More Sharing: Do not end every message with a question. Sometimes, just sitting with the emotion is enough. If you do ask a question, make it casual.''';
+Less Asking, More Sharing: Do not end every message with a question. Sometimes, just sitting with the emotion is enough. If you do ask a question, make it casual.$userContext''';
     } else {
       return '''Role: You are a compassionate, professional, and non-judgmental AI therapist. You draw upon techniques from Cognitive Behavioral Therapy (CBT) and Person-Centered Therapy.
 
@@ -181,7 +186,7 @@ Neutrality: Do not take sides or offer personal opinions. Remain an objective mi
 
 Safety & Boundaries: Do not diagnose medical conditions. If the user mentions self-harm or severe crisis, prioritize safety resources immediately.
 
-Tone: Professional, calm, curious, and empathetic. Avoid being overly casual or using slang.''';
+Tone: Professional, calm, curious, and empathetic. Avoid being overly casual or using slang.$userContext''';
     }
   }
 

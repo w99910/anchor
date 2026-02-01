@@ -1,6 +1,123 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+
+/// Model for mental health assessment results (PHQ-9, GAD-7)
+class AssessmentResult {
+  final int? id;
+  final String type; // 'phq9' or 'gad7'
+  final int score;
+  final String status; // e.g., 'Minimal depression', 'Mild anxiety'
+  final Map<int, int> answers; // Question index -> answer value
+  final DateTime createdAt;
+
+  AssessmentResult({
+    this.id,
+    required this.type,
+    required this.score,
+    required this.status,
+    required this.answers,
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
+
+  /// Get display name for the assessment type
+  String get displayType {
+    switch (type) {
+      case 'phq9':
+        return 'Depression';
+      case 'gad7':
+        return 'Anxiety';
+      default:
+        return type;
+    }
+  }
+
+  /// Get color based on score severity
+  Color get statusColor {
+    if (type == 'phq9') {
+      // PHQ-9 thresholds
+      if (score <= 4) return Colors.green;
+      if (score <= 9) return Colors.lightGreen;
+      if (score <= 14) return Colors.amber;
+      if (score <= 19) return Colors.orange;
+      return Colors.red;
+    } else {
+      // GAD-7 thresholds
+      if (score <= 4) return Colors.green;
+      if (score <= 9) return Colors.lightGreen;
+      if (score <= 14) return Colors.amber;
+      return Colors.red;
+    }
+  }
+
+  /// Format the date for display
+  String get formattedDate {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final resultDate = DateTime(createdAt.year, createdAt.month, createdAt.day);
+
+    if (resultDate == today) {
+      return 'Today';
+    } else if (resultDate == yesterday) {
+      return 'Yesterday';
+    } else {
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+      return '${months[createdAt.month - 1]} ${createdAt.day}';
+    }
+  }
+
+  Map<String, dynamic> toMap() {
+    // Convert answers map to a string format: "0:1,1:2,2:0,..."
+    final answersStr = answers.entries
+        .map((e) => '${e.key}:${e.value}')
+        .join(',');
+    return {
+      'id': id,
+      'type': type,
+      'score': score,
+      'status': status,
+      'answers': answersStr,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+
+  factory AssessmentResult.fromMap(Map<String, dynamic> map) {
+    // Parse answers string back to map
+    final answersStr = map['answers'] as String?;
+    final answers = <int, int>{};
+    if (answersStr != null && answersStr.isNotEmpty) {
+      for (final pair in answersStr.split(',')) {
+        final parts = pair.split(':');
+        if (parts.length == 2) {
+          answers[int.parse(parts[0])] = int.parse(parts[1]);
+        }
+      }
+    }
+    return AssessmentResult(
+      id: map['id'] as int?,
+      type: map['type'] as String,
+      score: map['score'] as int,
+      status: map['status'] as String,
+      answers: answers,
+      createdAt: DateTime.parse(map['created_at'] as String),
+    );
+  }
+}
 
 /// Model for chat messages
 class ChatMessage {
@@ -217,7 +334,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -251,6 +368,18 @@ class DatabaseService {
         action_items TEXT,
         risk_status TEXT,
         ethstorage_tx_hash TEXT
+      )
+    ''');
+
+    // Create assessment_results table for PHQ-9 and GAD-7 results
+    await db.execute('''
+      CREATE TABLE assessment_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL,
+        score INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        answers TEXT NOT NULL,
+        created_at TEXT NOT NULL
       )
     ''');
 
@@ -288,6 +417,21 @@ class DatabaseService {
         'ALTER TABLE journal_entries ADD COLUMN ethstorage_tx_hash TEXT',
       );
       debugPrint('DatabaseService: Added ethstorage_tx_hash column');
+    }
+
+    if (oldVersion < 5) {
+      // Create assessment_results table for PHQ-9 and GAD-7 results
+      await db.execute('''
+        CREATE TABLE assessment_results (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          type TEXT NOT NULL,
+          score INTEGER NOT NULL,
+          status TEXT NOT NULL,
+          answers TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        )
+      ''');
+      debugPrint('DatabaseService: Created assessment_results table');
     }
   }
 
@@ -480,6 +624,76 @@ class DatabaseService {
       'DatabaseService: Retrieved ${maps.length} finalized journal entries',
     );
     return maps.map((map) => JournalEntry.fromMap(map)).toList();
+  }
+
+  // ==================== Assessment Result Operations ====================
+
+  /// Insert a new assessment result (PHQ-9 or GAD-7)
+  Future<int> insertAssessmentResult(AssessmentResult result) async {
+    final db = await database;
+    final id = await db.insert('assessment_results', result.toMap());
+    debugPrint('DatabaseService: Inserted assessment result with id $id');
+    return id;
+  }
+
+  /// Get all assessment results, ordered by creation time (newest first)
+  Future<List<AssessmentResult>> getAssessmentResults({String? type}) async {
+    final db = await database;
+    List<Map<String, dynamic>> maps;
+
+    if (type != null) {
+      maps = await db.query(
+        'assessment_results',
+        where: 'type = ?',
+        whereArgs: [type],
+        orderBy: 'created_at DESC',
+      );
+    } else {
+      maps = await db.query('assessment_results', orderBy: 'created_at DESC');
+    }
+
+    debugPrint('DatabaseService: Retrieved ${maps.length} assessment results');
+    return maps.map((map) => AssessmentResult.fromMap(map)).toList();
+  }
+
+  /// Get a specific assessment result by ID
+  Future<AssessmentResult?> getAssessmentResult(int id) async {
+    final db = await database;
+    final maps = await db.query(
+      'assessment_results',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isEmpty) return null;
+    return AssessmentResult.fromMap(maps.first);
+  }
+
+  /// Delete an assessment result
+  Future<int> deleteAssessmentResult(int id) async {
+    final db = await database;
+    final count = await db.delete(
+      'assessment_results',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    debugPrint('DatabaseService: Deleted assessment result $id');
+    return count;
+  }
+
+  /// Get the latest assessment result for a specific type
+  Future<AssessmentResult?> getLatestAssessmentResult(String type) async {
+    final db = await database;
+    final maps = await db.query(
+      'assessment_results',
+      where: 'type = ?',
+      whereArgs: [type],
+      orderBy: 'created_at DESC',
+      limit: 1,
+    );
+
+    if (maps.isEmpty) return null;
+    return AssessmentResult.fromMap(maps.first);
   }
 
   /// Close the database

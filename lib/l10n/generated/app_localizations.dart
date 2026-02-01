@@ -986,17 +986,35 @@ abstract class AppLocalizations {
   /// **'Good morning'**
   String get goodMorning;
 
+  /// Morning greeting with name
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning, {name}'**
+  String goodMorningName(String name);
+
   /// Afternoon greeting
   ///
   /// In en, this message translates to:
   /// **'Good afternoon'**
   String get goodAfternoon;
 
+  /// Afternoon greeting with name
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon, {name}'**
+  String goodAfternoonName(String name);
+
   /// Evening greeting
   ///
   /// In en, this message translates to:
   /// **'Good evening'**
   String get goodEvening;
+
+  /// Evening greeting with name
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening, {name}'**
+  String goodEveningName(String name);
 
   /// Greeting question
   ///
@@ -2377,6 +2395,324 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Protect your privacy with a PIN code'**
   String get protectYourPrivacy;
+
+  /// GAD-7 assessment page title
+  ///
+  /// In en, this message translates to:
+  /// **'GAD-7 Assessment'**
+  String get gad7Assessment;
+
+  /// PHQ-9 assessment page title
+  ///
+  /// In en, this message translates to:
+  /// **'PHQ-9 Assessment'**
+  String get phq9Assessment;
+
+  /// Assessment introduction text
+  ///
+  /// In en, this message translates to:
+  /// **'Over the last two weeks, how often have you been bothered by the following problems?'**
+  String get assessmentIntroText;
+
+  /// Assessment answer option
+  ///
+  /// In en, this message translates to:
+  /// **'Not at all'**
+  String get answerNotAtAll;
+
+  /// Assessment answer option
+  ///
+  /// In en, this message translates to:
+  /// **'Several days'**
+  String get answerSeveralDays;
+
+  /// Assessment answer option
+  ///
+  /// In en, this message translates to:
+  /// **'More than half the days'**
+  String get answerMoreThanHalfDays;
+
+  /// Assessment answer option
+  ///
+  /// In en, this message translates to:
+  /// **'Nearly every day'**
+  String get answerNearlyEveryDay;
+
+  /// See result button
+  ///
+  /// In en, this message translates to:
+  /// **'See Result'**
+  String get seeResult;
+
+  /// GAD-7 question 1
+  ///
+  /// In en, this message translates to:
+  /// **'Feeling nervous, anxious, or on edge'**
+  String get gad7Question1;
+
+  /// GAD-7 question 2
+  ///
+  /// In en, this message translates to:
+  /// **'Not being able to stop or control worrying'**
+  String get gad7Question2;
+
+  /// GAD-7 question 3
+  ///
+  /// In en, this message translates to:
+  /// **'Worrying too much about different things'**
+  String get gad7Question3;
+
+  /// GAD-7 question 4
+  ///
+  /// In en, this message translates to:
+  /// **'Trouble relaxing'**
+  String get gad7Question4;
+
+  /// GAD-7 question 5
+  ///
+  /// In en, this message translates to:
+  /// **'Being so restless that it is hard to sit still'**
+  String get gad7Question5;
+
+  /// GAD-7 question 6
+  ///
+  /// In en, this message translates to:
+  /// **'Becoming easily annoyed or irritable'**
+  String get gad7Question6;
+
+  /// GAD-7 question 7
+  ///
+  /// In en, this message translates to:
+  /// **'Feeling afraid as if something awful might happen'**
+  String get gad7Question7;
+
+  /// PHQ-9 question 1
+  ///
+  /// In en, this message translates to:
+  /// **'Little interest or pleasure in doing things'**
+  String get phq9Question1;
+
+  /// PHQ-9 question 2
+  ///
+  /// In en, this message translates to:
+  /// **'Feeling down, depressed, or hopeless'**
+  String get phq9Question2;
+
+  /// PHQ-9 question 3
+  ///
+  /// In en, this message translates to:
+  /// **'Trouble falling or staying asleep, or sleeping too much'**
+  String get phq9Question3;
+
+  /// PHQ-9 question 4
+  ///
+  /// In en, this message translates to:
+  /// **'Feeling tired or having little energy'**
+  String get phq9Question4;
+
+  /// PHQ-9 question 5
+  ///
+  /// In en, this message translates to:
+  /// **'Poor appetite or overeating'**
+  String get phq9Question5;
+
+  /// PHQ-9 question 6
+  ///
+  /// In en, this message translates to:
+  /// **'Feeling bad about yourself — or that you are a failure or have let yourself or your family down'**
+  String get phq9Question6;
+
+  /// PHQ-9 question 7
+  ///
+  /// In en, this message translates to:
+  /// **'Trouble concentrating on things, such as reading the newspaper or watching television'**
+  String get phq9Question7;
+
+  /// PHQ-9 question 8
+  ///
+  /// In en, this message translates to:
+  /// **'Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual'**
+  String get phq9Question8;
+
+  /// PHQ-9 question 9
+  ///
+  /// In en, this message translates to:
+  /// **'Thoughts that you would be better off dead or of hurting yourself in some way'**
+  String get phq9Question9;
+
+  /// GAD-7 results page title
+  ///
+  /// In en, this message translates to:
+  /// **'GAD-7 Anxiety Assessment'**
+  String get gad7ResultsTitle;
+
+  /// PHQ-9 results page title
+  ///
+  /// In en, this message translates to:
+  /// **'PHQ-9 Depression Assessment'**
+  String get phq9ResultsTitle;
+
+  /// GAD-7 minimal anxiety status
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal anxiety'**
+  String get minimalAnxiety;
+
+  /// GAD-7 mild anxiety status
+  ///
+  /// In en, this message translates to:
+  /// **'Mild anxiety'**
+  String get mildAnxiety;
+
+  /// GAD-7 moderate anxiety status
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate anxiety'**
+  String get moderateAnxiety;
+
+  /// GAD-7 severe anxiety status
+  ///
+  /// In en, this message translates to:
+  /// **'Severe anxiety'**
+  String get severeAnxiety;
+
+  /// PHQ-9 minimal depression status
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal depression'**
+  String get minimalDepression;
+
+  /// PHQ-9 mild depression status
+  ///
+  /// In en, this message translates to:
+  /// **'Mild depression'**
+  String get mildDepression;
+
+  /// PHQ-9 moderate depression status
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate depression'**
+  String get moderateDepression;
+
+  /// PHQ-9 moderately severe depression status
+  ///
+  /// In en, this message translates to:
+  /// **'Moderately severe'**
+  String get moderatelySevereDepression;
+
+  /// PHQ-9 severe depression status
+  ///
+  /// In en, this message translates to:
+  /// **'Severe depression'**
+  String get severeDepression;
+
+  /// GAD-7 minimal anxiety description
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal anxiety. Keep up the good work!'**
+  String get gad7DescMinimal;
+
+  /// GAD-7 mild anxiety description
+  ///
+  /// In en, this message translates to:
+  /// **'Mild anxiety. Consider incorporating relaxation techniques.'**
+  String get gad7DescMild;
+
+  /// GAD-7 moderate anxiety description
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate anxiety. Pay attention to your mental health.'**
+  String get gad7DescModerate;
+
+  /// GAD-7 severe anxiety description
+  ///
+  /// In en, this message translates to:
+  /// **'Severe anxiety. Seeking professional help is recommended.'**
+  String get gad7DescSevere;
+
+  /// PHQ-9 minimal depression description
+  ///
+  /// In en, this message translates to:
+  /// **'Symptoms suggest minimal depression. Continue monitoring your mood.'**
+  String get phq9DescMinimal;
+
+  /// PHQ-9 mild depression description
+  ///
+  /// In en, this message translates to:
+  /// **'Symptoms suggest mild depression. It may be helpful to talk with a counselor.'**
+  String get phq9DescMild;
+
+  /// PHQ-9 moderate depression description
+  ///
+  /// In en, this message translates to:
+  /// **'Symptoms suggest moderate depression. Consider a consultation with a healthcare professional.'**
+  String get phq9DescModerate;
+
+  /// PHQ-9 moderately severe depression description
+  ///
+  /// In en, this message translates to:
+  /// **'Symptoms suggest moderately severe depression. Please reach out to a professional for support.'**
+  String get phq9DescModeratelySevere;
+
+  /// PHQ-9 severe depression description
+  ///
+  /// In en, this message translates to:
+  /// **'Symptoms suggest severe depression. We strongly recommend seeking immediate professional help.'**
+  String get phq9DescSevere;
+
+  /// Next steps section title
+  ///
+  /// In en, this message translates to:
+  /// **'Next Steps'**
+  String get nextSteps;
+
+  /// Recommendation
+  ///
+  /// In en, this message translates to:
+  /// **'Practice mindfulness and meditation'**
+  String get recPracticeMindfulness;
+
+  /// Recommendation
+  ///
+  /// In en, this message translates to:
+  /// **'Engage in regular physical activity'**
+  String get recPhysicalActivity;
+
+  /// Recommendation
+  ///
+  /// In en, this message translates to:
+  /// **'Maintain a healthy sleep schedule'**
+  String get recHealthySleep;
+
+  /// Recommendation
+  ///
+  /// In en, this message translates to:
+  /// **'Talk to trusted friends or family members'**
+  String get recTalkToFriends;
+
+  /// Recommendation
+  ///
+  /// In en, this message translates to:
+  /// **'Maintain a routine for sleep and meals'**
+  String get recMaintainRoutine;
+
+  /// Recommendation
+  ///
+  /// In en, this message translates to:
+  /// **'Set small, achievable daily goals'**
+  String get recSetGoals;
+
+  /// Recommendation
+  ///
+  /// In en, this message translates to:
+  /// **'Stay connected with your support network'**
+  String get recStayConnected;
+
+  /// Urgent recommendation for crisis
+  ///
+  /// In en, this message translates to:
+  /// **'Contact a mental health crisis hotline'**
+  String get recContactCrisisHotline;
 }
 
 class _AppLocalizationsDelegate

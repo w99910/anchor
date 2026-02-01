@@ -1,11 +1,35 @@
 import 'package:flutter/material.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../services/database_service.dart';
 import '../../utils/responsive.dart';
 import 'gad7_assessment_page.dart';
 import 'phq9_assessment_page.dart';
 
-class MentalStatePage extends StatelessWidget {
+class MentalStatePage extends StatefulWidget {
   const MentalStatePage({super.key});
+
+  @override
+  State<MentalStatePage> createState() => _MentalStatePageState();
+}
+
+class _MentalStatePageState extends State<MentalStatePage> {
+  final _databaseService = DatabaseService();
+  List<AssessmentResult> _results = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadResults();
+  }
+
+  Future<void> _loadResults() async {
+    final results = await _databaseService.getAssessmentResults();
+    setState(() {
+      _results = results;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,13 +74,14 @@ class MentalStatePage extends StatelessWidget {
                   emoji: '❤️',
                   title: 'Anxiety check-in',
                   subtitle: 'Understand your current Anxiety state',
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const Gad7AssessmentPage(),
                       ),
                     );
+                    _loadResults(); // Reload results after returning
                   },
                 ),
                 const SizedBox(height: 12),
@@ -64,13 +89,14 @@ class MentalStatePage extends StatelessWidget {
                   emoji: '⚡',
                   title: 'Depression assessment',
                   subtitle: 'Measure your depression levels',
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const Phq9AssessmentPage(),
                       ),
                     );
+                    _loadResults(); // Reload results after returning
                   },
                 ),
 
@@ -84,24 +110,34 @@ class MentalStatePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                _ResultCard(
-                  type: 'Anxiety',
-                  score: 72,
-                  date: 'Jan 25',
-                  status: 'Good',
-                ),
-                _ResultCard(
-                  type: 'Depression',
-                  score: 45,
-                  date: 'Jan 20',
-                  status: 'Moderate',
-                ),
-                _ResultCard(
-                  type: 'Anxiety',
-                  score: 85,
-                  date: 'Jan 15',
-                  status: 'Excellent',
-                ),
+                if (_isLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                else if (_results.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'No assessments yet. Take your first check-in above!',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  )
+                else
+                  ..._results
+                      .take(10)
+                      .map((result) => _ResultCard(result: result)),
               ],
             ),
           ),
@@ -179,23 +215,9 @@ class _AssessmentCard extends StatelessWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  final String type;
-  final int score;
-  final String date;
-  final String status;
+  final AssessmentResult result;
 
-  const _ResultCard({
-    required this.type,
-    required this.score,
-    required this.date,
-    required this.status,
-  });
-
-  Color get _statusColor {
-    if (score >= 70) return Colors.green;
-    if (score >= 50) return Colors.amber;
-    return Colors.orange;
-  }
+  const _ResultCard({required this.result});
 
   @override
   Widget build(BuildContext context) {
@@ -212,15 +234,15 @@ class _ResultCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: _statusColor.withOpacity(0.1),
+              color: result.statusColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
               child: Text(
-                '$score',
+                '${result.score}',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: _statusColor,
+                  color: result.statusColor,
                 ),
               ),
             ),
@@ -231,13 +253,13 @@ class _ResultCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$type check-in',
+                  '${result.displayType} check-in',
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 ),
                 Text(
-                  date,
+                  result.formattedDate,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -248,13 +270,13 @@ class _ResultCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: _statusColor.withOpacity(0.1),
+              color: result.statusColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              status,
+              result.status,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: _statusColor,
+                color: result.statusColor,
                 fontWeight: FontWeight.w600,
               ),
             ),

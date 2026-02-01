@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'gad7_results_page.dart';
 
 class Gad7AssessmentPage extends StatefulWidget {
@@ -11,20 +12,28 @@ class Gad7AssessmentPage extends StatefulWidget {
 class _Gad7AssessmentPageState extends State<Gad7AssessmentPage> {
   final ScrollController _scrollController = ScrollController();
 
-  final List<String> _questions = [
-    'Feeling nervous, anxious, or on edge',
-    'Not being able to stop or control worrying',
-    'Worrying too much about different things',
-    'Trouble relaxing',
-    'Being so restless that it is hard to sit still',
-    'Becoming easily annoyed or irritable',
-    'Feeling afraid as if something awful might happen',
+  List<String> _getQuestions(AppLocalizations l10n) => [
+    l10n.gad7Question1,
+    l10n.gad7Question2,
+    l10n.gad7Question3,
+    l10n.gad7Question4,
+    l10n.gad7Question5,
+    l10n.gad7Question6,
+    l10n.gad7Question7,
+  ];
+
+  List<String> _getAnswerOptions(AppLocalizations l10n) => [
+    l10n.answerNotAtAll,
+    l10n.answerSeveralDays,
+    l10n.answerMoreThanHalfDays,
+    l10n.answerNearlyEveryDay,
   ];
 
   final List<Map<String, dynamic>> _chat = [];
   int _currentQuestionIndex = 0;
   bool _isSubmitting = false;
   bool _showSeeResultButton = false;
+  bool _initialized = false;
 
   void _submitAssessment() {
     final Map<int, int> answers = {
@@ -35,27 +44,25 @@ class _Gad7AssessmentPageState extends State<Gad7AssessmentPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Gad7ResultsPage(
-          answers: answers,
-        ),
+        builder: (context) => Gad7ResultsPage(answers: answers),
       ),
     );
   }
 
-  void _nextStep(int answerIndex) {
+  void _nextStep(int answerIndex, AppLocalizations l10n) {
+    final questions = _getQuestions(l10n);
+    final answers = _getAnswerOptions(l10n);
+
     setState(() {
       _chat.add({
         'isUser': true,
-        'text': ['Not at all', 'Several days', 'More than half the days', 'Nearly every day'][answerIndex],
+        'text': answers[answerIndex],
         'answerIndex': answerIndex,
       });
 
-      if (_currentQuestionIndex < _questions.length - 1) {
+      if (_currentQuestionIndex < questions.length - 1) {
         _currentQuestionIndex++;
-        _chat.add({
-          'isUser': false,
-          'text': _questions[_currentQuestionIndex],
-        });
+        _chat.add({'isUser': false, 'text': questions[_currentQuestionIndex]});
       } else {
         _submitAssessment();
       }
@@ -71,22 +78,25 @@ class _Gad7AssessmentPageState extends State<Gad7AssessmentPage> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    // Initialize chat with the first question
-    _chat.add({
-      'isUser': false,
-      'text': _questions[_currentQuestionIndex],
-    });
+  void _initializeChat(AppLocalizations l10n) {
+    if (_initialized) return;
+    _initialized = true;
+    final questions = _getQuestions(l10n);
+    _chat.add({'isUser': false, 'text': questions[_currentQuestionIndex]});
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final questions = _getQuestions(l10n);
+    final answerOptions = _getAnswerOptions(l10n);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Initialize chat with localized question
+    _initializeChat(l10n);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('GAD-7 Assessment'),
-      ),
+      appBar: AppBar(title: Text(l10n.gad7Assessment)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -95,12 +105,12 @@ class _Gad7AssessmentPageState extends State<Gad7AssessmentPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: Text(
-                'Over the last two weeks, how often have you been bothered by the following problems?',
+                l10n.assessmentIntroText,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold, // Changed from w500 to bold
-                      height: 1.5,
-                      color: Theme.of(context).colorScheme.onBackground,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  height: 1.5,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -112,28 +122,35 @@ class _Gad7AssessmentPageState extends State<Gad7AssessmentPage> {
                 itemCount: _chat.length,
                 itemBuilder: (context, index) {
                   final message = _chat[index];
+                  final isUser = message['isUser'] as bool;
                   return Align(
-                    alignment: message['isUser']
+                    alignment: isUser
                         ? Alignment.centerRight
                         : Alignment.centerLeft,
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: message['isUser']
+                        color: isUser
                             ? Theme.of(context).colorScheme.primary
-                            : Colors.green.shade100,
+                            : isDark
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest
+                            : Theme.of(context).colorScheme.secondaryContainer,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         message['text'],
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: message['isUser']
-                                  ? Colors.white
-                                  : Theme.of(context)
-                                      .colorScheme
-                                      .onSurface,
-                            ),
+                          color: isUser
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : isDark
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.onSecondaryContainer,
+                        ),
                       ),
                     ),
                   );
@@ -142,7 +159,7 @@ class _Gad7AssessmentPageState extends State<Gad7AssessmentPage> {
             ),
 
             // Answer buttons
-            if (_currentQuestionIndex < _questions.length && !_isSubmitting)
+            if (_currentQuestionIndex < questions.length && !_isSubmitting)
               Align(
                 alignment: Alignment.centerRight,
                 child: Column(
@@ -153,16 +170,18 @@ class _Gad7AssessmentPageState extends State<Gad7AssessmentPage> {
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.secondary,
-                          foregroundColor: Colors.white,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.secondary,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onSecondary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: () => _nextStep(index),
-                        child: Text(
-                          ['Not at all', 'Several days', 'More than half the days', 'Nearly every day'][index],
-                        ),
+                        onPressed: () => _nextStep(index, l10n),
+                        child: Text(answerOptions[index]),
                       ),
                     ),
                   ),
@@ -175,7 +194,7 @@ class _Gad7AssessmentPageState extends State<Gad7AssessmentPage> {
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
                   onPressed: _submitAssessment,
-                  child: const Text('See Result'),
+                  child: Text(l10n.seeResult),
                 ),
               ),
 

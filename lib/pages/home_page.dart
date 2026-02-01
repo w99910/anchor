@@ -4,6 +4,7 @@ import '../utils/responsive.dart';
 import '../services/appointment_service.dart';
 import '../services/database_service.dart';
 import '../services/nft_service.dart';
+import '../services/user_info_service.dart';
 import '../main.dart' show appointmentService;
 import 'rewards_page.dart';
 
@@ -339,13 +340,21 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildGreeting(BuildContext context, AppLocalizations l10n) {
     final hour = DateTime.now().hour;
+    final userName = UserInfoService().userName;
+
     String greeting;
     if (hour < 12) {
-      greeting = l10n.goodMorning;
+      greeting = userName != null && userName.isNotEmpty
+          ? l10n.goodMorningName(userName)
+          : l10n.goodMorning;
     } else if (hour < 17) {
-      greeting = l10n.goodAfternoon;
+      greeting = userName != null && userName.isNotEmpty
+          ? l10n.goodAfternoonName(userName)
+          : l10n.goodAfternoon;
     } else {
-      greeting = l10n.goodEvening;
+      greeting = userName != null && userName.isNotEmpty
+          ? l10n.goodEveningName(userName)
+          : l10n.goodEvening;
     }
 
     return Column(

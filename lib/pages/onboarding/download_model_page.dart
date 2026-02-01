@@ -164,31 +164,10 @@ class _DownloadModelPageState extends State<DownloadModelPage> {
 
               const Spacer(flex: 2),
 
-              if (_isSettingUp) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: _setupProgress,
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                    minHeight: 8,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  _selectedChoice == AiModelChoice.onDevice
-                      ? l10n.downloadingModel((_setupProgress * 100).toInt())
-                      : l10n.settingUp((_setupProgress * 100).toInt()),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ] else ...[
-                FilledButton(
-                  onPressed: _selectedChoice != null ? _continue : null,
-                  child: Text(l10n.continueText),
-                ),
-              ],
+              FilledButton(
+                onPressed: _selectedChoice != null ? _continue : null,
+                child: Text(l10n.continueText),
+              ),
 
               const SizedBox(height: 32),
             ],

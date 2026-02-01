@@ -153,14 +153,18 @@ class _CreateJournalPageState extends State<CreateJournalPage> {
           builder: (context, snapshot) {
             final isDownloaded = snapshot.data ?? false;
             // AI is available if: cloud provider is configured OR on-device model is ready/downloaded
+            // Also available as fallback: on-device selected but Gemini is configured
             final isCloudReady =
                 _aiSettings.isCloudProvider && _geminiService.isConfigured;
+            final isOnDeviceReady = _llmService.hasRealAI || isDownloaded;
+            final canFallbackToGemini =
+                !isOnDeviceReady && _geminiService.isConfigured;
             final isAiAvailable =
-                isCloudReady || _llmService.hasRealAI || isDownloaded;
+                isCloudReady || isOnDeviceReady || canFallbackToGemini;
             return _SaveOptionsSheet(
               isEditing: _isEditing,
               isAiAvailable: isAiAvailable,
-              isCloudProvider: isCloudReady,
+              isCloudProvider: isCloudReady || canFallbackToGemini,
               onSaveDraft: _saveDraftAndClose,
               onFinalize: _finalizeWithAI,
             );
@@ -259,9 +263,17 @@ class _CreateJournalPageState extends State<CreateJournalPage> {
           );
           analysisResult = await _analyzeJournalEntry(content);
         } else {
-          debugPrint(
-            'AI not available - backend: ${_llmService.activeBackend}, status: ${_llmService.status}',
-          );
+          // Fallback to Gemini if on-device model not available but Gemini is configured
+          if (_geminiService.isConfigured) {
+            debugPrint(
+              'On-device AI not available, falling back to Gemini cloud',
+            );
+            analysisResult = await _analyzeJournalEntryWithGemini(content);
+          } else {
+            debugPrint(
+              'AI not available - backend: ${_llmService.activeBackend}, status: ${_llmService.status}',
+            );
+          }
         }
       }
 
